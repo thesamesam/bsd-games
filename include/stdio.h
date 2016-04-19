@@ -34,6 +34,10 @@
 #include <bsd-games.h>
 #include_next <stdio.h>
 
+__BEGIN_DECLS
+
 #ifndef HAVE_fgetln
 extern char *fgetln(FILE *stream, size_t *len);
 #endif
+
+__END_DECLS
