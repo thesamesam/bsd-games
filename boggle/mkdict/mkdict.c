@@ -1,4 +1,3 @@
-/* $NetBSD: mkdict.c,v 1.9 2003/08/07 09:37:06 agc Exp $ */
 
 /*-
  * Copyright (c) 1993
@@ -31,18 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#ifndef lint
-static const char copyright[] __attribute__((__unused__)) =
-    "@(#) Copyright (c) 1993\n\
-	The Regents of the University of California.  All rights reserved.\n";
-#if 0
-static char sccsid[] = "@(#)mkdict.c	8.1 (Berkeley) 6/11/93";
-#else
-static const char rcsid[] __attribute__((__unused__)) = 
-    "$NetBSD: mkdict.c,v 1.9 2003/08/07 09:37:06 agc Exp $";
-#endif
-#endif /* not lint */
 
 /*
  * Filter out words that:

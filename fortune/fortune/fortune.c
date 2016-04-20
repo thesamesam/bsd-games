@@ -1,4 +1,3 @@
-/*	$NetBSD: fortune.c,v 1.44 2004/11/05 21:30:32 dsl Exp $	*/
 
 /*-
  * Copyright (c) 1986, 1993
@@ -31,20 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1986, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)fortune.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: fortune.c,v 1.44 2004/11/05 21:30:32 dsl Exp $");
-#endif
-#endif /* not lint */
 
 # include	<sys/param.h>
 # include	<sys/stat.h>
@@ -1402,7 +1387,7 @@ void
 usage()
 {
 
-	(void) fprintf(stderr, "Usage: %s [-ae", getprogname());
+	(void) fprintf(stderr, "Usage: fortune [-ae");
 #ifdef	DEBUG
 	(void) fprintf(stderr, "D");
 #endif	/* DEBUG */

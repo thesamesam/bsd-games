@@ -1,4 +1,3 @@
-/*	$NetBSD: player.h,v 1.11 2003/08/07 09:37:44 agc Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993

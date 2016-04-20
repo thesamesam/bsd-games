@@ -1,4 +1,3 @@
-/*	$NetBSD: bog.c,v 1.19 2004/11/05 21:30:31 dsl Exp $	*/
 
 /*-
  * Copyright (c) 1993
@@ -31,20 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)bog.c	8.2 (Berkeley) 5/4/95";
-#else
-__RCSID("$NetBSD: bog.c,v 1.19 2004/11/05 21:30:31 dsl Exp $");
-#endif
-#endif /* not lint */
 
 #include <ctype.h>
 #include <err.h>

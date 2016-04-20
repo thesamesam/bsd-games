@@ -1,4 +1,3 @@
-/*	$NetBSD: roll.c,v 1.7 2003/08/07 09:37:26 agc Exp $	*/
 
 /*
  * Copyright (c) 1982, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)roll.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: roll.c,v 1.7 2003/08/07 09:37:26 agc Exp $");
-#endif
-#endif /* not lint */
 
 # include	"mille.h"
 

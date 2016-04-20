@@ -1,4 +1,3 @@
-/*	$NetBSD: screen.c,v screen.c,v 1.19 2004/01/27 20:30:30 jsm Exp $	*/
 /* For Linux: still using old termcap interface from version 1.13.  */
 
 /*-
@@ -287,7 +286,7 @@ scr_set()
 		stop("tcgetattr() fails");
 	newtt = oldtt;
 	newtt.c_lflag &= ~(ICANON|ECHO);
-	newtt.c_oflag &= ~OXTABS;
+	newtt.c_oflag &= ~XTABS;
 	newtt.c_cc[VMIN] = 1;
 	newtt.c_cc[VTIME] = 0;
 	if (tcsetattr(0, TCSADRAIN, &newtt) < 0)

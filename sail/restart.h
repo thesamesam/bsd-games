@@ -1,4 +1,3 @@
-/*	$NetBSD: restart.h,v 1.2 2001/01/04 05:06:15 jwise Exp $	*/
 
 /*-
  * Copyright (c) 2001 The NetBSD Foundation, Inc.

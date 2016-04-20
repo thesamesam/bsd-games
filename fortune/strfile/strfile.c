@@ -1,4 +1,3 @@
-/*	$NetBSD: strfile.c,v 1.22 2003/08/07 09:37:14 agc Exp $	*/
 
 /*-
  * Copyright (c) 1989, 1993
@@ -31,22 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#if 1
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1989, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)strfile.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: strfile.c,v 1.22 2003/08/07 09:37:14 agc Exp $");
-#endif
-#endif /* not lint */
-#endif /* __NetBSD__ */
 
 # include	<sys/types.h>
 # include	<sys/param.h>

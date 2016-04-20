@@ -1,4 +1,3 @@
-/*	$NetBSD: board.cc,v 1.1 2003/12/27 01:16:55 christos Exp $	*/
 
 /*-
  * Copyright (c) 2003 The NetBSD Foundation, Inc.
@@ -40,7 +39,6 @@
  * board.C: Board manipulations
  */
 #include "defs.h"
-RCSID("$NetBSD: board.cc,v 1.1 2003/12/27 01:16:55 christos Exp $")
 
 #include <stdio.h>
 #include <string.h>

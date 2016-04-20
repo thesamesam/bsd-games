@@ -1,4 +1,3 @@
-/*	$NetBSD: gomoku.h,v 1.10 2004/01/27 20:30:29 jsm Exp $	*/
 
 /*
  * Copyright (c) 1994
@@ -35,7 +34,7 @@
  */
 
 #include <sys/types.h>
-#include <sys/endian.h>
+#include <endian.h>
 #include <stdio.h>
 
 /* board dimensions */

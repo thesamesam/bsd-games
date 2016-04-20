@@ -1,4 +1,3 @@
-/*	$NetBSD: hit.c,v 1.7 2003/08/07 09:37:37 agc Exp $	*/
 
 /*
  * Copyright (c) 1988, 1993
@@ -31,15 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)hit.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: hit.c,v 1.7 2003/08/07 09:37:37 agc Exp $");
-#endif
-#endif /* not lint */
 
 /*
  * hit.c

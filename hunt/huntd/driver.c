@@ -1,4 +1,3 @@
-/*	$NetBSD: driver.c,v 1.10 2004/01/27 20:30:29 jsm Exp $	*/
 /*
  * Copyright (c) 1983-2003, Regents of the University of California.
  * All rights reserved.
@@ -29,11 +28,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__RCSID("$NetBSD: driver.c,v 1.10 2004/01/27 20:30:29 jsm Exp $");
-#endif /* not lint */
 
 # include	<sys/ioctl.h>
 # include	<sys/stat.h>
@@ -132,7 +126,7 @@ erred:
 again:
 	do {
 		errno = 0;
-		while (poll(fdset, 3+MAXPL+MAXMON, INFTIM) < 0)
+		while (poll(fdset, 3+MAXPL+MAXMON, -1) < 0)
 		{
 			if (errno != EINTR)
 # ifdef LOG

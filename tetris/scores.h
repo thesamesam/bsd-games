@@ -1,4 +1,3 @@
-/*	$NetBSD: scores.h,v 1.4 2004/01/27 20:30:30 jsm Exp $	*/
 
 /*-
  * Copyright (c) 1992, 1993

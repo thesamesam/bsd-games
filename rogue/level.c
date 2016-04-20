@@ -1,4 +1,3 @@
-/*	$NetBSD: level.c,v 1.7 2003/08/07 09:37:38 agc Exp $	*/
 
 /*
  * Copyright (c) 1988, 1993
@@ -31,15 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)level.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: level.c,v 1.7 2003/08/07 09:37:38 agc Exp $");
-#endif
-#endif /* not lint */
 
 /*
  * level.c

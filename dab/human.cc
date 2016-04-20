@@ -1,4 +1,3 @@
-/*	$NetBSD: human.cc,v 1.1 2003/12/27 01:16:55 christos Exp $	*/
 
 /*-
  * Copyright (c) 2003 The NetBSD Foundation, Inc.
@@ -40,7 +39,6 @@
  * human.C: Human interface for dots, using rogue-like keys.
  */
 #include "defs.h"
-RCSID("$NetBSD: human.cc,v 1.1 2003/12/27 01:16:55 christos Exp $")
 
 #include "human.h"
 #include "board.h"

@@ -1,4 +1,3 @@
-/*	$NetBSD: input.c,v 1.17 2005/02/15 12:56:20 jsm Exp $	*/
 
 /*-
  * Copyright (c) 1990, 1993
@@ -40,15 +39,6 @@
  *
  * For more info on this and all of my stuff, mail edjames@berkeley.edu.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)input.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: input.c,v 1.17 2005/02/15 12:56:20 jsm Exp $");
-#endif
-#endif /* not lint */
 
 #include "include.h"
 #include "pathnames.h"

@@ -1,4 +1,3 @@
-/*	$NetBSD: bdisp.c,v 1.8 2003/08/07 09:37:16 agc Exp $	*/
 
 /*
  * Copyright (c) 1994
@@ -31,15 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)bdisp.c	8.2 (Berkeley) 5/3/95";
-#else
-__RCSID("$NetBSD: bdisp.c,v 1.8 2003/08/07 09:37:16 agc Exp $");
-#endif
-#endif /* not lint */
 
 #include <curses.h>
 #include <string.h>

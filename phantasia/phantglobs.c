@@ -1,4 +1,3 @@
-/*	$NetBSD: phantglobs.c,v 1.5 1999/09/08 21:17:54 jsm Exp $	*/
 
 /*
  * phantglobs.c - globals for Phantasia

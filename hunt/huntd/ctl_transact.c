@@ -1,4 +1,3 @@
-/*	$NetBSD: ctl_transact.c,v 1.6 2003/06/11 12:00:22 wiz Exp $	*/
 /*
  * Copyright (c) 1983-2003, Regents of the University of California.
  * All rights reserved.
@@ -33,15 +32,6 @@
 #include "bsd.h"
 
 #if	defined(TALK_43) || defined(TALK_42)
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)ctl_transact.c	5.2 (Berkeley) 3/13/86";
-#else
-__RCSID("$NetBSD: ctl_transact.c,v 1.6 2003/06/11 12:00:22 wiz Exp $");
-#endif
-#endif /* not lint */
 
 #include <sys/time.h>
 #include <unistd.h>

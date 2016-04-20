@@ -1,4 +1,3 @@
-/*	$NetBSD: hangman.h,v 1.13 2004/01/27 20:30:29 jsm Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993

@@ -1,4 +1,3 @@
-/*	$NetBSD: primes.c,v 1.12 2004/01/27 20:30:30 jsm Exp $	*/
 
 /*
  * Copyright (c) 1989, 1993
@@ -31,20 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1989, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)primes.c	8.5 (Berkeley) 5/10/95";
-#else
-__RCSID("$NetBSD: primes.c,v 1.12 2004/01/27 20:30:30 jsm Exp $");
-#endif
-#endif /* not lint */
 
 /*
  * primes - generate a table of primes between two values

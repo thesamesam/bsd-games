@@ -1,4 +1,3 @@
-/*	$NetBSD: bdinit.c,v 1.5 2003/08/07 09:37:15 agc Exp $	*/
 
 /*
  * Copyright (c) 1994
@@ -31,15 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "from: @(#)bdinit.c	8.2 (Berkeley) 5/3/95";
-#else
-__RCSID("$NetBSD: bdinit.c,v 1.5 2003/08/07 09:37:15 agc Exp $");
-#endif
-#endif /* not lint */
 
 #include <string.h>
 #include "gomoku.h"

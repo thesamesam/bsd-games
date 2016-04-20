@@ -1,4 +1,3 @@
-/*	$NetBSD: move.c,v 1.12 2004/08/27 09:07:08 christos Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993
@@ -29,18 +28,12 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)move.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: move.c,v 1.12 2004/08/27 09:07:08 christos Exp $");
-#endif
-#endif /* not lint */
-
 #include "robots.h"
 
 # define	ESC	'\033'
+#ifndef CTRL
+    #define CTRL(x)	((x) & 037)
+#endif
 
 /*
  * get_move:

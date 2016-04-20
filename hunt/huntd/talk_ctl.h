@@ -1,4 +1,3 @@
-/*	$NetBSD: talk_ctl.h,v 1.6 2004/01/27 20:30:29 jsm Exp $	*/
 
 /*
  * Copyright (c) 1983-2003, Regents of the University of California.

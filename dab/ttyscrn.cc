@@ -1,4 +1,3 @@
-/*	$NetBSD: ttyscrn.cc,v 1.2 2003/12/27 18:24:51 martin Exp $	*/
 
 /*-
  * Copyright (c) 2003 The NetBSD Foundation, Inc.
@@ -41,7 +40,6 @@
  */
 
 #include "defs.h"
-RCSID("$NetBSD: ttyscrn.cc,v 1.2 2003/12/27 18:24:51 martin Exp $")
 
 #include <stdio.h>
 #include <curses.h>

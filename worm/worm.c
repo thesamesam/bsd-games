@@ -1,4 +1,3 @@
-/*	$NetBSD: worm.c,v 1.25 2004/01/27 20:30:31 jsm Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993
@@ -28,20 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1980, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)worm.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: worm.c,v 1.25 2004/01/27 20:30:31 jsm Exp $");
-#endif
-#endif /* not lint */
 
 /*
  * Worm.  Written by Michael Toy

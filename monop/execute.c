@@ -1,4 +1,3 @@
-/*	$NetBSD: execute.c,v 1.11 2004/01/27 20:30:30 jsm Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)execute.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: execute.c,v 1.11 2004/01/27 20:30:30 jsm Exp $");
-#endif
-#endif /* not lint */
 
 #include "monop.ext"
 #include <fcntl.h>

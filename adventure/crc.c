@@ -1,4 +1,3 @@
-/*	$NetBSD: crc.c,v 1.8 2003/08/07 09:36:50 agc Exp $	*/
 
 /*-
  * Copyright (c) 1993
@@ -31,16 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)crc.c	8.1 (Berkeley) 5/31/93";
-static char ORIGINAL_sccsid[] = "@(#)crc.c	5.2 (Berkeley) 4/4/91";
-#else
-__RCSID("$NetBSD: crc.c,v 1.8 2003/08/07 09:36:50 agc Exp $");
-#endif
-#endif /* not lint */
 
 #include "extern.h"
 

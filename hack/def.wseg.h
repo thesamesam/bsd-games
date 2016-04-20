@@ -1,4 +1,3 @@
-/*	$NetBSD: def.wseg.h,v 1.5 2003/04/02 18:36:35 jsm Exp $	*/
 
 /*
  * Copyright (c) 1985, Stichting Centrum voor Wiskunde en Informatica,

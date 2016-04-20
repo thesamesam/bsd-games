@@ -1,4 +1,3 @@
-/*	$NetBSD: hack.do_name.c,v 1.6 2003/04/02 18:36:36 jsm Exp $	*/
 
 /*
  * Copyright (c) 1985, Stichting Centrum voor Wiskunde en Informatica,
@@ -60,11 +59,6 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__RCSID("$NetBSD: hack.do_name.c,v 1.6 2003/04/02 18:36:36 jsm Exp $");
-#endif				/* not lint */
 
 #include <stdlib.h>
 #include "hack.h"

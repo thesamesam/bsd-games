@@ -1,4 +1,3 @@
-/*	$NetBSD: mach.c,v 1.14 2004/11/05 21:30:31 dsl Exp $	*/
 
 /*-
  * Copyright (c) 1993
@@ -31,15 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)mach.c	8.1 (Berkeley) 6/11/93";
-#else
-__RCSID("$NetBSD: mach.c,v 1.14 2004/11/05 21:30:31 dsl Exp $");
-#endif
-#endif /* not lint */
 
 /*
  * Terminal interface

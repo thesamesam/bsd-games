@@ -1,4 +1,3 @@
-/*	$NetBSD: save.c,v 1.10 2003/08/07 09:36:57 agc Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)save.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: save.c,v 1.10 2003/08/07 09:36:57 agc Exp $");
-#endif
-#endif /* not lint */
 
 #include <errno.h>
 

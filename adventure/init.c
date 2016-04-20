@@ -1,4 +1,3 @@
-/*	$NetBSD: init.c,v 1.14 2003/08/07 09:36:50 agc Exp $	*/
 
 /*-
  * Copyright (c) 1993
@@ -33,15 +32,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)init.c	8.1 (Berkeley) 6/2/93";
-#else
-__RCSID("$NetBSD: init.c,v 1.14 2003/08/07 09:36:50 agc Exp $");
-#endif
-#endif /* not lint */
 
 /*      Re-coding of advent in C: data initialization */
 

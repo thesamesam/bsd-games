@@ -1,4 +1,3 @@
-/*	$NetBSD: tunable.h,v 1.4 2003/08/07 09:36:55 agc Exp $	*/
 
 /*-
  * Copyright (c) 1990, 1993

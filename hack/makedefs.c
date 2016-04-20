@@ -1,4 +1,3 @@
-/* $NetBSD: makedefs.c,v 1.8 2003/04/02 18:36:42 jsm Exp $ */
 
 /*
  * Copyright (c) 1985, Stichting Centrum voor Wiskunde en Informatica,
@@ -60,11 +59,6 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-#ifndef lint
-static const char rcsid[] __attribute__((__unused__)) =
-    "$NetBSD: makedefs.c,v 1.8 2003/04/02 18:36:42 jsm Exp $";
-#endif				/* not lint */
 
 #include <stdio.h>
 #include <stdlib.h>

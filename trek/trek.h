@@ -1,4 +1,3 @@
-/*	$NetBSD: trek.h,v 1.11 2005/02/15 12:54:50 jsm Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993

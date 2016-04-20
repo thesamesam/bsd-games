@@ -1,4 +1,3 @@
-/*	$NetBSD: quiz.c,v 1.20 2004/01/27 20:30:30 jsm Exp $	*/
 
 /*-
  * Copyright (c) 1991, 1993
@@ -33,22 +32,7 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1991, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)quiz.c	8.3 (Berkeley) 5/4/95";
-#else
-__RCSID("$NetBSD: quiz.c,v 1.20 2004/01/27 20:30:30 jsm Exp $");
-#endif
-#endif /* not lint */
-
 #include <sys/types.h>
-
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -125,8 +109,8 @@ get_file(file)
 {
 	FILE *fp;
 	QE *qp;
-	size_t len;
-	char *lp;
+	size_t len = 0;
+	char *lp = NULL;
 
 	if ((fp = fopen(file, "r")) == NULL)
 		err(1, "%s", file);
@@ -138,7 +122,7 @@ get_file(file)
 	 */
 	qp = &qlist;
 	qsize = 0;
-	while ((lp = fgetln(fp, &len)) != NULL) {
+	while (0 <= getline (&lp, &len, fp) && lp) {
 		if (lp[len - 1] == '\n')
 			lp[--len] = '\0';
 		if (qp->q_text && qp->q_text[strlen(qp->q_text) - 1] == '\\')
@@ -155,8 +139,11 @@ get_file(file)
 			qp->q_next = NULL;
 			++qsize;
 		}
+		free (lp);
+		lp = NULL;
+		len = 0;
 	}
-	(void)fclose(fp);
+	fclose (fp);
 }
 
 void
@@ -230,10 +217,10 @@ quiz()
 {
 	QE *qp;
 	int i;
-	size_t len;
+	size_t len = 0;
 	u_int guesses, rights, wrongs;
 	int next;
-	char *answer, *t, question[LINE_SZ];
+	char *answer = NULL, *t, question[LINE_SZ];
 	const char *s;
 
 	srandom(time(NULL));
@@ -282,8 +269,12 @@ quiz()
 		qp->q_asked = TRUE;
 		(void)printf("%s?\n", question);
 		for (;; ++guesses) {
-			if ((answer = fgetln(stdin, &len)) == NULL ||
-			    answer[len - 1] != '\n') {
+			if (answer) {
+				free (answer);
+				answer = NULL;
+				len = 0;
+			}
+			if (0 > getline (&answer, &len, stdin) || !answer || !len || answer[len - 1] != '\n') {
 				score(rights, wrongs, guesses);
 				exit(0);
 			}

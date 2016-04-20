@@ -1,4 +1,3 @@
-/*	$NetBSD: main.c,v 1.21 2005/02/15 12:56:20 jsm Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993
@@ -29,22 +28,7 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1980, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)main.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: main.c,v 1.21 2005/02/15 12:56:20 jsm Exp $");
-#endif
-#endif				/* not lint */
-
 #include <time.h>
-
 #include "back.h"
 #include "backlocal.h"
 
@@ -129,8 +113,8 @@ main(argc, argv)
 		getarg(&argv);
 	args[acnt] = '\0';
 	if (tflag) {		/* clear screen */
-		noech.c_oflag &= ~(ONLCR | OXTABS);
-		bg_raw.c_oflag &= ~(ONLCR | OXTABS);
+		noech.c_oflag &= ~(ONLCR | XTABS);
+		bg_raw.c_oflag &= ~(ONLCR | XTABS);
 		clear();
 	}
 	fixtty(&bg_raw);		/* go into raw mode */

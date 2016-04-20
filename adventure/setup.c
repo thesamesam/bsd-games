@@ -1,4 +1,3 @@
-/* $NetBSD: setup.c,v 1.10 2003/08/07 09:36:51 agc Exp $ */
 
 /*-
  * Copyright (c) 1991, 1993
@@ -31,17 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#ifndef lint
-static const char copyright[] __attribute__((__unused__)) = "@(#) Copyright (c) 1991, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n";
-
-#if 0
-static char sccsid[] = "@(#)setup.c	8.1 (Berkeley) 5/31/93";
-#else
-static const char rcsid[] __attribute__((__unused__)) = "$NetBSD: setup.c,v 1.10 2003/08/07 09:36:51 agc Exp $";
-#endif
-#endif				/* not lint */
 
 /*
  * Setup: keep the structure of the original Adventure port, but use an

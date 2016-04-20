@@ -1,4 +1,3 @@
-/*	$NetBSD: utmpentry.c,v 1.5 2004/10/22 15:50:47 christos Exp $	*/
 
 /*-
  * Copyright (c) 2002 The NetBSD Foundation, Inc.
@@ -35,11 +34,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__RCSID("$NetBSD: utmpentry.c,v 1.5 2004/10/22 15:50:47 christos Exp $");
-#endif
 
 #include <sys/stat.h>
 

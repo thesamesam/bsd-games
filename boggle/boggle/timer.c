@@ -1,4 +1,3 @@
-/*	$NetBSD: timer.c,v 1.9 2004/01/27 20:30:29 jsm Exp $	*/
 
 /*-
  * Copyright (c) 1993
@@ -31,15 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)timer.c	8.2 (Berkeley) 2/22/94";
-#else
-__RCSID("$NetBSD: timer.c,v 1.9 2004/01/27 20:30:29 jsm Exp $");
-#endif
-#endif /* not lint */
 
 #include <sys/param.h>
 #include <sys/time.h>

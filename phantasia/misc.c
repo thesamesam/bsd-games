@@ -1,4 +1,3 @@
-/*	$NetBSD: misc.c,v 1.14 2005/02/15 12:58:21 jsm Exp $	*/
 
 /*
  * misc.c  Phantasia miscellaneous support routines

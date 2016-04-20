@@ -1,4 +1,3 @@
-/*	$NetBSD: prtable.c,v 1.8 2004/01/27 20:30:29 jsm Exp $	*/
 
 /*-
  * Copyright (c) 1993
@@ -34,13 +33,7 @@
  *	@(#)prtable.c	8.1 (Berkeley) 6/11/93
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-__RCSID("$NetBSD: prtable.c,v 1.8 2004/01/27 20:30:29 jsm Exp $");
-#endif /* not lint */
-
 #include <curses.h>
-
 #include "extern.h"
 
 #define NCOLS	5

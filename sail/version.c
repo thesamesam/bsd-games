@@ -1,4 +1,3 @@
-/*	$NetBSD: version.c,v 1.5 2003/08/07 09:37:45 agc Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993
@@ -28,14 +27,5 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)version.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: version.c,v 1.5 2003/08/07 09:37:45 agc Exp $");
-#endif
-#endif /* not lint */
 
 char version[] = "Wooden Ships and Iron Men, Version 8.1 (93/05/31)";

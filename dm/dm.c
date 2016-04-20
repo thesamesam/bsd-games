@@ -1,4 +1,3 @@
-/*	$NetBSD: dm.c,v 1.21 2004/11/05 21:30:32 dsl Exp $	*/
 
 /*
  * Copyright (c) 1987, 1993
@@ -29,20 +28,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1987, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)dm.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: dm.c,v 1.21 2004/11/05 21:30:32 dsl Exp $");
-#endif
-#endif /* not lint */
-
 #include <sys/param.h>
 #include <sys/file.h>
 #include <sys/time.h>
@@ -70,7 +55,6 @@ void	c_day(const char *, const char *, const char *);
 void	c_game(const char *, const char  *, const char *, const char *);
 void	c_tty(const char *);
 const char *hour(int);
-double	load(void);
 int	main(int, char *[]);
 void	nogamefile(void);
 void	play(char **) __attribute__((__noreturn__));
@@ -212,7 +196,7 @@ c_tty(tty)
  */
 void
 c_game(s_game, s_load, s_users, s_priority)
-	const char *s_game, *s_load, *s_users, *s_priority;
+	const char *s_game, *s_load __attribute__((unused)), *s_users, *s_priority;
 {
 	static int found;
 
@@ -221,26 +205,10 @@ c_game(s_game, s_load, s_users, s_priority)
 	if (strcmp(game, s_game) && strcasecmp("default", s_game))
 		return;
 	++found;
-	if (isdigit((unsigned char)*s_load) && atoi(s_load) < load())
-		errx(0, "Sorry, the load average is too high right now.");
 	if (isdigit((unsigned char)*s_users) && atoi(s_users) <= users())
 		errx(0, "Sorry, there are too many users logged on right now.");
 	if (isdigit((unsigned char)*s_priority))
 		priority = atoi(s_priority);
-}
-
-/*
- * load --
- *	return 15 minute load average
- */
-double
-load()
-{
-	double avenrun[3];
-
-	if (getloadavg(avenrun, sizeof(avenrun)/sizeof(avenrun[0])) < 0)
-		err(1, "getloadavg() failed");
-	return (avenrun[2]);
 }
 
 /*

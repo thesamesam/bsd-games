@@ -1,4 +1,3 @@
-/*	$NetBSD: save.c,v 1.9 2003/08/07 09:37:40 agc Exp $	*/
 
 /*
  * Copyright (c) 1988, 1993
@@ -31,15 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)save.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: save.c,v 1.9 2003/08/07 09:37:40 agc Exp $");
-#endif
-#endif /* not lint */
 
 /*
  * save.c
@@ -175,7 +165,7 @@ restore(fname)
 	r_read(fp, (char *) &max_level, sizeof(max_level));
 	read_string(hunger_str, fp, sizeof hunger_str);
 
-	(void) strlcpy(tbuf, login_name, sizeof tbuf);
+	snprintf (tbuf, sizeof tbuf, "%s", login_name);
 	read_string(login_name, fp, sizeof login_name);
 	if (strcmp(tbuf, login_name)) {
 		clean_up("you're not the original player");

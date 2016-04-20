@@ -1,4 +1,3 @@
-/*	$NetBSD: deck.h,v 1.6 2003/08/07 09:37:27 agc Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993

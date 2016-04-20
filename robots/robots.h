@@ -1,4 +1,3 @@
-/*	$NetBSD: robots.h,v 1.18 2004/01/27 20:30:30 jsm Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993
@@ -32,7 +31,6 @@
  */
 
 # include	<sys/ttydefaults.h>
-# include	<sys/endian.h>
 # include	<ctype.h>
 # include	<curses.h>
 # include	<err.h>

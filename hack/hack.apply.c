@@ -1,4 +1,3 @@
-/*	$NetBSD: hack.apply.c,v 1.8 2004/01/27 20:30:29 jsm Exp $	*/
 
 /*
  * Copyright (c) 1985, Stichting Centrum voor Wiskunde en Informatica,
@@ -60,11 +59,6 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__RCSID("$NetBSD: hack.apply.c,v 1.8 2004/01/27 20:30:29 jsm Exp $");
-#endif				/* not lint */
 
 #include	"hack.h"
 #include	"extern.h"

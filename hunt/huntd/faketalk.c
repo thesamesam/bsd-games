@@ -1,4 +1,3 @@
-/*	$NetBSD: faketalk.c,v 1.10 2004/02/08 22:23:50 jsm Exp $	*/
 /*
  * Copyright (c) 1983-2003, Regents of the University of California.
  * All rights reserved.
@@ -29,11 +28,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__RCSID("$NetBSD: faketalk.c,v 1.10 2004/02/08 22:23:50 jsm Exp $");
-#endif /* not lint */
 
 #include "bsd.h"
 #include "hunt.h"

@@ -1,4 +1,3 @@
-/*	$NetBSD: primes.h,v 1.5 2003/08/07 09:37:34 agc Exp $	*/
 
 /*
  * Copyright (c) 1989, 1993

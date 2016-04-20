@@ -1,4 +1,3 @@
-/*	$NetBSD: bcd.c,v 1.13 2004/01/27 20:30:29 jsm Exp $	*/
 
 /*
  * Copyright (c) 1989, 1993
@@ -32,20 +31,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1989, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)bcd.c	8.2 (Berkeley) 3/20/94";
-#else
-__RCSID("$NetBSD: bcd.c,v 1.13 2004/01/27 20:30:29 jsm Exp $");
-#endif
-#endif /* not lint */
-
 /*
  * bcd --
  *
@@ -77,7 +62,6 @@ __RCSID("$NetBSD: bcd.c,v 1.13 2004/01/27 20:30:29 jsm Exp $");
  */
 
 #include <sys/types.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

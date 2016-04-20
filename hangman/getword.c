@@ -1,4 +1,3 @@
-/*	$NetBSD: getword.c,v 1.9 2004/11/05 21:30:32 dsl Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)getword.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: getword.c,v 1.9 2004/11/05 21:30:32 dsl Exp $");
-#endif
-#endif /* not lint */
 
 #include "hangman.h"
 

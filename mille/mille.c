@@ -1,4 +1,3 @@
-/*	$NetBSD: mille.c,v 1.13 2003/08/07 09:37:25 agc Exp $	*/
 
 /*
  * Copyright (c) 1982, 1993
@@ -29,22 +28,8 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1982, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)mille.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: mille.c,v 1.13 2003/08/07 09:37:25 agc Exp $");
-#endif
-#endif /* not lint */
-
-# include	"mille.h"
-# include	<signal.h>
+#include "mille.h"
+#include <signal.h>
 
 /*
  * @(#)mille.c	1.3 (Berkeley) 5/10/83

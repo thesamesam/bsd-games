@@ -1,4 +1,3 @@
-/*	$NetBSD: bsd.h,v 1.4 2003/06/11 12:00:22 wiz Exp $	*/
 
 /*
  * Copyright (c) 1983-2003, Regents of the University of California.

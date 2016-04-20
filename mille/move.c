@@ -1,4 +1,3 @@
-/*	$NetBSD: move.c,v 1.15 2004/11/05 21:30:32 dsl Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993
@@ -29,21 +28,10 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)move.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: move.c,v 1.15 2004/11/05 21:30:32 dsl Exp $");
-#endif
-#endif /* not lint */
-
 #include <termios.h>
-
 #ifdef DEBUG
 #include <sys/param.h>
 #endif
-
 #include	"mille.h"
 #ifndef	unctrl
 #include	"unctrl.h"

@@ -1,4 +1,3 @@
-/*	$NetBSD: playit.c,v 1.8 2004/01/27 20:30:29 jsm Exp $	*/
 /*
  * Copyright (c) 1983-2003, Regents of the University of California.
  * All rights reserved.
@@ -30,11 +29,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-__RCSID("$NetBSD: playit.c,v 1.8 2004/01/27 20:30:29 jsm Exp $");
-#endif /* not lint */
-
 # include	<sys/file.h>
 # include	<sys/poll.h>
 # include	<err.h>
@@ -53,6 +47,9 @@ __RCSID("$NetBSD: playit.c,v 1.8 2004/01/27 20:30:29 jsm Exp $");
 # define	FREAD	1
 # endif
 
+# ifndef	CTRL
+# define	CTRL(x)		((x) & 037)
+# endif
 # if !defined(USE_CURSES) || !defined(TERMINFO)
 # define	beep()		(void) putchar(CTRL('G'))
 # endif
@@ -255,7 +252,7 @@ getchr()
 one_more_time:
 	do {
 		errno = 0;
-		nfds = poll(set, 2, INFTIM);
+		nfds = poll(set, 2, -1);
 	} while (nfds <= 0 && errno == EINTR);
 
 	if (set[1].revents && POLLIN)

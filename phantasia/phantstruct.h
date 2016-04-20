@@ -1,4 +1,3 @@
-/*	$NetBSD: phantstruct.h,v 1.5 2005/02/15 12:58:21 jsm Exp $	*/
 
 #define bool char
 /* phbool is used when we need this version of bool after <curses.h>.  */

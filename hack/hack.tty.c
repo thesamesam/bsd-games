@@ -1,4 +1,3 @@
-/*	$NetBSD: hack.tty.c,v 1.12 2003/08/07 09:37:19 agc Exp $	*/
 
 /*-
  * Copyright (c) 1988, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char     sccsid[] = "@(#)hack.tty.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: hack.tty.c,v 1.12 2003/08/07 09:37:19 agc Exp $");
-#endif
-#endif				/* not lint */
 
 /*
  * Copyright (c) 1985, Stichting Centrum voor Wiskunde en Informatica,
@@ -139,8 +129,8 @@ gettty()
 	getioctls();
 
 	/* do not expand tabs - they might be needed inside a cm sequence */
-	if (curttyb.c_oflag & OXTABS) {
-		curttyb.c_oflag &= ~OXTABS;
+	if (curttyb.c_oflag & XTABS) {
+		curttyb.c_oflag &= ~XTABS;
 		setctty();
 	}
 	settty_needed = TRUE;

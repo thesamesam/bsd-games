@@ -59,15 +59,6 @@
 %{
 #include "include.h"
 
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)grammar.y	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: grammar.y,v 1.8 2003/08/07 09:36:54 agc Exp $");
-#endif
-#endif /* not lint */
-
 int	errors = 0;
 int	line = 1;
 %}

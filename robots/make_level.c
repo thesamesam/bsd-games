@@ -1,4 +1,3 @@
-/*	$NetBSD: make_level.c,v 1.7 2003/08/07 09:37:36 agc Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)make_level.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: make_level.c,v 1.7 2003/08/07 09:37:36 agc Exp $");
-#endif
-#endif /* not lint */
 
 # include	"robots.h"
 

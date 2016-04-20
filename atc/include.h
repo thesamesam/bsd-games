@@ -1,4 +1,3 @@
-/*	$NetBSD: include.h,v 1.8 2003/08/07 09:36:54 agc Exp $	*/
 
 /*-
  * Copyright (c) 1990, 1993

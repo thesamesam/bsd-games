@@ -1,4 +1,3 @@
-/*	$NetBSD: parties.c,v 1.11 2003/08/07 09:37:43 agc Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)parties.c	8.2 (Berkeley) 4/28/95";
-#else
-__RCSID("$NetBSD: parties.c,v 1.11 2003/08/07 09:37:43 agc Exp $");
-#endif
-#endif /* not lint */
 
 #include <sys/types.h>
 #include "extern.h"

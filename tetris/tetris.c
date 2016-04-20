@@ -1,4 +1,3 @@
-/*	$NetBSD: tetris.c,v 1.17 2004/01/27 20:30:30 jsm Exp $	*/
 
 /*-
  * Copyright (c) 1992, 1993
@@ -33,12 +32,6 @@
  *
  *	@(#)tetris.c	8.1 (Berkeley) 5/31/93
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1992, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
 
 /*
  * Tetris (or however it is spelled).

@@ -1,4 +1,3 @@
-/*	$NetBSD: factor.c,v 1.15 2004/02/08 11:47:36 jsm Exp $	*/
 
 /*
  * Copyright (c) 1989, 1993
@@ -31,20 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1989, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)factor.c	8.4 (Berkeley) 5/4/95";
-#else
-__RCSID("$NetBSD: factor.c,v 1.15 2004/02/08 11:47:36 jsm Exp $");
-#endif
-#endif /* not lint */
 
 /*
  * factor - factor a number into primes

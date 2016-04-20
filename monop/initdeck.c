@@ -1,4 +1,3 @@
-/*	$NetBSD: initdeck.c,v 1.15 2003/08/07 09:37:28 agc Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993
@@ -28,22 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#ifdef __NetBSD__
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1980, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)initdeck.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: initdeck.c,v 1.15 2003/08/07 09:37:28 agc Exp $");
-#endif
-#endif /* not lint */
-#endif /* __NetBSD__ */
 
 #include <stdio.h>
 #include <stdlib.h>

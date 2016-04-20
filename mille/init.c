@@ -1,4 +1,3 @@
-/*	$NetBSD: init.c,v 1.9 2003/08/07 09:37:25 agc Exp $	*/
 
 /*
  * Copyright (c) 1982, 1993
@@ -29,16 +28,7 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)init.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: init.c,v 1.9 2003/08/07 09:37:25 agc Exp $");
-#endif
-#endif /* not lint */
-
-# include	"mille.h"
+#include "mille.h"
 
 /*
  * @(#)init.c	1.1 (Berkeley) 4/1/82

@@ -1,4 +1,3 @@
-/*	$NetBSD: io.c,v 1.15 2003/09/19 10:01:53 itojun Exp $	*/
 
 /*-
  * Copyright (c) 1991, 1993
@@ -33,15 +32,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)io.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: io.c,v 1.15 2003/09/19 10:01:53 itojun Exp $");
-#endif
-#endif /* not lint */
 
 /*      Re-coding of advent in C: file i/o and user i/o                 */
 

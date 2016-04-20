@@ -1,4 +1,3 @@
-/*	$NetBSD: terminal.c,v 1.4 2003/06/11 12:00:23 wiz Exp $	*/
 /*
  * Copyright (c) 1983-2003, Regents of the University of California.
  * All rights reserved.
@@ -29,11 +28,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__RCSID("$NetBSD: terminal.c,v 1.4 2003/06/11 12:00:23 wiz Exp $");
-#endif /* not lint */
 
 #include <stdarg.h>
 #include "hunt.h"

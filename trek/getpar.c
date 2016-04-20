@@ -1,4 +1,3 @@
-/*	$NetBSD: getpar.c,v 1.12 2004/01/27 20:30:31 jsm Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)getpar.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: getpar.c,v 1.12 2004/01/27 20:30:31 jsm Exp $");
-#endif
-#endif /* not lint */
 
 #include <stdio.h>
 #include <stdlib.h>

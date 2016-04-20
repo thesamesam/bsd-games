@@ -1,4 +1,3 @@
-/*	$NetBSD: pickmove.c,v 1.11 2004/01/27 20:26:20 jsm Exp $	*/
 
 /*
  * Copyright (c) 1994
@@ -31,15 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)pickmove.c	8.2 (Berkeley) 5/3/95";
-#else
-__RCSID("$NetBSD: pickmove.c,v 1.11 2004/01/27 20:26:20 jsm Exp $");
-#endif
-#endif /* not lint */
 
 #include <stdlib.h>
 #include <string.h>

@@ -1,4 +1,3 @@
-/*	$NetBSD: driver.h,v 1.8 2003/08/07 09:37:42 agc Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993

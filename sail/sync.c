@@ -1,4 +1,3 @@
-/*	$NetBSD: sync.c,v 1.23 2004/09/07 13:20:39 jrf Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)sync.c	8.2 (Berkeley) 4/28/95";
-#else
-__RCSID("$NetBSD: sync.c,v 1.23 2004/09/07 13:20:39 jrf Exp $");
-#endif
-#endif /* not lint */
 
 #include <sys/file.h>
 #include <sys/stat.h>
@@ -380,8 +370,7 @@ sync_update(int type, struct ship *ship, const char *astr, long a, long b, long 
 		break;
 		}
 	case W_CAPTAIN:
-		strlcpy(ship->file->captain, astr,
-			sizeof ship->file->captain);
+		snprintf (ship->file->captain, sizeof ship->file->captain, "%s", astr);
 		break;
 	case W_CAPTURED:
 		if (a < 0)
@@ -418,8 +407,7 @@ sync_update(int type, struct ship *ship, const char *astr, long a, long b, long 
 		ship->specs->hull = a;
 		break;
 	case W_MOVE:
-		strlcpy(ship->file->movebuf, astr,
-			sizeof ship->file->movebuf);
+		snprintf (ship->file->movebuf, sizeof ship->file->movebuf, "%s", astr);
 		break;
 	case W_PCREW:
 		ship->file->pcrew = a;

@@ -1,4 +1,3 @@
-/*	$NetBSD: use.c,v 1.6 2003/08/07 09:37:40 agc Exp $	*/
 
 /*
  * Copyright (c) 1988, 1993
@@ -31,15 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)use.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: use.c,v 1.6 2003/08/07 09:37:40 agc Exp $");
-#endif
-#endif /* not lint */
 
 /*
  * use.c

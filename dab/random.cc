@@ -1,4 +1,3 @@
-/*	$NetBSD: random.cc,v 1.2 2003/12/28 17:49:10 thorpej Exp $	*/
 
 /*-
  * Copyright (c) 2003 The NetBSD Foundation, Inc.
@@ -41,7 +40,6 @@
  */
 
 #include "defs.h"
-RCSID("$NetBSD: random.cc,v 1.2 2003/12/28 17:49:10 thorpej Exp $")
 
 #include <time.h>
 #include <string.h>

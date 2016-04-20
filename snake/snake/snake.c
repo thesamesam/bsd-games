@@ -1,4 +1,3 @@
-/*	$NetBSD: snake.c,v 1.20 2004/02/08 00:33:31 jsm Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993
@@ -28,20 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1980, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif				/* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)snake.c	8.2 (Berkeley) 1/7/94";
-#else
-__RCSID("$NetBSD: snake.c,v 1.20 2004/02/08 00:33:31 jsm Exp $");
-#endif
-#endif				/* not lint */
 
 /*
  * snake - crt hack game.
@@ -95,6 +80,9 @@ struct point {
 
 #ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+#ifndef CTRL
+#define CTRL(x)	((x) & 037)
 #endif
 
 #define pchar(point, c)	mvaddch((point)->line + 1, (point)->col + 1, (c))

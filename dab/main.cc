@@ -1,4 +1,3 @@
-/*	$NetBSD: main.cc,v 1.2 2003/12/28 17:53:48 thorpej Exp $	*/
 
 /*-
  * Copyright (c) 2003 The NetBSD Foundation, Inc.
@@ -40,7 +39,6 @@
  * main.C: Main dots program
  */
 #include "defs.h"
-RCSID("$NetBSD: main.cc,v 1.2 2003/12/28 17:53:48 thorpej Exp $")
 
 #include <iostream>
 #include <unistd.h>

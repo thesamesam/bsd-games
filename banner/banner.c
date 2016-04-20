@@ -1,4 +1,3 @@
-/*	$NetBSD: banner.c,v 1.12 2004/01/27 20:30:28 jsm Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993, 1994
@@ -28,20 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1980, 1993, 1994\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)banner.c	8.4 (Berkeley) 4/29/95";
-#else
-__RCSID("$NetBSD: banner.c,v 1.12 2004/01/27 20:30:28 jsm Exp $");
-#endif
-#endif /* not lint */
 
 /*
  * banner - prints large signs

@@ -1,4 +1,3 @@
-/*	$NetBSD: version.c,v 1.6 2003/08/07 09:36:56 agc Exp $	*/
 
 /*
  * Copyright (c) 1980, 1987, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)version.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: version.c,v 1.6 2003/08/07 09:36:56 agc Exp $");
-#endif
-#endif /* not lint */
 
 const char   *const message[] = {
 	"Last updated on Friday, October 10, 1997.",

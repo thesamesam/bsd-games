@@ -1,4 +1,3 @@
-/*	$NetBSD: data.c,v 1.7 2004/01/01 15:59:09 jsm Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)data.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: data.c,v 1.7 2004/01/01 15:59:09 jsm Exp $");
-#endif
-#endif				/* not lint */
 
 #include "tutor.h"
 

@@ -1,4 +1,3 @@
-/*	$NetBSD: getguess.c,v 1.8 2003/08/07 09:37:21 agc Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993
@@ -29,17 +28,11 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)getguess.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: getguess.c,v 1.8 2003/08/07 09:37:21 agc Exp $");
-#endif
-#endif /* not lint */
-
 #include <sys/ttydefaults.h>
 #include "hangman.h"
+#ifndef CTRL
+    #define CTRL(x)	((x) & 037)
+#endif
 
 /*
  * getguess:

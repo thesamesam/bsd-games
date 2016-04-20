@@ -1,4 +1,3 @@
-/*	$NetBSD: hdr.h,v 1.10 2003/08/07 09:36:50 agc Exp $	*/
 
 /*-
  * Copyright (c) 1991, 1993

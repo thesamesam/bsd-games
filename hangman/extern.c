@@ -1,4 +1,3 @@
-/*	$NetBSD: extern.c,v 1.8 2003/08/07 09:37:20 agc Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)extern.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: extern.c,v 1.8 2003/08/07 09:37:20 agc Exp $");
-#endif
-#endif /* not lint */
 
 #include	"hangman.h"
 

@@ -1,4 +1,3 @@
-/*	$NetBSD: utmpentry.h,v 1.2 2003/11/28 23:52:34 wiz Exp $	*/
 
 /*-
  * Copyright (c) 2002 The NetBSD Foundation, Inc.

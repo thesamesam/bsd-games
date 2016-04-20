@@ -1,4 +1,3 @@
-/*	$NetBSD: score.c,v 1.17 2004/01/27 20:30:30 jsm Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993
@@ -29,17 +28,9 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)score.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: score.c,v 1.17 2004/01/27 20:30:30 jsm Exp $");
-#endif
-#endif /* not lint */
-
-# include	"robots.h"
-# include	"pathnames.h"
+#include "robots.h"
+#include "pathnames.h"
+#include <arpa/inet.h>	// for ntohl and htonl
 
 const char	*Scorefile = _PATH_SCORE;
 

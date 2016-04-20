@@ -1,4 +1,3 @@
-/*	$NetBSD: init.c,v 1.14 2004/01/27 20:30:29 jsm Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)init.c	8.4 (Berkeley) 4/30/95";
-#else
-__RCSID("$NetBSD: init.c,v 1.14 2004/01/27 20:30:29 jsm Exp $");
-#endif
-#endif				/* not lint */
 
 #include "extern.h"
 

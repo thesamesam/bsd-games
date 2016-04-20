@@ -1,4 +1,3 @@
-/*	$NetBSD: dr_4.c,v 1.13 2003/08/07 09:37:42 agc Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)dr_4.c	8.2 (Berkeley) 4/28/95";
-#else
-__RCSID("$NetBSD: dr_4.c,v 1.13 2003/08/07 09:37:42 agc Exp $");
-#endif
-#endif /* not lint */
 
 #include <stdlib.h>
 #include "extern.h"

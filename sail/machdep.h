@@ -1,4 +1,3 @@
-/*	$NetBSD: machdep.h,v 1.5 2003/08/07 09:37:43 agc Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993

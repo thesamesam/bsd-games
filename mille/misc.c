@@ -1,4 +1,3 @@
-/*	$NetBSD: misc.c,v 1.11 2003/08/07 09:37:25 agc Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993
@@ -29,18 +28,8 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)misc.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: misc.c,v 1.11 2003/08/07 09:37:25 agc Exp $");
-#endif
-#endif /* not lint */
-
 #include <sys/file.h>
 #include <termios.h>
-
 #include <stdarg.h>
 
 #include	"mille.h"

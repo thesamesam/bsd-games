@@ -1,4 +1,3 @@
-/*	$NetBSD: pig.c,v 1.11 2004/11/05 21:30:32 dsl Exp $	*/
 
 /*-
  * Copyright (c) 1992, 1993
@@ -29,22 +28,7 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1992, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)pig.c	8.2 (Berkeley) 5/4/95";
-#else
-__RCSID("$NetBSD: pig.c,v 1.11 2004/11/05 21:30:32 dsl Exp $");
-#endif
-#endif /* not lint */
-
 #include <sys/types.h>
-
 #include <ctype.h>
 #include <err.h>
 #include <stdio.h>

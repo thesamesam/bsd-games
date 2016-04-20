@@ -1,4 +1,3 @@
-/*	$NetBSD: varpush.c,v 1.8 2004/01/27 20:30:30 jsm Exp $	*/
 
 /*
  * Copyright (c) 1982, 1993
@@ -29,17 +28,8 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)varpush.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: varpush.c,v 1.8 2004/01/27 20:30:30 jsm Exp $");
-#endif
-#endif /* not lint */
-
-# include	<paths.h>
-# include	"mille.h"
+#include <paths.h>
+#include "mille.h"
 
 /*
  * @(#)varpush.c	1.1 (Berkeley) 4/1/82

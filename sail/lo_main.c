@@ -1,4 +1,3 @@
-/*	$NetBSD: lo_main.c,v 1.12 2003/08/07 09:37:43 agc Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)lo_main.c	8.2 (Berkeley) 4/28/95";
-#else
-__RCSID("$NetBSD: lo_main.c,v 1.12 2003/08/07 09:37:43 agc Exp $");
-#endif
-#endif /* not lint */
 
 /*
  * Print out the top ten SAILors

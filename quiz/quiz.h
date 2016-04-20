@@ -1,4 +1,3 @@
-/*	$NetBSD: quiz.h,v 1.7 2004/01/27 20:30:30 jsm Exp $	*/
 
 /*-
  * Copyright (c) 1991, 1993

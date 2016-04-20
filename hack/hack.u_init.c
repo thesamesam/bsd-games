@@ -1,4 +1,3 @@
-/*	$NetBSD: hack.u_init.c,v 1.8 2004/11/05 21:30:32 dsl Exp $	*/
 
 /*
  * Copyright (c) 1985, Stichting Centrum voor Wiskunde en Informatica,
@@ -60,11 +59,6 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__RCSID("$NetBSD: hack.u_init.c,v 1.8 2004/11/05 21:30:32 dsl Exp $");
-#endif				/* not lint */
 
 #include <ctype.h>
 #include <signal.h>

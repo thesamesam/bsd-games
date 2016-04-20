@@ -1,4 +1,3 @@
-/*	$NetBSD: rain.c,v 1.17 2004/05/02 21:31:23 christos Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993
@@ -28,20 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1980, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)rain.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: rain.c,v 1.17 2004/05/02 21:31:23 christos Exp $");
-#endif
-#endif /* not lint */
 
 /*
  * rain 11/3/1980 EPS/CITHEP
@@ -92,8 +77,7 @@ main(int argc, char **argv)
 			delay = (unsigned int)val * 1000;  /* ms -> us */
 			break;
 		default:
-			(void)fprintf(stderr, "Usage: %s [-d delay]\n",
-			    getprogname());
+			fprintf(stderr, "Usage: rain [-d delay]\n");
 			return 1;
 		}
 

@@ -1,4 +1,3 @@
-/*	$NetBSD: main.c,v 1.18 2004/01/27 20:30:28 jsm Exp $	*/
 
 /*-
  * Copyright (c) 1991, 1993
@@ -33,20 +32,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1991, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)main.c	8.1 (Berkeley) 6/2/93";
-#else
-__RCSID("$NetBSD: main.c,v 1.18 2004/01/27 20:30:28 jsm Exp $");
-#endif
-#endif /* not lint */
 
 /*      Re-coding of advent in C: main program */
 

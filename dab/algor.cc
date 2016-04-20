@@ -1,4 +1,3 @@
-/*	$NetBSD: algor.cc,v 1.1 2003/12/27 01:16:55 christos Exp $	*/
 
 /*-
  * Copyright (c) 2003 The NetBSD Foundation, Inc.
@@ -40,7 +39,6 @@
  * algor.C: Computer algorithm
  */
 #include "defs.h"
-RCSID("$NetBSD: algor.cc,v 1.1 2003/12/27 01:16:55 christos Exp $")
 
 #include "algor.h"
 #include "board.h"

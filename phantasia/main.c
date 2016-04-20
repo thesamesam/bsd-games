@@ -1,4 +1,3 @@
-/*	$NetBSD: main.c,v 1.15 2004/12/09 05:15:59 jmc Exp $	*/
 
 /*
  * Phantasia 3.3.2 -- Interterminal fantasy game

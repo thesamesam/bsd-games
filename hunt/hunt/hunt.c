@@ -1,4 +1,3 @@
-/*	$NetBSD: hunt.c,v 1.23 2004/11/05 21:30:32 dsl Exp $	*/
 /*
  * Copyright (c) 1983-2003, Regents of the University of California.
  * All rights reserved.
@@ -30,11 +29,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-__RCSID("$NetBSD: hunt.c,v 1.23 2004/11/05 21:30:32 dsl Exp $");
-#endif /* not lint */
-
 # include	<sys/param.h>
 # include	<sys/stat.h>
 # include	<sys/time.h>
@@ -62,6 +56,9 @@ static struct termios saved_tty;
 # define	cbreak()	crmode()
 # endif
 
+# ifndef	CTRL
+# define	CTRL(x)		((x) & 037)
+# endif
 # if !defined(USE_CURSES) || !defined(TERMINFO)
 # define	beep()		(void) putchar(CTRL('G'))
 # endif

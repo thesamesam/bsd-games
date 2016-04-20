@@ -1,4 +1,3 @@
-/*	$NetBSD: cypher.c,v 1.22 2003/08/07 09:37:01 agc Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993
@@ -29,15 +28,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)cypher.c	8.2 (Berkeley) 4/28/95";
-#else
-__RCSID("$NetBSD: cypher.c,v 1.22 2003/08/07 09:37:01 agc Exp $");
-#endif
-#endif				/* not lint */
-
 #include "extern.h"
 
 int
@@ -47,8 +37,8 @@ cypher()
 	int     junk;
 	int     lflag = -1;
 	char    buffer[10];
-	char   *filename, *rfilename;
-	size_t	filename_len;
+	char   *filename = NULL, *rfilename;
+	size_t	filename_len = 0;
 
 	while (wordnumber <= wordcount) {
 		if (wordtype[wordnumber] != VERB &&
@@ -445,21 +435,19 @@ cypher()
 			break;
 
 		case SAVE:
-			printf("\nSave file name (default %s): ",
-			       DEFAULT_SAVE_FILE);
-			filename = fgetln(stdin, &filename_len);
+			printf("\nSave file name (default %s): ", DEFAULT_SAVE_FILE);
+			getline (&filename, &filename_len, stdin);
 			if (filename_len == 0
 			    || (filename_len == 1 && filename[0] == '\n'))
-				rfilename = save_file_name(DEFAULT_SAVE_FILE,
-				    strlen(DEFAULT_SAVE_FILE));
+				rfilename = save_file_name (DEFAULT_SAVE_FILE, strlen(DEFAULT_SAVE_FILE));
 			else {
 				if (filename[filename_len - 1] == '\n')
 					filename_len--;
-				rfilename = save_file_name(filename,
-							   filename_len);
+				rfilename = save_file_name (filename, filename_len);
 			}
-			save(rfilename);
-			free(rfilename);
+			free (filename);
+			save (rfilename);
+			free (rfilename);
 			break;
 
 		case VERBOSE:

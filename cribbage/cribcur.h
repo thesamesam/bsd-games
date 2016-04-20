@@ -1,4 +1,3 @@
-/*	$NetBSD: cribcur.h,v 1.4 2003/08/07 09:37:09 agc Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993

@@ -1,4 +1,3 @@
-/*	$NetBSD: otto.c,v 1.8 2004/11/05 21:30:32 dsl Exp $	*/
 # ifdef OTTO
 /*
  * Copyright (c) 1983-2003, Regents of the University of California.
@@ -43,17 +42,13 @@
  *	Id: otto.c,v 1.14 2003/04/16 06:11:54 gregc Exp
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-__RCSID("$NetBSD: otto.c,v 1.8 2004/11/05 21:30:32 dsl Exp $");
-#endif /* not lint */
-
 # include	<sys/time.h>
 # include	<curses.h>
 # include	<ctype.h>
 # include	<signal.h>
 # include	<stdlib.h>
 # include	<unistd.h>
+# include	<signal.h>
 # include	"hunt.h"
 
 # undef		WALL

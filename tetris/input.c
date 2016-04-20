@@ -1,4 +1,3 @@
-/*	$NetBSD: input.c,v 1.9 2003/08/07 09:37:47 agc Exp $	*/
 
 /*-
  * Copyright (c) 1992, 1993
@@ -85,7 +84,7 @@ rwait(tvp)
 		endtv = *tvp;
 		timeout = tvp->tv_sec * 1000 + tvp->tv_usec / 1000;
 	} else
-		timeout = INFTIM;
+		timeout = -1;
 again:
 	set[0].fd = STDIN_FILENO;
 	set[0].events = POLLIN;

@@ -1,4 +1,3 @@
-/*	$NetBSD: makemove.c,v 1.7 2003/08/07 09:37:17 agc Exp $	*/
 
 /*
  * Copyright (c) 1994
@@ -31,15 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)makemove.c	8.2 (Berkeley) 5/3/95";
-#else
-__RCSID("$NetBSD: makemove.c,v 1.7 2003/08/07 09:37:17 agc Exp $");
-#endif
-#endif /* not lint */
 
 #include "gomoku.h"
 

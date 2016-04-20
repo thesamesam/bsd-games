@@ -1,4 +1,3 @@
-/*	$NetBSD: machdep.c,v 1.13 2005/02/15 12:56:20 jsm Exp $	*/
 
 /*
  * Copyright (c) 1988, 1993
@@ -31,15 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)machdep.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: machdep.c,v 1.13 2005/02/15 12:56:20 jsm Exp $");
-#endif
-#endif /* not lint */
 
 /*
  * machdep.c

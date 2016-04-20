@@ -1,4 +1,3 @@
-/*	$NetBSD: shapes.c,v 1.6 2003/08/07 09:37:48 agc Exp $	*/
 
 /*-
  * Copyright (c) 1992, 1993
@@ -40,7 +39,6 @@
  * Note that the first 7 are `well known'.
  */
 
-#include <sys/cdefs.h>
 #include "tetris.h"
 
 #define	TL	-B_COLS-1	/* top left */

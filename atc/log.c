@@ -1,4 +1,3 @@
-/*	$NetBSD: log.c,v 1.13 2004/09/07 13:20:39 jrf Exp $	*/
 
 /*-
  * Copyright (c) 1990, 1993
@@ -40,15 +39,6 @@
  *
  * For more info on this and all of my stuff, mail edjames@berkeley.edu.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)log.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: log.c,v 1.13 2004/09/07 13:20:39 jrf Exp $");
-#endif
-#endif /* not lint */
 
 #include "include.h"
 #include "pathnames.h"
@@ -180,7 +170,7 @@ log_score(list_em)
 		}
 		strcpy(thisscore.name, pw->pw_name);
 		uname(&name);
-		strlcpy(thisscore.host, name.nodename, sizeof(thisscore.host));
+		snprintf (thisscore.host, sizeof(thisscore.host), "%s", name.nodename);
 
 		cp = strrchr(file, '/');
 		if (cp == NULL) {

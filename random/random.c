@@ -1,4 +1,3 @@
-/*	$NetBSD: random.c,v 1.9 2004/01/27 20:30:30 jsm Exp $	*/
 
 /*
  * Copyright (c) 1994
@@ -31,20 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1994\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)random.c	8.6 (Berkeley) 6/1/94";
-#else
-__RCSID("$NetBSD: random.c,v 1.9 2004/01/27 20:30:30 jsm Exp $");
-#endif
-#endif /* not lint */
 
 #include <sys/types.h>
 #include <sys/time.h>

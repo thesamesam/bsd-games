@@ -1,4 +1,3 @@
-/*	$NetBSD: pl_1.c,v 1.18 2004/01/27 20:23:36 jsm Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)pl_1.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: pl_1.c,v 1.18 2004/01/27 20:23:36 jsm Exp $");
-#endif
-#endif /* not lint */
 
 #include <sys/types.h>
 #include <sys/wait.h>

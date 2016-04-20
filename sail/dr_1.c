@@ -1,4 +1,3 @@
-/*	$NetBSD: dr_1.c,v 1.21 2004/11/05 21:30:32 dsl Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)dr_1.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: dr_1.c,v 1.21 2004/11/05 21:30:32 dsl Exp $");
-#endif
-#endif /* not lint */
 
 #include <ctype.h>
 #include <stdio.h>
@@ -428,8 +418,7 @@ next(void)
 				*tp = toupper((unsigned char)*tp);
 				p = tp;
 			}
-			strlcpy(bestship->file->captain, p,
-				sizeof bestship->file->captain);
+			snprintf (bestship->file->captain, sizeof bestship->file->captain, "%s", p);
 			logger(bestship);
 		}
 		return -1;

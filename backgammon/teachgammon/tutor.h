@@ -1,4 +1,3 @@
-/*	$NetBSD: tutor.h,v 1.8 2004/01/27 20:30:28 jsm Exp $	*/
 
 /*
  * Copyright (c) 1980, 1993

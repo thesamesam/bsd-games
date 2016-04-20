@@ -42,15 +42,6 @@
  * For more info on this and all of my stuff, mail edjames@berkeley.edu.
  */
 
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)lex.l	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: lex.l,v 1.7 2003/08/07 09:36:54 agc Exp $");
-#endif
-#endif /* not lint */
-
 #include "include.h"
 #undef ECHO		/* XXX: work around lex(1) vs termios lameness */
 #include "grammar.h"

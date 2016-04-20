@@ -1,4 +1,3 @@
-/*	$NetBSD: def.objclass.h,v 1.6 2003/04/02 18:36:34 jsm Exp $	*/
 
 /*
  * Copyright (c) 1985, Stichting Centrum voor Wiskunde en Informatica,

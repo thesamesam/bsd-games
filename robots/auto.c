@@ -1,4 +1,3 @@
-/*	$NetBSD: auto.c,v 1.7 2004/08/27 09:06:25 christos Exp $	*/
 
 /*-
  * Copyright (c) 1999 The NetBSD Foundation, Inc.

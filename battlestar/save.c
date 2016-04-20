@@ -1,4 +1,3 @@
-/*	$NetBSD: save.c,v 1.11 2003/08/07 09:37:03 agc Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)save.c	8.2 (Berkeley) 4/28/95";
-#else
-__RCSID("$NetBSD: save.c,v 1.11 2003/08/07 09:37:03 agc Exp $");
-#endif
-#endif				/* not lint */
 
 #include "extern.h"
 
@@ -150,7 +140,7 @@ save(filename)
 }
 
 /*
- * Given a save file name (possibly from fgetln, so without terminating NUL),
+ * Given a save file name (possibly from getline, so without terminating NUL),
  * determine the name of the file to be saved to by adding the HOME
  * directory if the name does not contain a slash.  Name will be allocated
  * with malloc(3).

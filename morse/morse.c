@@ -1,4 +1,3 @@
-/*	$NetBSD: morse.c,v 1.13 2004/02/13 23:16:11 jsm Exp $	*/
 
 /*
  * Copyright (c) 1988, 1993
@@ -28,20 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1988, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)morse.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: morse.c,v 1.13 2004/02/13 23:16:11 jsm Exp $");
-#endif
-#endif /* not lint */
 
 #include <ctype.h>
 #include <stdio.h>

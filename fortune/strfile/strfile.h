@@ -1,4 +1,3 @@
-/*	$NetBSD: strfile.h,v 1.6 2003/08/07 09:37:15 agc Exp $	*/
 
 /*-
  * Copyright (c) 1991, 1993

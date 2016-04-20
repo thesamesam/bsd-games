@@ -1,4 +1,3 @@
-/*	$NetBSD: malloc.c,v 1.4 2004/12/14 00:21:01 nathanw Exp $	*/
 
 /*
  * Copyright (c) 1983, 1993
@@ -28,15 +27,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#if defined(LIBC_SCCS) && !defined(lint)
-#if 0
-static char sccsid[] = "@(#)malloc.c	8.1 (Berkeley) 6/4/93";
-#else
-__RCSID("$NetBSD: malloc.c,v 1.4 2004/12/14 00:21:01 nathanw Exp $");
-#endif
-#endif /* LIBC_SCCS and not lint */
 
 /*
  * malloc.c (Caltech) 2/21/82

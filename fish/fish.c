@@ -1,4 +1,3 @@
-/*	$NetBSD: fish.c,v 1.16 2005/02/15 12:56:20 jsm Exp $	*/
 
 /*-
  * Copyright (c) 1990, 1993
@@ -31,20 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1990, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)fish.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: fish.c,v 1.16 2005/02/15 12:56:20 jsm Exp $");
-#endif
-#endif /* not lint */
 
 #include <sys/types.h>
 #include <sys/wait.h>

@@ -1,4 +1,3 @@
-/*	$NetBSD: unstr.c,v 1.11 2004/02/08 22:23:50 jsm Exp $	*/
 
 /*-
  * Copyright (c) 1991, 1993
@@ -31,20 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-__COPYRIGHT("@(#) Copyright (c) 1991, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n");
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)unstr.c	8.1 (Berkeley) 5/31/93";
-#else
-__RCSID("$NetBSD: unstr.c,v 1.11 2004/02/08 22:23:50 jsm Exp $");
-#endif
-#endif /* not lint */
 
 /*
  *	This program un-does what "strfile" makes, thereby obtaining the

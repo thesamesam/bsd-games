@@ -1,4 +1,3 @@
-/*	$NetBSD: word.c,v 1.7 2003/08/07 09:37:06 agc Exp $	*/
 
 /*-
  * Copyright (c) 1993
@@ -31,15 +30,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include <sys/cdefs.h>
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)word.c	8.1 (Berkeley) 6/11/93";
-#else
-__RCSID("$NetBSD: word.c,v 1.7 2003/08/07 09:37:06 agc Exp $");
-#endif
-#endif /* not lint */
 
 #include <sys/types.h>
 #include <sys/stat.h>
