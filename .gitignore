@@ -1,3 +1,6 @@
+*.o
+config.params
+Makefile
 
 # /
 /Makeconfig
@@ -7,7 +10,6 @@
 /subst.sed
 /subst.rules
 /test.out
-/GNUmakefile
 /conftest.c
 /exec.libs.tmp
 /exec.objs.tmp

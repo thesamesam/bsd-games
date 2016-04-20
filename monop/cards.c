@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 1980, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -29,7 +28,8 @@
  */
 
 #include <sys/types.h>
-#include <sys/endian.h>
+#include <arpa/inet.h>
+#include <endian.h>
 #include "monop.ext"
 #include "pathnames.h"
 
@@ -97,7 +97,7 @@ set_up(dp)
 	}
 	/* convert offsets from big-endian byte order */
 	for (i = 0; i < dp->num_cards; i++)
-		BE64TOH(dp->offsets[i]);
+		dp->offsets[i] = ntohl (dp->offsets[i]);
 	dp->last_card = 0;
 	dp->gojf_used = FALSE;
 	for (i = 0; i < dp->num_cards; i++) {
@@ -125,7 +125,7 @@ get_card(dp)
 
 	do {
 		fseek(deckf, dp->offsets[dp->last_card], SEEK_SET);
-		dp->last_card = ++(dp->last_card) % dp->num_cards;
+		dp->last_card = (dp->last_card + 1) % dp->num_cards;
 		type_maj = getc(deckf);
 	} while (dp->gojf_used && type_maj == GOJF);
 	type_min = getc(deckf);
