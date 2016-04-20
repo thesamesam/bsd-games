@@ -89,14 +89,6 @@ Makefile
 /battlestar/battlestar
 /battlestar/pathnames.h
 
-# /bcd/
-/bcd/a.out
-/bcd/*.d
-/bcd/*.i
-/bcd/*.s
-/bcd/*.d.tmp
-/bcd/bcd
-
 # /boggle/boggle/
 /boggle/boggle/a.out
 /boggle/boggle/*.d
@@ -360,14 +352,6 @@ Makefile
 /pom/*.s
 /pom/*.d.tmp
 /pom/pom
-
-# /ppt/
-/ppt/a.out
-/ppt/*.d
-/ppt/*.i
-/ppt/*.s
-/ppt/*.d.tmp
-/ppt/ppt
 
 # /primes/
 /primes/a.out

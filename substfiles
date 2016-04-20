@@ -28,7 +28,6 @@
 # SUCH DAMAGE.
 #
 Makeconfig
-hide-game
 install-man
 install-score
 atc/pathnames.h
@@ -36,9 +35,7 @@ battlestar/pathnames.h
 boggle/boggle/bog.h
 canfield/canfield/pathnames.h
 cribbage/pathnames.h
-dm/pathnames.h
 fish/pathnames.h
-fortune/fortune/pathnames.h
 hack/pathnames.h
 hangman/pathnames.h
 monop/pathnames.h

@@ -51,7 +51,6 @@ battlestar		battlestar.o command1.o command2.o command3.o \
 	command4.o command5.o command6.o command7.o cypher.o dayfile.o \
 	dayobjs.o fly.o getcom.o globals.o init.o misc.o nightfile.o \
 	nightobjs.o parse.o room.o save.o words.o
-bcd			bcd.o
 boggle/boggle/boggle	bog.o help.o mach.o prtable.o timer.o word.o
 boggle/mkdict/mkdict	mkdict.o
 boggle/mkindex/mkindex	mkindex.o
@@ -61,12 +60,8 @@ canfield/cfscores/cfscores	cfscores.o
 cribbage		cards.o crib.o extern.o instr.o io.o score.o support.o
 dab			algor.o board.o box.o gamescreen.o human.o main.o \
 	player.o random.o ttyscrn.o
-dm			dm.o utmpentry.o
 factor			factor.o primes/pr_tbl.o
 fish			fish.o
-fortune/fortune/fortune	fortune.o
-fortune/strfile/strfile	strfile.o
-fortune/unstr/unstr	unstr.o
 gomoku			bdinit.o bdisp.o main.o makemove.o pickmove.o stoc.o
 hack			alloc.o hack.Decl.o hack.apply.o hack.bones.o hack.o \
 	hack.cmd.o hack.do.o hack.do_name.o hack.do_wear.o hack.dog.o \
@@ -97,9 +92,7 @@ number			number.o
 phantasia		fight.o gamesupport.o interplayer.o io.o main.o \
 	misc.o phantglobs.o
 phantasia/setup		phantglobs.o setup.o
-pig			pig.o
 pom			pom.o
-ppt			ppt.o
 primes			pattern.o pr_tbl.o primes.o
 quiz			quiz.o rxp.o
 rain			rain.o

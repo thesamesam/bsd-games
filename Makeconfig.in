@@ -44,10 +44,6 @@ SBINDIR := @sbindir@
 USRBINDIR := @usrbindir@
 # Manual pages, section 6
 MAN6DIR := @man6dir@
-# Manual pages, section 8
-MAN8DIR := @man8dir@
-# Manual pages, section 5
-MAN5DIR := @man5dir@
 # Constant data (arch-independent)
 SHAREDIR := @sharedir@
 # Miscellaneous documentation
@@ -64,7 +60,6 @@ INSTALL_DAEMON := @install_daemon@
 INSTALL_MANUAL := @srcdir@/install-man
 INSTALL_DATA := @install_constdata@
 INSTALL_VARDATA := @install_vardata@
-INSTALL_DM := @install_dm@
 INSTALL_SAIL_DIR := @install_sail_dir@
 INSTALL_HACK_DIR := @install_hack_dir@
 # Is INSTALL_VARDATA actually needed (for games that start with non-empty
@@ -80,8 +75,6 @@ DEFS_TO_PASS := INSTALL_BINARY="$(INSTALL_BINARY)" \
 DEFS_TO_PASS_STRIP := INSTALL_BINARY="$(INSTALL_BINARY) -s" \
 	INSTALL_SCORE_GAME="$(INSTALL_SCORE_GAME) -s" \
 	INSTALL_DAEMON="$(INSTALL_DAEMON) -s" INSTALL_DM="$(INSTALL_DM) -s"
-# srcdir/hide-game or :
-HIDE_GAME := @hidegame@
 
 # Compilation details
 CC := @cc@
@@ -113,8 +106,6 @@ CANFIELD_SCOREFILE := @canfield_scorefile@
 CRIBBAGE_INSTRFILE := @cribbage_instrfile@
 CRIBBAGE_SCOREFILE := @cribbage_scorefile@
 FISH_INSTRFILE := @fish_instrfile@
-FORTUNE_DIR := @fortune_dir@
-FORTUNE_TYPE := @fortune_type@
 HACK_DIR := @hack_dir@
 MONOP_CARDSFILE := @monop_cardsfile@
 PHANTASIA_DIR := @phantasia_dir@
