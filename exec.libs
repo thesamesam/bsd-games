@@ -45,7 +45,6 @@ mille	$(NCURSES_LIB)
 phantasia	-lm $(NCURSES_LIB)
 phantasia/setup	-lm
 robots	$(NCURSES_LIB)
-rogue	$(NCURSES_LIB)
 sail	$(NCURSES_LIB)
 snake/snake/snake	$(NCURSES_LIB) -lm
 tetris	$(NCURSES_LIB)

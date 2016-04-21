@@ -179,7 +179,7 @@ subst_vars="$subst_vars usrbindir"
 
 ask "Section 6 manpage directory" man6dir /usr/share/man/man6
 
-if building_in trek || building_in rogue; then
+if building_in trek; then
     ask "Directory for miscellaneous documentation" docdir /usr/share/doc/bsd-games
 else
     docdir=
@@ -357,7 +357,6 @@ game_ask hangman "Words file for hangman (CHECK ANSWER)" hangman_wordsfile /usr/
 game_ask monop "File for monop cards" monop_cardsfile "$sharedir/monop-cards.pck"
 game_ask phantasia "Directory for phantasia variable data" phantasia_dir "$varlibdir/phantasia"
 game_ask robots "Score file for robots" robots_scorefile "$varlibdir/robots_roll"
-game_ask rogue "Score file for rogue" rogue_scorefile "$varlibdir/rogue.scores"
 game_ask sail "Score file for sail" sail_scorefile "$varlibdir/saillog"
 game_ask snake "Score file for snake" snake_scorefile "$varlibdir/snake.log"
 game_ask snake "Raw score file for snake" snake_rawscorefile "$varlibdir/snakerawscores"
