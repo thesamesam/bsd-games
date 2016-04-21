@@ -30,7 +30,6 @@
 adventure		crc.o data.o done.o init.o io.o main.o save.o subr.o \
 	vocab.o wizard.o
 adventure/setup		setup.o
-arithmetic		arithmetic.o
 atc			extern.o grammar.o graphics.o input.o lex.o list.o \
 	log.o main.o tunable.o update.o
 backgammon/backgammon/backgammon	extra.o main.o move.o text.o \
@@ -46,7 +45,6 @@ backgammon/teachgammon/teachgammon	data.o teach.o ttext1.o ttext2.o \
 	backgammon/common_source/fancy.o backgammon/common_source/init.o \
 	backgammon/common_source/one.o backgammon/common_source/save.o \
 	backgammon/common_source/subs.o backgammon/common_source/table.o
-banner			banner.o
 battlestar		battlestar.o command1.o command2.o command3.o \
 	command4.o command5.o command6.o command7.o cypher.o dayfile.o \
 	dayobjs.o fly.o getcom.o globals.o init.o misc.o nightfile.o \
@@ -87,16 +85,9 @@ mille			comp.o end.o extern.o init.o mille.o misc.o move.o \
 monop			cards.o execute.o getinp.o houses.o jail.o misc.o \
 	monop.o morg.o print.o prop.o rent.o roll.o spec.o trade.o
 monop/initdeck		initdeck.o
-morse			morse.o
-number			number.o
 phantasia		fight.o gamesupport.o interplayer.o io.o main.o \
 	misc.o phantglobs.o
 phantasia/setup		phantglobs.o setup.o
-pom			pom.o
-primes			pattern.o pr_tbl.o primes.o
-quiz			quiz.o rxp.o
-rain			rain.o
-random			random.o
 robots			auto.o extern.o flush_in.o init_field.o main.o \
 	make_level.o move.o move_robs.o play_level.o query.o rnd_pos.o score.o
 rogue			hit.o init.o inventory.o level.o machdep.o main.o \
@@ -116,5 +107,4 @@ trek			abandon.o attack.o autover.o capture.o cgetc.o \
 	ram.o ranf.o rest.o schedule.o score.o setup.o setwarp.o shield.o \
 	snova.o srscan.o systemname.o torped.o visual.o warp.o win.o
 worm			worm.o
-worms			worms.o
 wump			wump.o

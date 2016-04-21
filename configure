@@ -339,7 +339,6 @@ game_ask canfield "Score file for canfield" canfield_scorefile "$varlibdir/cfsco
 game_ask cribbage "File for cribbage instructions" cribbage_instrfile "$sharedir/cribbage.instr"
 game_ask cribbage "Score file for cribbage" cribbage_scorefile "$varlibdir/criblog"
 game_ask fish "File for fish instructions" fish_instrfile "$sharedir/fish.instr"
-game_ask fortune "Directory for fortune files" fortune_dir "$sharedir/fortune"
 game_ask hack "Directory for hack variable data" hack_dir "$varlibdir/hack"
 
 if building_in hack; then
@@ -357,14 +356,12 @@ game_ask hangman "Words file for hangman (CHECK ANSWER)" hangman_wordsfile /usr/
 # Hunt has some other configuration
 game_ask monop "File for monop cards" monop_cardsfile "$sharedir/monop-cards.pck"
 game_ask phantasia "Directory for phantasia variable data" phantasia_dir "$varlibdir/phantasia"
-game_ask quiz "Directory for quiz static data" quiz_dir "$sharedir/quiz"
 game_ask robots "Score file for robots" robots_scorefile "$varlibdir/robots_roll"
 game_ask rogue "Score file for rogue" rogue_scorefile "$varlibdir/rogue.scores"
 game_ask sail "Score file for sail" sail_scorefile "$varlibdir/saillog"
 game_ask snake "Score file for snake" snake_scorefile "$varlibdir/snake.log"
 game_ask snake "Raw score file for snake" snake_rawscorefile "$varlibdir/snakerawscores"
 game_ask tetris "Score file for tetris" tetris_scorefile "$varlibdir/tetris-bsd.scores"
-game_ask wtf "Acronym database for wtf" wtf_acronymfile "/usr/share/misc/acronyms"
 game_ask wump "File for wump info" wump_infofile "$sharedir/wump.info"
 
 # Generate simplistic substitution script.
@@ -609,7 +606,6 @@ clean mostlyclean:	$clean_dependencies
 
 distclean maintainer-clean:	clean
 	rm -f subst.sed subst.rules
-	rm -f test.out
 	rm -f \`cat substfiles substfiles2 |sed '/^#/d'\`
 	rm -f Makefile
 	rm -f a.out conftest.c include/bsd-games.h
@@ -621,10 +617,6 @@ install:	$install_dependencies
 
 install-strip:
 	\$(MAKE) install \$(DEFS_TO_PASS_STRIP)
-
-.PHONY: check test
-check test:	all
-	set -e; for f in tests/*.test; do echo \$\$f; \$\$f; done
 
 # Standard GNU targets we don't support
 .PHONY:	uninstall TAGS dist

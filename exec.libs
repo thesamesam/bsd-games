@@ -44,9 +44,6 @@ hunt/hunt/hunt	$(NCURSES_LIB)
 mille	$(NCURSES_LIB)
 phantasia	-lm $(NCURSES_LIB)
 phantasia/setup	-lm
-pom	-lm
-primes	-lm
-rain	$(NCURSES_LIB)
 robots	$(NCURSES_LIB)
 rogue	$(NCURSES_LIB)
 sail	$(NCURSES_LIB)
@@ -54,4 +51,3 @@ snake/snake/snake	$(NCURSES_LIB) -lm
 tetris	$(NCURSES_LIB)
 trek	-lm
 worm	$(NCURSES_LIB)
-worms	$(NCURSES_LIB)
