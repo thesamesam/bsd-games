@@ -30,6 +30,7 @@
  *	@(#)robots.h	8.1 (Berkeley) 5/31/93
  */
 
+# include	"../config.h"
 # include	<sys/ttydefaults.h>
 # include	<ctype.h>
 # include	<curses.h>
@@ -64,6 +65,9 @@
 # define	MAXSCORES	(Y_SIZE - 2)
 # define	MAXNAME		16
 # define	MS_NAME		"Ten"
+
+# define	_PATH_SCORE	_PATH_GAME_STATE "robots_roll"
+# define	MAX_PER_UID	5
 
 /*
  * characters on screen

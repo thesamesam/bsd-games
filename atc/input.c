@@ -41,7 +41,6 @@
  */
 
 #include "include.h"
-#include "pathnames.h"
 
 #define MAXRULES	6
 #define MAXDEPTH	15

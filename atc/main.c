@@ -41,7 +41,6 @@
  */
 
 #include "include.h"
-#include "pathnames.h"
 
 extern FILE	*yyin;
 

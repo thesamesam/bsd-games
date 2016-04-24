@@ -38,6 +38,7 @@
  * would care to remember.
  */
 
+#include "../config.h"
 #include <err.h>
 #include <sys/types.h>
 #include <sys/file.h>
@@ -47,7 +48,8 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-#include "pathnames.h"
+
+#define	_PATH_WUMPINFO		_PATH_GAME_DATA "wump.info"
 
 /* some defines to spec out what our wumpus cave should look like */
 

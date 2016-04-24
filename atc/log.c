@@ -41,7 +41,6 @@
  */
 
 #include "include.h"
-#include "pathnames.h"
 
 static FILE *score_fp;
 

@@ -61,7 +61,7 @@ const ERR_POS Err_pos[MAXERRS] = {
 	{5, 11, '\\'}
 };
 
-const char *Dict_name = _PATH_DICT;
+const char *Dict_name = _PATH_WORDLIST;
 
 FILE   *Dict = NULL;
 

@@ -172,9 +172,27 @@ Brachman, but he confirmed that he had assigned his copyright to the
 University of California and the continued inclusion of the old
 copyright notice was an omission on their part.
 
-The game "phantasia" is not copyright (except for
-"phantasia/pathnames.h.in" to which the BSD copyright and licence
-apply); the notice in "phantasia/COPYRIGHT" applies to it.
+The game "phantasia" is not copyrighted, but has the following notice:
+
+    DISCLAIMER:
+
+    This game is distributed for free as is.  It is not guaranteed to
+    work in every conceivable environment.  It is not even guaranteed
+    to work in ANY environment.
+
+    This game is distributed without notice of copyright, therefore it may
+    be used in any manner the recipient sees fit.  However, the author
+    assumes no responsibility for maintaining or revising this game,
+    in its original form, or any derivitives thereof.
+
+    The author shall not be responsible for any loss, cost, or damage,
+    including consequential damage, caused by reliance on this material.
+
+    The author makes no warranties, express or implied, including
+    warranties of merchantability or fitness for a particular purpose
+    or use.
+
+    AT&T is in no way connected with this game.
 
 The game "hack" has the following notices:
 

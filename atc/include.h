@@ -42,6 +42,7 @@
  * For more info on this and all of my stuff, mail edjames@berkeley.edu.
  */
 
+#include "../config.h"
 #include <sys/types.h>
 #include <sys/file.h>
 #include <sys/stat.h>
@@ -63,8 +64,15 @@
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
+#include <paths.h>
 
 #include "def.h"
 #include "struct.h"
 #include "extern.h"
 #include "tunable.h"
+
+#define BSD 1
+#define YY_NO_UNPUT 1
+
+#define	_PATH_GAMES	_PATH_GAME_DATA "atc/"
+#define	_PATH_SCORE	_PATH_GAME_STATE "atc_score"

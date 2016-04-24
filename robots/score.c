@@ -29,7 +29,6 @@
  */
 
 #include "robots.h"
-#include "pathnames.h"
 #include <arpa/inet.h>	// for ntohl and htonl
 
 const char	*Scorefile = _PATH_SCORE;

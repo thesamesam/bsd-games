@@ -5,7 +5,7 @@ This is the bsd-games package for Linux, containing ports of all the
 open source games from NetBSD-current. This particular version is a
 copy of version 2.17 released in 2005, forked with intent to clean up
 the code and build system to modern standards. Also, subprojects that
-are not games, by any definition, such as primes, have been removed.
+are maintained elsewhere or are not games, have been removed.
 
 For installation instructions and details of prerequisites, see the
 file "INSTALL".
@@ -18,6 +18,7 @@ backgammon:	backgammon
 banner:		display a message in big letters
 battlestar:	adventure game on a battlestar
 boggle:		boggle word game
+caesar:		performs rotated-alphabet cryptography (like rot13)
 canfield:	curses-based solitaire
 cribbage:	cribbage
 dab:		dots and boxes
@@ -25,7 +26,6 @@ fish:		go fish
 gomoku:		gomoku
 hack:		exploring the Dungeons of Doom
 hangman:	guess the word before it is too late
-hunt:		hunt each other in a maze (multiplayer -- great)
 mille:		mille borne against the computer
 monop:		monopoly
 phantasia:	interterminal fantasy game
@@ -37,6 +37,5 @@ trek:		We come in peace, shoot to kill.  It's worse than that, he's
 		dead Jim.  Ye cannot change the laws of physics.  It's life
 		Jim, but not as we know it.  There's Klingons on the starboard
 		bow ...
-wargames:	would you like to play a game?
 worm:		eat the numbers without running into anything
 wump:		hunt the wumpus

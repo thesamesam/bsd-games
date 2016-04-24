@@ -671,8 +671,7 @@ death(how)
 
 	if (ch == 'Y') {
 		cleanup(FALSE);
-		execl(_PATH_GAMEPROG, "phantasia", "-s",
-		    (Wizard ? "-S" : (char *) NULL), (char *) NULL);
+		execlp ("phantasia", "phantasia", "-s", (Wizard ? "-S" : NULL), NULL);
 		exit(0);
 		/* NOTREACHED */
 	}

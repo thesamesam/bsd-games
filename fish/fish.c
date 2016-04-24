@@ -31,6 +31,7 @@
  * SUCH DAMAGE.
  */
 
+#include "../config.h"
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <errno.h>
@@ -41,7 +42,8 @@
 #include <string.h>
 #include <time.h>
 #include <err.h>
-#include "pathnames.h"
+
+#define	_PATH_INSTR	_PATH_GAME_DATA "fish.instr"
 
 #define	RANKS		13
 #define	HANDSIZE	7
@@ -451,7 +453,7 @@ instructions()
 			pager = "cat";
 		else {
 			if (!(pager = getenv("PAGER")) || (*pager == 0))
-				pager = _PATH_MORE;
+				pager = _PATH_PAGER;
 		}
 		if ((fd = open(_PATH_INSTR, O_RDONLY)) == -1)
 			err(1, "open %s", _PATH_INSTR);

@@ -30,6 +30,7 @@
  *	@(#)externs.h	8.1 (Berkeley) 5/31/93
  */
 
+#include "../config.h"
 #include <ctype.h>
 #include <err.h>
 #include <pwd.h>
@@ -48,6 +49,8 @@
 #define testbit(array, index)	(array[index/BITS] & (1 << (index % BITS)))
 #define setbit(array, index)	(array[index/BITS] |= (1 << (index % BITS)))
 #define clearbit(array, index)	(array[index/BITS] &= ~(1 << (index % BITS)))
+
+#define	_PATH_SCORE	_PATH_GAME_STATE "battlestar.log"
 
  /* well known rooms */
 #define FINAL	275

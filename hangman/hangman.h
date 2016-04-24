@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 1983, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -30,6 +29,7 @@
  *	@(#)hangman.h	8.1 (Berkeley) 5/31/93
  */
 
+#include	"../config.h"
 #include	<sys/types.h>
 #include	<sys/stat.h>
 #include	<ctype.h>
@@ -38,7 +38,6 @@
 #include	<stdlib.h>
 #include	<string.h>
 #include	<unistd.h>
-#include	"pathnames.h"
 
 #define	MINLEN	6
 #define	MAXERRS	7

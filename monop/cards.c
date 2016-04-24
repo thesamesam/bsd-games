@@ -27,11 +27,13 @@
  * SUCH DAMAGE.
  */
 
+#include "../config.h"
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <endian.h>
 #include "monop.ext"
-#include "pathnames.h"
+
+#define _PATH_CARDS	_PATH_GAME_DATA "monop/cards.pck"
 
 /*
  *	These routine deal with the card decks

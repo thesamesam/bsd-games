@@ -65,7 +65,7 @@ instructions()
 			path = "cat";
 		else {
 			if (!(path = getenv("PAGER")) || (*path == 0))
-				path = _PATH_MORE;
+				path = _PATH_PAGER;
 		}
 		if ((fd = open(_PATH_INSTR, O_RDONLY)) == -1) {
 			warn("open %s", _PATH_INSTR);

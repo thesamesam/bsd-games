@@ -29,7 +29,6 @@
  */
 
 #include "extern.h"
-#include "pathnames.h"
 
 int
 launch()

@@ -1,3 +1,5 @@
+// This is a map display utility
+#if 0
 
 #define	minusminus	plusplus
 #define	minusplus	plusminus
@@ -159,3 +161,4 @@ char	s1[2];
 	y += 30;
 	}
 }
+#endif
