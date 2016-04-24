@@ -214,7 +214,6 @@ update_overlap(osp)
 	int i, f, r, r1, d, d1, n;
 	int a, b, bmask, bmask1;
 	struct spotstr *esp;
-	char *str;
 
 	esp = NULL;
 	for (r = 4; --r >= 0; ) {			/* for each direction */
@@ -233,7 +232,7 @@ update_overlap(osp)
 		 * do the rows 0 <= r1 <= r. The r1 == r case is special
 		 * since the two frames can overlap at more than one point.
 		 */
-		str = &overlap[(a = sp1->s_frame[r] - frames) * FAREA];
+		unsigned char* str = &overlap[(a = sp1->s_frame[r] - frames) * FAREA];
 		sp2 = sp1 - d;
 		for (i = f + 1; i < 6; i++, sp2 -= d) {
 		    if (sp2->s_occ == BORDER)

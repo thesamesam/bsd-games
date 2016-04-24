@@ -1077,7 +1077,7 @@ checkframes(cbp, fcbp, osp, s, vertices)
 	struct ovlp_info *vertices;
 {
 	struct combostr *tcbp, *lcbp;
-	int i, n, mask, flg, verts, loop, index, fcnt;
+	int i, n, mask, flg, verts, index, fcnt;
 	union comboval cb;
 	u_char *str;
 	short *ip;
@@ -1088,7 +1088,6 @@ checkframes(cbp, fcbp, osp, s, vertices)
 	cb.s = s;
 	fcnt = cb.c.a - 2;
 	verts = 0;
-	loop = 0;
 	index = cbp->c_nframes;
 	n = (fcbp - frames) * FAREA;
 	str = &overlap[n];

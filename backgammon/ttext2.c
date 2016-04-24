@@ -120,14 +120,12 @@ int
 text(txt)
 	const char  *const *txt;
 {
-	const char  *const *begin;
 	const char   *a;
 	char    b;
 	const char   *c;
 	int     i;
 
 	fixtty(&noech);
-	begin = txt;
 	while (*txt) {
 		a = *(txt++);
 		if (*a != '\0') {
@@ -178,7 +176,6 @@ text(txt)
 			fixtty(&noech);
 			if (tflag)
 				curmove(curr, 0);
-			begin = txt;
 		}
 	}
 	fixtty(&bg_raw);

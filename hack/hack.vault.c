@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 1985, Stichting Centrum voor Wiskunde en Informatica,
  * Amsterdam
@@ -106,7 +105,17 @@ static const struct permonst pm_guard =
 
 static struct monst *guard;
 static int      gdlevel;
-#define	EGD	((struct egd *)(&(guard->mextra[0])))
+
+static inline struct egd* GetEGD (void)
+{
+    union UEGD {
+	struct egd* pegd;
+	long* l;
+    } cst;
+    cst.l = &(guard->mextra[0]);
+    return cst.pegd;
+}
+#define	EGD	GetEGD()
 
 static void restfakecorr(void);
 static int goldincorridor(void);

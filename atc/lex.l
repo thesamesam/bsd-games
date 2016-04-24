@@ -46,7 +46,8 @@
 #undef ECHO		/* XXX: work around lex(1) vs termios lameness */
 #include "grammar.h"
 
-extern int	line;
+extern int line;
+static int input (void) UNUSED;
 
 %}
 %%

@@ -64,7 +64,7 @@ prtable(base, num, d_cols, width, prentry, length)
 {
         int c, j;
         int a, b, cols, loc, maxlen, nrows, z;
-	int col, row;
+	int col UNUSED, row;
 
         if (num == 0)
                 return;

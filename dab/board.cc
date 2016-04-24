@@ -152,7 +152,7 @@ int BOARD::full(void) const
 {
     for (size_t y = 0; y < _ny; y++)
 	for (size_t x = 0; x < _nx; x++) {
-	    BOX box(y, x, (BOARD&) *this);
+	    BOX box(y, x, const_cast<BOARD&>(*this));
 	    if (box.count() != 4)
 		return 0;
 	}
@@ -171,7 +171,7 @@ void BOARD::paint(void) const
 {
     for (size_t y = 0; y < _ny; y++)
 	for (size_t x = 0; x < _nx; x++) {
-	    BOX box(y, x, (BOARD&) *this);
+	    BOX box(y, x, const_cast<BOARD&>(*this));
 	    box.paint();
 	}
 }

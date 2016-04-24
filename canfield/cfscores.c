@@ -108,10 +108,6 @@ printuser(pw, printfail)
 	struct betinfo total;
 	int i;
 
-	if (pw->pw_uid < 0) {
-		printf("Bad uid %d\n", pw->pw_uid);
-		return;
-	}
 	i = lseek(dbfd, pw->pw_uid * sizeof(struct betinfo), SEEK_SET);
 	if (i < 0)
 		warn("lseek %s", _PATH_SCORE);

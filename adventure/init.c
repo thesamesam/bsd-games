@@ -1,4 +1,3 @@
-
 /*-
  * Copyright (c) 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -144,7 +143,7 @@ linkdata()
 	int     i, j;
 
 	/* array linkages */
-	for (i = 1; i <= LOCSIZ; i++)
+	for (i = 1; i < LOCSIZ; i++)
 		if (ltext[i].seekadr != 0 && travel[i] != 0)
 			if ((travel[i]->tverb) == 1)
 				cond[i] = 2;

@@ -39,8 +39,6 @@
 #include "trek.h"
 #include "getpar.h"
 
-# define	PRIO		00	/* default priority */
-
 uid_t	Mother	= 51 + (51 << 8);
 
 /*
@@ -151,8 +149,6 @@ char	**argv;
 {
 	time_t		curtime;
 	long			vect;
-	char		opencode;
-	int			prio;
 	int		ac;
 	char		**av;
 	struct	termios		argp;
@@ -166,8 +162,6 @@ char	**argv;
 	time(&curtime);
 	vect = (long) curtime;
 	srand(vect);
-	opencode = 'w';
-	prio = PRIO;
 
 	if (tcgetattr(1, &argp) == 0)
 	{
@@ -179,10 +173,6 @@ char	**argv;
 	{
 		switch (av[0][1])
 		{
-		  case 'a':	/* append to log file */
-			opencode = 'a';
-			break;
-
 		  case 'f':	/* set fast mode */
 			Etc.fast++;
 			break;
@@ -199,12 +189,6 @@ char	**argv;
 			break;
 #		endif
 
-		  case 'p':	/* set priority */
-			if (getuid() != Mother)
-				goto badflag;
-			prio = atoi(av[0] + 2);
-			break;
-
 		  default:
 		  badflag:
 			printf("Invalid option: %s\n", av[0]);
@@ -215,10 +199,6 @@ char	**argv;
 	}
 	if (ac > 2)
 		errx(1, "arg count");
-		/*
-	if (ac > 1)
-		f_log = fopen(av[0], opencode);
-		*/
 
 	printf("\n   * * *   S T A R   T R E K   * * *\n\nPress return to continue.\n");
 
