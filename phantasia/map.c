@@ -4,14 +4,14 @@
 #define	minusminus	plusplus
 #define	minusplus	plusminus
 
-main()
+int main(void)
 {
-    /* Set up */
+    // Set up
 
     openpl();
     space(-1400, -1000, 1200, 1200);
 
-    /* Big box */
+    // Big box
 
     move(-1400, -1000);
     cont(-1400, 1000);
@@ -19,7 +19,7 @@ main()
     cont(600, -1000);
     cont(-1400, -1000);
 
-    /* Grid -- horizontal lines every 200 */
+    // Grid -- horizontal lines every 200
 
     linemod("dotted");
     line(600, -800, -1400, -800);
@@ -34,7 +34,7 @@ main()
     line(-1400, 600, 600, 600);
     line(600, 800, -1400, 800);
 
-    /* Grid -- vertical lines every 200 */
+    // Grid -- vertical lines every 200
 
     line(-1200, 1000, -1200, -1000);
     line(-1000, 1000, -1000, -1000);
@@ -48,7 +48,7 @@ main()
     line(200, 1000, 200, -1000);
     line(400, 1000, 400, -1000);
 
-    /* Circles radius +250 on "center" */
+    // Circles radius +250 on "center"
 
     linemod("solid");
     circle(-400, 0, 250);
@@ -56,7 +56,7 @@ main()
     circle(-400, 0, 750);
     circle(-400, 0, 1000);
 
-    /* A few labels */
+    // A few labels
 
     move(-670, 1075);
     label("- THE PHANTASIA UNIVERSE -");
@@ -121,44 +121,40 @@ main()
     label(" c  1985");
     circle(723, -923, 20);
 
-    /* Close down */
+    // Close down
 
     move(-1380, 1180);
     closepl();
     exit(0);
 }
 
-plusplus(s, x, y)	/* draw strings in plus plus quadrant */
-char	*s;
-int	x, y;
+int plusplus(			// draw strings in plus plus quadrant
+		char *s, int x, int y)
 {
-char	s1[2];
+    char s1[2];
 
-    while (*s)
-	{
+    while (*s) {
 	move(x, y);
 	s1[0] = *s++;
 	s1[1] = '\0';
 	label(s1);
 	x += 25;
 	y -= 30;
-	}
+    }
 }
 
-plusminus(s, x, y)	/* draw strings in plus minus quadrant */
-char	*s;
-int	x, y;
+int plusminus(			// draw strings in plus minus quadrant
+		 char *s, int x, int y)
 {
-char	s1[2];
+    char s1[2];
 
-    while (*s)
-	{
+    while (*s) {
 	move(x, y);
 	s1[0] = *s++;
 	s1[1] = '\0';
 	label(s1);
 	x += 25;
 	y += 30;
-	}
+    }
 }
 #endif

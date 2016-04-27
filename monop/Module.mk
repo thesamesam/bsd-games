@@ -35,15 +35,19 @@ ifdef BINDIR
 monop/EXEI	:= ${BINDIR}/${monop/NAME}
 monop/DATADIR	:= ${DATADIR}/monop
 monop/DATAI	:= $(addprefix ${monop/DATADIR}/,$(notdir ${monop/DATA}))
+monop/MANI	:= ${MANDIR}/man6/${monop/NAME}.6.gz
 
 install:		monop/install
-monop/install:	${monop/EXEI} ${monop/DATAI}
+monop/install:	${monop/EXEI} ${monop/DATAI} ${monop/MANI}
 ${monop/EXEI}:	${monop/EXE}
 	@echo "Installing $@ ..."
 	@${INSTALLEXE} $< $@
 ${monop/DATADIR}/cards.pck:	$Omonop/cards.pck
 	@echo "Installing $@ ..."
 	@${INSTALLDATA} $< $@
+${monop/MANI}:	monop/${monop/NAME}.6
+	@echo "Installing $@ ..."
+	@gzip -9 -c $< > $@ && chmod 644 $@
 
 uninstall:		monop/uninstall
 monop/uninstall:

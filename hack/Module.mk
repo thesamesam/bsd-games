@@ -24,7 +24,7 @@ ${hack/EXE}:	${hack/OBJS}
 $Ohack/makedefs:	$Ohack/makedefs.o
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ $<
-hack/hack.onames.h:	hack/def.objects.h hack/makedefs.c | $Ohack/makedefs
+hack/onames.h:	hack/objects.h hack/makedefs.c | $Ohack/makedefs
 	@echo "    Generating $@ ..."
 	@$Ohack/makedefs $< > $@
 
@@ -77,6 +77,6 @@ $Ohack/.d:	$O.d
 	@[ -d $Ohack ] || mkdir $Ohack && touch $Ohack/.d
 
 ${hack/OBJS} $Ohack/makedefs.o: ${CONFS} hack/Module.mk $Ohack/.d
-${hack/OBJS}:		hack/hack.onames.h
+${hack/OBJS}:		hack/onames.h
 
 -include ${hack/DEPS}

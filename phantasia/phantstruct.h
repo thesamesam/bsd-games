@@ -1,129 +1,123 @@
+#pragma once
+#include "../config.h"
+#include <stdbool.h>
 
-#define bool char
-/* phbool is used when we need this version of bool after <curses.h>.  */
-#define phbool char
+// phantstruct.h - structure definitions for Phantasia
+struct player {			// player statistics
+    double p_experience;	// experience
+    double p_level;		// level
+    double p_strength;		// strength
+    double p_sword;		// sword
+    double p_might;		// effect strength
+    double p_energy;		// energy
+    double p_maxenergy;		// maximum energy
+    double p_shield;		// shield
+    double p_quickness;		// quickness
+    double p_quksilver;		// quicksilver
+    double p_speed;		// effective quickness
+    double p_magiclvl;		// magic level
+    double p_mana;		// mana
+    double p_brains;		// brains
+    double p_poison;		// poison
+    double p_gold;		// gold
+    double p_gems;		// gems
+    double p_sin;		// sin
+    double p_x;			// x coord
+    double p_y;			// y coord
+    double p_1scratch, p_2scratch;	// variables used for decree, player battle
 
-/*
- * phantstruct.h - structure definitions for Phantasia
- */
+    struct {
+	short ring_type;	// type of ring
+	short ring_duration;	// duration of ring
+	bool ring_inuse;	// ring in use flag
+    } p_ring;			// ring stuff
 
-struct	player	    	/* player statistics */
-    {
-    double	p_experience;	/* experience */
-    double	p_level;    	/* level */
-    double	p_strength;	/* strength */
-    double	p_sword;	/* sword */
-    double	p_might;	/* effect strength */
-    double	p_energy;	/* energy */
-    double	p_maxenergy;	/* maximum energy */
-    double	p_shield;	/* shield */
-    double	p_quickness;	/* quickness */
-    double	p_quksilver;	/* quicksilver */
-    double	p_speed;	/* effective quickness */
-    double	p_magiclvl;	/* magic level */
-    double	p_mana;		/* mana */
-    double	p_brains;	/* brains */
-    double	p_poison;	/* poison */
-    double	p_gold;		/* gold */
-    double	p_gems;		/* gems */
-    double	p_sin;		/* sin */
-    double	p_x;	    	/* x coord */
-    double	p_y;	    	/* y coord */
-    double	p_1scratch,
-		p_2scratch;	/* variables used for decree, player battle */
+    long p_age;			// age of player
 
-    struct
-	{
-	short	ring_type;	/* type of ring */
-	short	ring_duration;	/* duration of ring */
-	bool	ring_inuse;	/* ring in use flag */
-	}	p_ring;	    	/* ring stuff */
+    int p_degenerated;		// age/3000 last degenerated
 
-    long	p_age;		/* age of player */
+    short p_type;		// character type
+    short p_specialtype;	// special character type
+    short p_lives;		// multiple lives for council, valar
+    short p_crowns;		// crowns
+    short p_charms;		// charms
+    short p_amulets;		// amulets
+    short p_holywater;		// holy water
+    short p_lastused;		// day of year last used
+    short p_status;		// playing, cloaked, etc.
+    short p_tampered;		// decree'd, etc. flag
+    short p_istat;		// used for inter-terminal battle
 
-    int		p_degenerated;	/* age/3000 last degenerated */
+    bool p_palantir;		// palantir
+    bool p_blessing;		// blessing
+    bool p_virgin;		// virgin
+    bool p_blindness;		// blindness
 
-    short	p_type;		/* character type */
-    short	p_specialtype;	/* special character type */
-    short	p_lives;	/* multiple lives for council, valar */
-    short	p_crowns;	/* crowns */
-    short	p_charms;	/* charms */
-    short	p_amulets;	/* amulets */
-    short	p_holywater;   	/* holy water */
-    short	p_lastused;	/* day of year last used */
-    short	p_status;	/* playing, cloaked, etc. */
-    short	p_tampered;	/* decree'd, etc. flag */
-    short	p_istat;	/* used for inter-terminal battle */
+    char p_name[SZ_NAME];	// name
+    char p_password[SZ_PASSWORD];	// password
+    char p_login[SZ_LOGIN];	// login
+};
 
-    bool	p_palantir;	/* palantir */
-    bool	p_blessing;	/* blessing */
-    bool	p_virgin;	/* virgin */
-    bool	p_blindness;	/* blindness */
+struct monster {		// monster stats
+    double m_strength;		// strength
+    double m_brains;		// brains
+    double m_speed;		// speed
+    double m_energy;		// energy
+    double m_experience;	// experience
+    double m_flock;		// % chance of flocking
 
-    char	p_name[SZ_NAME];	/* name */
-    char	p_password[SZ_PASSWORD];/* password */
-    char	p_login[SZ_LOGIN];	/* login */
-    };
+    double m_o_strength;	// original strength
+    double m_o_speed;		// original speed
+    double m_maxspeed;		// maximum speed
+    double m_o_energy;		// original energy
+    double m_melee;		// melee damage
+    double m_skirmish;		// skirmish damage
 
-struct	monster	    	/* monster stats */
-    {
-    double	m_strength;	/* strength */
-    double	m_brains;	/* brains */
-    double	m_speed;	/* speed */
-    double	m_energy;	/* energy */
-    double	m_experience;	/* experience */
-    double	m_flock;    	/* % chance of flocking */
+    int m_treasuretype;		// treasure type
+    int m_type;			// special type
 
-    double	m_o_strength;	/* original strength */
-    double	m_o_speed;	/* original speed */
-    double	m_maxspeed;	/* maximum speed */
-    double	m_o_energy;	/* original energy */
-    double	m_melee;	/* melee damage */
-    double	m_skirmish;	/* skirmish damage */
+    char m_name[26];		// name
+};
 
-    int		m_treasuretype;	/* treasure type */
-    int		m_type;	    	/* special type */
+struct energyvoid {		// energy void
+    double ev_x;		// x coordinate
+    double ev_y;		// y coordinate
+    bool ev_active;		// active or not
+};
 
-    char	m_name[26];	/* name */
-    };
+struct scoreboard {		// scoreboard entry
+    double sb_level;		// level of player
+    char sb_type[4];		// character type of player
+    char sb_name[SZ_NAME];	// name of player
+    char sb_login[SZ_LOGIN];	// login of player
+};
 
-struct	energyvoid     	/* energy void */
-    {
-    double	ev_x;		/* x coordinate */
-    double	ev_y;		/* y coordinate */
-    bool	ev_active;	/* active or not */
-    };
+struct charstats {		// character type statistics
+    double c_maxbrains;		// max brains per level
+    double c_maxmana;		// max mana per level
+    double c_weakness;		// how strongly poison affects player
+    double c_goldtote;		// how much gold char can carry
+    int c_ringduration;		// bad ring duration
+    struct {
+	double base;		// base for roll
+	double interval;	// interval for roll
+	double increase;	// increment per level
+    } c_quickness,		// quickness
+     c_strength,		// strength
+     c_mana,			// mana
+     c_energy,			// energy level
+     c_brains,			// brains
+     c_magiclvl;		// magic level
+};
 
-struct	scoreboard			/* scoreboard entry */
-    {
-    double	sb_level;		/* level of player */
-    char	sb_type[4];		/* character type of player */
-    char	sb_name[SZ_NAME];	/* name of player */
-    char	sb_login[SZ_LOGIN];	/* login of player */
-    };
+struct menuitem {		// menu item for purchase
+    const char *item;		// menu item name
+    double cost;		// cost of item
+};
 
-struct	charstats			/* character type statistics */
-    {
-    double	c_maxbrains;		/* max brains per level */
-    double	c_maxmana;		/* max mana per level */
-    double	c_weakness;		/* how strongly poison affects player */
-    double	c_goldtote;		/* how much gold char can carry */
-    int		c_ringduration;		/* bad ring duration */
-    struct
-	{
-	double	base;		/* base for roll */
-	double	interval;	/* interval for roll */
-	double	increase;	/* increment per level */
-	} c_quickness,		/* quickness */
-	  c_strength,		/* strength */
-	  c_mana,		/* mana */
-	  c_energy,		/* energy level */
-	  c_brains,		/* brains */
-	  c_magiclvl;		/* magic level */
-    };
-
-struct menuitem				/* menu item for purchase */
-    {
-    const char	*item;		/* menu item name */
-    double	cost;		/* cost of item */
-    };
+enum {
+    SZ_PLAYERSTRUCT	= sizeof(struct player),	// size of player structure
+    SZ_VOIDSTRUCT	= sizeof(struct energyvoid),	// size of energy void struct
+    SZ_SCORESTRUCT	= sizeof(struct scoreboard),	// size of score board entry
+    SZ_MONSTERSTRUCT	= sizeof(struct monster),	// size of monster structure
+};

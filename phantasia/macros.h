@@ -1,7 +1,5 @@
-
-/*
- * macros.h - macro definitions for Phantasia
- */
+// macros.h - macro definitions for Phantasia
+#pragma once
 
 #define ROLL(BASE,INTERVAL)	floor((BASE) + (INTERVAL) * drandom())
 #define SGN(X)		((X) < 0 ? -1 : 1)

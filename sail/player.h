@@ -1,36 +1,6 @@
-
-/*
- * Copyright (c) 1983, 1993
- *	The Regents of the University of California.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the University nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- *	@(#)player.h	8.2 (Berkeley) 5/3/95
- */
-
-/* sizes and coordinates for the screen */
+// Copyright (c) 1983 The Regents of the University of California.
+// This file is free software, distributed under the BSD license.
+// sizes and coordinates for the screen
 
 #define LINE_T		0
 #define LINE_L		0
@@ -91,14 +61,16 @@ extern int viewrow, viewcol;
 extern char movebuf[sizeof SHIP(0)->file->movebuf];
 extern char version[];
 extern int player;
-extern struct ship *ms;		/* memorial structure, &cc->ship[player] */
-extern struct File *mf;		/* ms->file */
-extern struct shipspecs *mc;	/* ms->specs */
+extern struct ship *ms;		// memorial structure, &cc->ship[player]
+extern struct File *mf;		// ms->file
+extern struct shipspecs *mc;	// ms->specs
 
-/* condition codes for leave() */
-#define LEAVE_QUIT	0
-#define LEAVE_CAPTURED	1
-#define LEAVE_HURRICAN	2
-#define LEAVE_DRIVER	3
-#define LEAVE_FORK	4
-#define LEAVE_SYNC	5
+// condition codes for leave()
+enum {
+    LEAVE_QUIT,
+    LEAVE_CAPTURED,
+    LEAVE_HURRICAN,
+    LEAVE_DRIVER,
+    LEAVE_FORK,
+    LEAVE_SYNC
+};

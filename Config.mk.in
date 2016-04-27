@@ -31,9 +31,9 @@ WORDLIST	:= @wordlist@
 
 CFLAGS		:= -Wall -Wextra -Wstrict-prototypes -Wpointer-arith \
 		   -Wcast-align -Wmissing-prototypes -Wwrite-strings \
-		   -Wcast-qual 
+		   -Wcast-qual -std=c11 @CUSTOMINCDIR@
 CXXFLAGS	:= -Wall -Wextra -Woverloaded-virtual -Wpointer-arith\
-		-Wshadow -Wredundant-decls -Wcast-qual @CUSTOMINCDIR@
+		   -Wshadow -Wredundant-decls -Wcast-qual -std=c++14 @CUSTOMINCDIR@
 LDFLAGS		:= @CUSTOMLIBDIR@
 LEX_LIBS	:= @libfl@
 CURSES_LIBS	:= @libncurses@

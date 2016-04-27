@@ -1,58 +1,26 @@
+// Copyright (c) 1985, Stichting Centrum voor Wiskunde en Informatica,
+// Copyright (c) 1982 Jay Fenlason <hack@gnu.org>
+// This file is free software, distributed under the BSD license.
 
-/*-
- * Copyright (c) 1997 The NetBSD Foundation, Inc.
- * All rights reserved.
- *
- * This code is derived from software contributed to The NetBSD Foundation
- * by Christos Zoulas.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *        This product includes software developed by the NetBSD
- *        Foundation, Inc. and its contributors.
- * 4. Neither the name of The NetBSD Foundation nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE NETBSD FOUNDATION, INC. AND CONTRIBUTORS
- * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION OR CONTRIBUTORS
- * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
-#ifndef _EXTERN_H_
-#define _EXTERN_H_
+#pragma once
+#include "../config.h"
 #include <stdarg.h>
 #include <stdio.h>
 
-/* alloc.c */
+// alloc.c
 long *alloc(unsigned);
 long *enlarge(char *, unsigned);
 
-/* hack.apply.c */
+// apply.c
 int doapply(void);
 int holetime(void);
 void dighole(void);
 
-/* hack.bones.c */
+// bones.c
 void savebones(void);
 int getbones(void);
 
-/* hack.c */
+// hack.c
 void unsee(void);
 void seeoff(int);
 void domove(void);
@@ -62,7 +30,7 @@ void pickup(int);
 void lookaround(void);
 int monster_nearby(void);
 int rroom(int, int);
-int cansee(xchar, xchar);
+int cansee(int, int);
 int sgn(int);
 void setsee(void);
 void nomul(int);
@@ -76,26 +44,26 @@ int inv_weight(void);
 int inv_cnt(void);
 long newuexp(void);
 
-/* hack.cmd.c */
+// cmd.c
 void rhack(const char *);
 int doextcmd(void);
 char lowc(int);
 char unctrl(int);
 int movecmd(int);
-int getdir(boolean);
+int getdir(bool);
 void confdir(void);
 int finddir(void);
 int isroom(int, int);
 int isok(int, int);
 
-/* hack.do.c */
+// do.c
 int dodrop(void);
 void dropx(struct obj *);
 void dropy(struct obj *);
 int doddrop(void);
 int dodown(void);
 int doup(void);
-void goto_level(int, boolean);
+void goto_level(int, bool);
 int donull(void);
 int dopray(void);
 int dothrow(void);
@@ -104,7 +72,7 @@ void more_experienced(int, int);
 void set_wounded_legs(long, int);
 void heal_legs(void);
 
-/* hack.do_name.c */
+// do_name.c
 coord getpos(int, const char *);
 int do_mname(void);
 void do_oname(struct obj *);
@@ -119,7 +87,7 @@ char *Amonnam(struct monst *, const char *);
 char *Xmonnam(struct monst *);
 char *visctrl(int);
 
-/* hack.do_wear.c */
+// do_wear.c
 void off_msg(struct obj *);
 int doremarm(void);
 int doremring(void);
@@ -134,7 +102,7 @@ void glibr(void);
 struct obj *some_armor(void);
 void corrode_armor(void);
 
-/* hack.dog.c */
+// dog.c
 void makedog(void);
 void initedog(struct monst *);
 void losedogs(void);
@@ -142,10 +110,10 @@ void keepdogs(void);
 void fall_down(struct monst *);
 int dogfood(struct obj *);
 int dog_move(struct monst *, int);
-int inroom(xchar, xchar);
+int inroom(int, int);
 int tamedog(struct monst *, struct obj *);
 
-/* hack.eat.c */
+// eat.c
 void init_uhunger(void);
 int opentin(void);
 int Meatdone(void);
@@ -154,11 +122,11 @@ void gethungry(void);
 void morehungry(int);
 void lesshungry(int);
 int unfaint(void);
-void newuhs(boolean);
+void newuhs(bool);
 int poisonous(struct obj *);
 int eatcorpse(struct obj *);
 
-/* hack.end.c */
+// end.c
 int dodone(void);
 void done1(int);
 void done_intr(int);
@@ -172,33 +140,33 @@ int outentry(int, struct toptenentry *, int);
 char *itoa(int);
 const char *ordin(int);
 void clearlocks(void);
-void hangup(int) __attribute__((__noreturn__));
+void hangup(int) NORETURN;
 char *eos(char *);
 void charcat(char *, int);
 void prscore(int, char **);
 
-/* hack.engrave.c */
-struct engr *engr_at(xchar, xchar);
-int sengr_at(const char *, xchar, xchar);
-void u_wipe_engr(int);
-void wipe_engr_at(xchar, xchar, xchar);
-void read_engr_at(int, int);
-void make_engr_at(int, int, const char *);
+// engrave.c
+struct engr *engr_at(int x, int y);
+int sengr_at(const char *s, int x, int y);
+void u_wipe_engr(int cnt);
+void wipe_engr_at(int x, int y, int cnt);
+void read_engr_at(int x, int y);
+void make_engr_at(int x, int y, const char *s);
 int doengrave(void);
-void save_engravings(int);
-void rest_engravings(int);
-void del_engr(struct engr *);
+void save_engravings(int fd);
+void rest_engravings(int fd);
+void del_engr(struct engr *ep);
 
-/* hack.fight.c */
+// fight.c
 int hitmm(struct monst *, struct monst *);
 void mondied(struct monst *);
 void monstone(struct monst *);
 int fightm(struct monst *);
 int thitu(int, int, const char *);
-boolean hmon(struct monst *, struct obj *, int);
+bool hmon(struct monst *, struct obj *, int);
 int attack(struct monst *);
 
-/* hack.invent.c */
+// invent.c
 struct obj *addinv(struct obj *);
 void useup(struct obj *);
 void freeinv(struct obj *);
@@ -217,9 +185,8 @@ struct gold *g_at(int, int);
 struct obj *mkgoldobj(long);
 struct obj *getobj(const char *, const char *);
 int ckunpaid(struct obj *);
-int ggetobj(const char *, int (*fn)(struct obj *), int);
-int askchain(struct obj *, char *, int, int (*)(struct obj *), 
-    int (*)(struct obj *), int);
+int ggetobj(const char *, int (*fn) (struct obj *), int);
+int askchain(struct obj *, char *, int, int (*)(struct obj *), int (*)(struct obj *), int);
 char obj_to_let(struct obj *);
 void prinv(struct obj *);
 int ddoinv(void);
@@ -235,67 +202,66 @@ int doprarm(void);
 int doprring(void);
 int digit(int);
 
-/* hack.ioctl.c */
+// ioctl.c
 void getioctls(void);
 void setioctls(void);
 int dosuspend(void);
 
-/* hack.lev.c */
-void savelev(int, xchar);
+// lev.c
+void savelev(int, int);
 void bwrite(int, const void *, unsigned);
 void saveobjchn(int, struct obj *);
 void savemonchn(int, struct monst *);
 void savegoldchn(int, struct gold *);
 void savetrapchn(int, struct trap *);
-void getlev(int, int, xchar);
+void getlev(int, int, int);
 void mread(int, char *, unsigned);
 void mklev(void);
 
-/* hack.main.c */
+// main.c
 void glo(int);
 void askname(void);
-void impossible(const char *, ...)
-    __attribute__((__format__(__printf__, 1, 2)));
+void impossible(const char *, ...) PRINTFLIKE(1,2);
 void stop_occupation(void);
 
-/* hack.makemon.c */
+// makemon.c
 struct monst *makemon(const struct permonst *, int, int);
-coord enexto(xchar, xchar);
+coord enexto(int, int);
 int goodpos(int, int);
 void rloc(struct monst *);
 struct monst *mkmon_at(int, int, int);
 
-/* hack.mhitu.c */
+// mhitu.c
 int mhitu(struct monst *);
 int hitu(struct monst *, int);
 
-/* hack.mklev.c */
+// mklev.c
 void makelevel(void);
 int makerooms(void);
 void addrs(int, int, int, int);
-void addrsx(int, int, int, int, boolean);
+void addrsx(int, int, int, int, bool);
 struct mkroom;
 int comp(const void *, const void *);
 coord finddpos(int, int, int, int);
 int okdoor(int, int);
 void dodoor(int, int, struct mkroom *);
 void dosdoor(int, int, struct mkroom *, int);
-int maker(schar, schar, schar, schar);
+int maker(int, int, int, int);
 void makecorridors(void);
 void join(int, int);
 void make_niches(void);
 void makevtele(void);
-void makeniche(boolean);
+void makeniche(bool);
 void mktrap(int, int, struct mkroom *);
 
-/* hack.mkmaze.c */
+// mkmaze.c
 void makemaz(void);
 void walkfrom(int, int);
 void move(int *, int *, int);
 int okay(int, int, int);
 coord mazexy(void);
 
-/* hack.mkobj.c */
+// mkobj.c
 struct obj *mkobj_at(int, int, int);
 void mksobj_at(int, int, int);
 struct obj *mkobj(int);
@@ -304,7 +270,7 @@ int letter(int);
 int weight(struct obj *);
 void mkgold(long, int, int);
 
-/* hack.mkshop.c */
+// mkshop.c
 void mkshop(void);
 void mkzoo(int);
 const struct permonst *morguemon(void);
@@ -316,7 +282,7 @@ int isbig(struct mkroom *);
 int dist2(int, int, int, int);
 int sq(int);
 
-/* hack.mon.c */
+// mon.c
 void movemon(void);
 void justswld(struct monst *, const char *);
 void youswld(struct monst *, int, int, const char *);
@@ -325,7 +291,7 @@ int dochug(struct monst *);
 int m_move(struct monst *, int);
 void mpickgold(struct monst *);
 void mpickgems(struct monst *);
-int mfndpos(struct monst *, coord[9 ], int[9 ], int);
+int mfndpos(struct monst *, coord[9], int[9], int);
 int dist(int, int);
 void poisoned(const char *, const char *);
 void mondead(struct monst *);
@@ -343,9 +309,9 @@ int ishuman(struct monst *);
 void setmangry(struct monst *);
 int canseemon(struct monst *);
 
-/* hack.monst.c */
+// monst.c
 
-/* hack.o_init.c */
+// o_init.c
 int letindex(int);
 void init_objects(void);
 int probtype(int);
@@ -356,7 +322,7 @@ void restnames(int);
 int dodiscovered(void);
 int interesting_to_discover(int);
 
-/* hack.objnam.c */
+// objnam.c
 char *strprepend(char *, char *);
 char *sitoa(int);
 char *typename(int);
@@ -367,12 +333,12 @@ char *aobjnam(struct obj *, const char *);
 char *Doname(struct obj *);
 struct obj *readobjnam(char *);
 
-/* hack.options.c */
+// options.c
 void initoptions(void);
-void parseoptions(char *, boolean);
+void parseoptions(char *, bool);
 int doset(void);
 
-/* hack.pager.c */
+// pager.c
 int dowhatis(void);
 void intruph(int);
 void page_more(FILE *, int);
@@ -382,11 +348,11 @@ void set_pager(int);
 int page_line(const char *);
 void cornline(int, const char *);
 int dohelp(void);
-int page_file(const char *, boolean);
+int page_file(const char *, bool);
 int dosh(void);
 int child(int);
 
-/* hack.potion.c */
+// potion.c
 int dodrink(void);
 void pluslvl(void);
 void strange_feeling(struct obj *, const char *);
@@ -395,16 +361,15 @@ void potionbreathe(struct obj *);
 int dodip(void);
 void ghost_from_bottle(void);
 
-/* hack.pri.c */
+// pri.c
 void swallowed(void);
-void panic(const char *, ...)
-    __attribute__((__format__(__printf__, 1, 2)));
+void panic(const char *, ...) PRINTFLIKE(1,2);
 void atl(int, int, int);
 void on_scr(int, int);
-void tmp_at(schar, schar);
-void Tmp_at(schar, schar);
-void setclipped(void) __attribute__((__noreturn__));
-void at(xchar, xchar, int);
+void tmp_at(int, int);
+void Tmp_at(int, int);
+void setclipped(void) NORETURN;
+void at(int, int, int);
 void prme(void);
 int doredraw(void);
 void docrt(void);
@@ -412,7 +377,7 @@ void docorner(int, int);
 void curs_on_u(void);
 void pru(void);
 void prl(int, int);
-char news0(xchar, xchar);
+char news0(int, int);
 void newsym(int, int);
 void mnewsym(int, int);
 void nosee(int, int);
@@ -431,38 +396,38 @@ void bot(void);
 void mstatusline(struct monst *);
 void cls(void);
 
-/* hack.read.c */
+// read.c
 int doread(void);
 int identify(struct obj *);
-void litroom(boolean);
+void litroom(bool);
 int monstersym(int);
 
-/* hack.rip.c */
+// rip.c
 void outrip(void);
 void center(int, char *);
 
-/* hack.rumors.c */
+// rumors.c
 void init_rumors(FILE *);
 int skipline(FILE *);
 void outline(FILE *);
 void outrumor(void);
 int used(int);
 
-/* hack.save.c */
+// save.c
 int dosave(void);
 int dosave0(int);
 int dorecover(int);
 struct obj *restobjchn(int);
 struct monst *restmonchn(int);
 
-/* hack.search.c */
+// search.c
 int findit(void);
 int dosearch(void);
 int doidtrap(void);
 void wakeup(struct monst *);
 void seemimic(struct monst *);
 
-/* hack.shk.c */
+// shk.c
 void obfree(struct obj *, struct obj *);
 void paybill(void);
 char *shkname(struct monst *);
@@ -482,10 +447,10 @@ void shopdig(int);
 int online(int, int);
 int follower(struct monst *);
 
-/* hack.shknam.c */
+// shknam.c
 void findname(char *, int);
 
-/* hack.steal.c */
+// steal.c
 long somegold(void);
 void stealgold(struct monst *);
 int stealarm(void);
@@ -494,7 +459,7 @@ void mpickobj(struct monst *, struct obj *);
 int stealamulet(struct monst *);
 void relobj(struct monst *, int);
 
-/* hack.termcap.c */
+// termcap.c
 void startup(void);
 void start_screen(void);
 void end_screen(void);
@@ -513,11 +478,11 @@ void bell(void);
 void delay_output(void);
 void cl_eos(void);
 
-/* hack.timeout.c */
+// timeout.c
 void timeout(void);
 void stoned_dialogue(void);
 
-/* hack.topl.c */
+// topl.c
 int doredotopl(void);
 void redotoplin(void);
 void remember_topl(void);
@@ -526,19 +491,17 @@ void xmore(const char *);
 void more(void);
 void cmore(const char *);
 void clrlin(void);
-void pline(const char *, ...)
-    __attribute__((__format__(__printf__, 1, 2)));
-void vpline(const char *, va_list)
-    __attribute__((__format__(__printf__, 1, 0)));
+void pline(const char *, ...) PRINTFLIKE(1,2);
+void vpline(const char *, va_list) PRINTFLIKE(1,0);
 void putsym(int);
 void putstr(const char *);
 
-/* hack.track.c */
+// track.c
 void initrack(void);
 void settrack(void);
 coord *gettrack(int, int);
 
-/* hack.trap.c */
+// trap.c
 struct trap *maketrap(int, int, int);
 void dotrap(struct trap *);
 int mintrap(struct monst *);
@@ -555,22 +518,21 @@ void unplacebc(void);
 void level_tele(void);
 void drown(void);
 
-/* hack.tty.c */
+// tty.c
 void gettty(void);
 void settty(const char *);
 void setctty(void);
 void setftty(void);
-void error(const char *, ...)
-    __attribute__((__format__(__printf__, 1, 2),__noreturn__));
+void error(const char *, ...) PRINTFLIKE(1,2) NORETURN;
 void getlin(char *);
 void getret(void);
 void cgetret(const char *);
 void xwaitforspace(const char *);
 char *parse(void);
 char readchar(void);
-void end_of_input(void) __attribute__((__noreturn__));
+void end_of_input(void) NORETURN;
 
-/* hack.u_init.c */
+// u_init.c
 void u_init(void);
 struct trobj;
 void ini_inv(struct trobj *);
@@ -578,11 +540,11 @@ void wiz_inv(void);
 void plnamesuffix(void);
 int role_index(int);
 
-/* hack.unix.c */
+// unix.c
 void setrandom(void);
 struct tm *getlt(void);
 int getyear(void);
-char *getdate(void);
+const char* getdatestr (void);
 int phase_of_the_moon(void);
 int night(void);
 int midnight(void);
@@ -593,34 +555,34 @@ void getlock(void);
 void getmailstatus(void);
 void ckmailstatus(void);
 void newmail(void);
-void mdrush(struct monst *, boolean);
+void mdrush(struct monst *, bool);
 void readmail(void);
 void regularize(char *);
 
-/* hack.vault.c */
+// vault.c
 void setgd(void);
 int gd_move(void);
 void gddead(void);
 void replgd(struct monst *, struct monst *);
 void invault(void);
 
-/* hack.version.c */
+// version.c
 int doversion(void);
 
-/* hack.wield.c */
+// wield.c
 void setuwep(struct obj *);
 int dowield(void);
 void corrode_weapon(void);
 int chwepon(struct obj *, int);
 
-/* hack.wizard.c */
+// wizard.c
 void amulet(void);
 int wiz_hit(struct monst *);
 void inrange(struct monst *);
 void aggravate(void);
 void clonewiz(struct monst *);
 
-/* hack.worm.c */
+// worm.c
 #ifndef NOWORM
 int getwn(struct monst *);
 void initworm(struct monst *);
@@ -631,37 +593,33 @@ void wormhit(struct monst *);
 void wormsee(unsigned);
 struct wseg;
 void pwseg(struct wseg *);
-void cutworm(struct monst *, xchar, xchar, uchar);
+void cutworm(struct monst *, int, int, int);
 void remseg(struct wseg *);
 #endif
 
-/* hack.worn.c */
+// worn.c
 void setworn(struct obj *, long);
 void setnotworn(struct obj *);
 
-/* hack.zap.c */
+// zap.c
 void bhitm(struct monst *, struct obj *);
 int bhito(struct obj *, struct obj *);
 int dozap(void);
 const char *exclam(int);
 void hit(const char *, struct monst *, const char *);
 void miss(const char *, struct monst *);
-struct monst *bhit(int, int, int, int,
-    void (*)(struct monst *, struct obj *),
-    int (*)(struct obj *, struct obj *),
-    struct obj *);
+struct monst *bhit(int, int, int, int, void (*)(struct monst *, struct obj *), int (*)(struct obj *, struct obj *), struct obj *);
 struct monst *boomhit(int, int);
 char dirlet(int, int);
-void buzz(int, xchar, xchar, int, int);
+void buzz(int, int, int, int, int);
 int zhit(struct monst *, int);
 int revive(struct obj *);
 void rloco(struct obj *);
 void fracture_rock(struct obj *);
 void burn_scrolls(void);
 
-/* rnd.c */
+// rnd.c
 int rn1(int, int);
 int rn2(int);
 int rnd(int);
 int d(int, int);
-#endif /* _EXTERN_H_ */

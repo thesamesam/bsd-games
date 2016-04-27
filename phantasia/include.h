@@ -1,8 +1,7 @@
+// include.h - includes all important files for Phantasia
 
-/*
- * include.h - includes all important files for Phantasia
- */
-
+#pragma once
+#include "../config.h"
 #include <ctype.h>
 #include <errno.h>
 #include <math.h>
