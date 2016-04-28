@@ -8,8 +8,6 @@ NAME		:= @PKG_NAME@
 
 CC		:= @CC@
 CXX		:= @CXX@
-LEX		:= @LEX@
-YACC		:= @YACC@
 INSTALL		:= @INSTALL@
 
 INSTALLEXE	:= ${INSTALL} -D -p -m 755 -s
@@ -35,7 +33,6 @@ CFLAGS		:= -Wall -Wextra -Wstrict-prototypes -Wpointer-arith \
 CXXFLAGS	:= -Wall -Wextra -Woverloaded-virtual -Wpointer-arith\
 		   -Wshadow -Wredundant-decls -Wcast-qual -std=c++14 @CUSTOMINCDIR@
 LDFLAGS		:= @CUSTOMLIBDIR@
-LEX_LIBS	:= @libfl@
 CURSES_LIBS	:= @libncurses@
 MATH_LIBS	:= @libm@
 ifdef DEBUG

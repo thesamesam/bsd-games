@@ -105,7 +105,7 @@ int log_score(int list_em)
 	if (good != 6 || ++num_scores >= NUM_SCORES)
 	    break;
     }
-    if (!test_mode && !list_em) {
+    if (!test_mode && !list_em && sp && sp->name) {
 	if ((pw = (struct passwd *) getpwuid(getuid())) == NULL) {
 	    fprintf(stderr, "getpwuid failed for uid %d.  Who are you?\n", (int) getuid());
 	    return -1;
@@ -113,14 +113,7 @@ int log_score(int list_em)
 	strcpy(thisscore.name, pw->pw_name);
 	uname(&name);
 	snprintf(thisscore.host, sizeof(thisscore.host), "%s", name.nodename);
-
-	cp = strrchr(file, '/');
-	if (cp == NULL) {
-	    fprintf(stderr, "log: where's the '/' in %s?\n", file);
-	    return -1;
-	}
-	cp++;
-	strcpy(thisscore.game, cp);
+	strcpy(thisscore.game, sp->name);
 
 	thisscore.time = clck;
 	thisscore.planes = safe_planes;

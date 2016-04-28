@@ -3,15 +3,11 @@
 
 #include "include.h"
 
-char GAMES[] = "Game_List";
+int clck = 0, safe_planes = 0, start_time = 0, test_mode = 0;
 
-int clck, safe_planes, start_time, test_mode;
+FILE *filein = NULL, *fileout = NULL;
 
-const char *file;
-
-FILE *filein, *fileout;
-
-C_SCREEN screen, *sp = &screen;
+const C_SCREEN* sp = NULL;
 
 LIST air, ground;
 

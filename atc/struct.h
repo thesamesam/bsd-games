@@ -1,6 +1,9 @@
 // Copyright (c) 1987 by Ed James <edjames@berkeley.edu>
 // This file is free software, distributed under the BSD license.
 
+#pragma once
+#include "def.h"
+
 typedef struct {
     int x, y;
     int dir;			// used only sometimes
@@ -15,17 +18,19 @@ typedef SCREEN_POS BEACON;
 typedef SCREEN_POS AIRPORT;
 
 typedef struct {
-    int width, height;
+    const char* name;
+    int width;
+    int height;
     int update_secs;
     int newplane_time;
     int num_exits;
     int num_lines;
     int num_beacons;
     int num_airports;
-    EXIT *exit;
-    LINE *line;
-    BEACON *beacon;
-    AIRPORT *airport;
+    const EXIT* exit;
+    const LINE* line;
+    const BEACON* beacon;
+    const AIRPORT* airport;
 } C_SCREEN;
 
 typedef struct plane {

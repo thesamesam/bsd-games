@@ -24,6 +24,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <paths.h>
+#include <assert.h>
 
 #include "def.h"
 #include "struct.h"

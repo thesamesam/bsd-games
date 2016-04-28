@@ -1,19 +1,16 @@
 // Copyright (c) 1987 by Ed James <edjames@berkeley.edu>
 // This file is free software, distributed under the BSD license.
 
-extern char GAMES[];
-extern const char *file;
+#pragma once
+#include "struct.h"
+#include <stdio.h>
+#include <curses.h>
 
 extern int clck, safe_planes, start_time, test_mode;
-
 extern FILE *filein, *fileout;
-
-extern C_SCREEN screen, *sp;
-
+extern const C_SCREEN* sp;
 extern LIST air, ground;
-
 extern struct termios tty_start, tty_new;
-
 extern DISPLACEMENT displacement[MAXDIR];
 
 int addplane(void);
@@ -42,7 +39,6 @@ void ioclrtobot(void);
 void ioclrtoeol(int);
 void ioerror(int, int, const char *);
 void iomove(int);
-int list_games(void);
 int log_score(int);
 void log_score_quit(int) NORETURN;
 void loser(const PLANE *, const char *) NORETURN;
@@ -56,7 +52,6 @@ void planewin(void);
 int pop(void);
 void push(int, int);
 void quit(int);
-int read_file(const char *);
 void redraw(void);
 void rezero(void);
 void setup_screen(const C_SCREEN *);
@@ -75,7 +70,6 @@ const char *benum(char);
 const char *circle(char);
 const char *climb(char);
 const char *command(const PLANE *);
-const char *default_game(void);
 const char *delayb(char);
 const char *descend(char);
 const char *ex_it(char);
@@ -84,7 +78,6 @@ const char *ignore(char);
 const char *left(char);
 const char *mark(char);
 PLANE *newplane(void);
-const char *okay_game(const char *);
 const char *rel_dir(char);
 const char *right(char);
 const char *setalt(char);
@@ -94,3 +87,9 @@ const char *timestr(int);
 const char *to_dir(char);
 const char *turn(char);
 const char *unmark(char);
+
+// games.c
+int load_game (const char *s);
+const char* default_game (void);
+const char* okay_game (const char *s);
+void list_games (void);

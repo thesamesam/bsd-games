@@ -22,10 +22,10 @@ seds=[s/^#\(DEBUG\)/\1/]
 HEADERS="ncurses.h"
 
 # Libraries
-LIBS="ncurses fl m"
+LIBS="ncurses m"
 
 # First pair is used if nothing matches
-PROGS="CC=gcc CC=clang CXX=g++ CXX=clang++ INSTALL=install LEX=flex LEX=lex YACC=bison YACC=yacc PAGER=less PAGER=more"
+PROGS="CC=gcc CC=clang CXX=g++ CXX=clang++ INSTALL=install PAGER=less PAGER=more"
 
 # Automatic vars
 [ -d .git ] && PKG_VERSTR=`git describe --always --tags`

@@ -315,15 +315,5 @@ int too_close(const PLANE * p1, const PLANE * p2, int dist)
 
 int dir_deg(int d)
 {
-    switch (d) {
-	case 0: return 0;
-	case 1: return 45;
-	case 2: return 90;
-	case 3: return 135;
-	case 4: return 180;
-	case 5: return 225;
-	case 6: return 270;
-	case 7: return 315;
-	default: return -1;
-    }
+    return (d > 0 && d < 8) ? d * 45 : -1;
 }

@@ -12,7 +12,7 @@ int main(int ac, char *av[])
     int seed;
     int f_usage = 0, f_list = 0, f_showscore = 0;
     int f_printpath = 0;
-    const char *file = NULL;
+    const char *gamename = NULL;
     int ch;
     struct sigaction sa;
 #ifdef BSD
@@ -47,7 +47,7 @@ int main(int ac, char *av[])
 		break;
 	    case 'f':
 	    case 'g':
-		file = optarg;
+		gamename = optarg;
 		break;
 	}
     }
@@ -70,15 +70,15 @@ int main(int ac, char *av[])
     }
 
     if (f_usage || f_showscore || f_list || f_printpath)
-	exit(0);
+	return EXIT_SUCCESS;
 
-    if (file == NULL)
-	file = default_game();
+    if (!gamename)
+	gamename = default_game();
     else
-	file = okay_game(file);
+	gamename = okay_game (gamename);
 
-    if (file == NULL || read_file(file) < 0)
-	exit(1);
+    if (!gamename || load_game (gamename) < 0)
+	return EXIT_FAILURE;
 
     init_gr();
     setup_screen(sp);
@@ -147,107 +147,4 @@ int main(int ac, char *av[])
 #endif
 	}
     }
-}
-
-int read_file(const char *s)
-{
-    int retval;
-
-    file = s;
-    yyin = fopen(s, "r");
-    if (yyin == NULL) {
-	warn("fopen %s", s);
-	return -1;
-    }
-    retval = yyparse();
-    fclose(yyin);
-
-    if (retval != 0)
-	return -1;
-    else
-	return 0;
-}
-
-const char *default_game(void)
-{
-    FILE *fp;
-    static char file[256];
-    char line[256], games[256];
-
-    strcpy(games, _PATH_GAMES);
-    strcat(games, GAMES);
-
-    if ((fp = fopen(games, "r")) == NULL) {
-	warn("fopen %s", games);
-	return NULL;
-    }
-    if (fgets(line, sizeof(line), fp) == NULL) {
-	fprintf(stderr, "%s: no default game available\n", games);
-	return NULL;
-    }
-    fclose(fp);
-    line[strlen(line) - 1] = '\0';
-    strcpy(file, _PATH_GAMES);
-    strcat(file, line);
-    return file;
-}
-
-const char *okay_game(const char *s)
-{
-    FILE *fp;
-    static char file[256];
-    const char *ret = NULL;
-    char line[256], games[256];
-
-    strcpy(games, _PATH_GAMES);
-    strcat(games, GAMES);
-
-    if ((fp = fopen(games, "r")) == NULL) {
-	warn("fopen %s", games);
-	return NULL;
-    }
-    while (fgets(line, sizeof(line), fp) != NULL) {
-	line[strlen(line) - 1] = '\0';
-	if (strcmp(s, line) == 0) {
-	    strcpy(file, _PATH_GAMES);
-	    strcat(file, line);
-	    ret = file;
-	    break;
-	}
-    }
-    fclose(fp);
-    if (ret == NULL) {
-	test_mode = 1;
-	ret = s;
-	fprintf(stderr, "%s: %s: game not found\n", games, s);
-	fprintf(stderr, "Your score will not be logged.\n");
-	sleep(2);	       // give the guy time to read it
-    }
-    return ret;
-}
-
-int list_games(void)
-{
-    FILE *fp;
-    char line[256], games[256];
-    int num_games = 0;
-
-    strcpy(games, _PATH_GAMES);
-    strcat(games, GAMES);
-
-    if ((fp = fopen(games, "r")) == NULL) {
-	warn("fopen %s", games);
-	return -1;
-    }
-    puts("available games:");
-    while (fgets(line, sizeof(line), fp) != NULL) {
-	printf("	%s", line);
-	num_games++;
-    }
-    fclose(fp);
-    if (num_games == 0) {
-	fprintf(stderr, "%s: no games available\n", games);
-	return -1;
-    }
-    return 0;
 }

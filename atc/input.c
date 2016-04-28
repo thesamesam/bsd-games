@@ -544,21 +544,10 @@ const char *ignore(char c UNUSED)
     return NULL;
 }
 
-int dir_no(char c)
+int dir_no (char c)
 {
-    int dir = -1;
-    switch (c) {
-	case 'w': dir = 0; break;
-	case 'e': dir = 1; break;
-	case 'd': dir = 2; break;
-	case 'c': dir = 3; break;
-	case 'x': dir = 4; break;
-	case 'z': dir = 5; break;
-	case 'a': dir = 6; break;
-	case 'q': dir = 7; break;
-	default:
-	    fprintf(stderr, "bad character in dir_no\n");
-	    break;
-    }
-    return dir;
+    static const char c_DirChars [MAXDIR+1] = "wedcxzaq";
+    const char* f = strchr (c_DirChars, c);
+    assert (f && "bad character in dir_no");
+    return f ? f - c_DirChars : -1;
 }
