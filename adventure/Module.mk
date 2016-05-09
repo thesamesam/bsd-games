@@ -2,8 +2,8 @@
 
 adventure/NAME	:= adventure
 adventure/EXE	:= $Oadventure/${adventure/NAME}
-adventure/SRCS	:= $(addprefix adventure/, crc.c done.c init.c io.c main.c save.c subr.c vocab.c wizard.c)
-adventure/OBJS	:= $(addprefix $O,$(adventure/SRCS:.c=.o) adventure/data.o)
+adventure/SRCS	:= $(wildcard adventure/*.c)
+adventure/OBJS	:= $(addprefix $O,$(adventure/SRCS:.c=.o))
 adventure/DEPS	:= $(adventure/OBJS:.o=.d)
 adventure/LIBS	:=
 
@@ -19,16 +19,6 @@ adventure/run:	${adventure/EXE}
 ${adventure/EXE}:	${adventure/OBJS}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${adventure/OBJS} ${adventure/LIBS}
-
-$Oadventure/setup:	$Oadventure/setup.o
-	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ $<
-$Oadventure/data.c:	adventure/glorkz adventure/setup.c | $Oadventure/setup
-	@echo "    Generating $@ ..."
-	@$Oadventure/setup $< > $@
-$Oadventure/data.o:	$Oadventure/data.c
-	@echo "    Compiling $< ..."
-	@${CC} ${CFLAGS} -MMD -MT "$@" -o $@ -c $<
 
 ################ Installation ##########################################
 

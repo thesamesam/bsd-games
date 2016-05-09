@@ -2,17 +2,17 @@
 // This file is free software, distributed under the BSD license.
 // Re-coding of advent in C: termination routines
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "hdr.h"
 #include "extern.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 int score(void)
 {			       // sort of like 20000
-    int scor, i;
-    mxscor = scor = 0;
-    for (i = 50; i <= maxtrs; i++) {
-	if (ptext[i].txtlen == 0)
+    int scor = 0;
+    mxscor = 0;
+    for (int i = 50; i <= maxtrs; ++i) {
+	if (ptext[i] && !strlen(ptext[i]))
 	    continue;
 	k = 12;
 	if (i == chest)
@@ -52,43 +52,45 @@ int score(void)
     mxscor++;
     scor += 2;
     mxscor += 2;
-    for (i = 1; i <= hntmax; i++)
+    for (unsigned i = 1; i < ArraySize(hints); ++i)
 	if (hinted[i])
 	    scor -= hints[i][2];
     return scor;
 }
 
 // entry=2 means goto 20000, 3=19000
-void done(int entry)
+void done (int entry)
 {
-    int i, sc;
+    // Player class descriptions
+    static const struct {
+	unsigned short threshold;
+	char title [62];
+    } c_AdvClasses[] = {
+	{ 0,	"You are obviously a rank amateur.  Better luck next time."	},
+	{ 100,	"Your score qualifies you as a Novice class Adventurer."	},
+	{ 130,	"You have achieved the rating: \"Experienced Adventurer\"."	},
+	{ 200,	"You may now consider yourself a \"Seasoned Adventurer\"."	},
+	{ 250,	"You have reached \"Junior Master\" status."		},
+	{ 300,	"Your score puts you in Master Adventurer Class C."	},
+	{ 330,	"Your score puts you in Master Adventurer Class B."	},
+	{ 349,	"Your score puts you in Master Adventurer Class A."	},
+	{ 9999,	"You are now an exalted Adventurer Grandmaster!"	}
+    };
     if (entry == 1)
-	mspeak(1);
+	mspeak (1);
     if (entry == 3)
-	rspeak(136);
-    printf("\n\n\nYou scored %d out of a ", (sc = score()));
-    printf("possible %d using %d turns.\n", mxscor, turns);
-    for (i = 1; i <= clsses; i++) {
-	if (cval[i] >= sc) {
-	    speak(&ctext[i]);
-	    if (i == clsses - 1) {
-		printf("To achieve the next higher rating");
-		printf(" would be a neat trick!\n\n");
-		printf("Congratulations!!\n");
-		exit(0);
-	    }
-	    k = cval[i] + 1 - sc;
-	    printf("To achieve the next higher rating, you need");
-	    printf(" %d more point", k);
-	    if (k == 1)
-		printf(".\n");
-	    else
-		printf("s.\n");
-	    exit(0);
-	}
+	rspeak (136);
+    unsigned sc = score();
+    printf("\n\n\nYou scored %u out of a possible %d using %d turns.\n", sc, mxscor, turns);
+    unsigned advcls = 0;
+    while (advcls+1 < ArraySize(c_AdvClasses) && sc >= c_AdvClasses[advcls+1].threshold)
+	++advcls;
+    speak (c_AdvClasses[advcls].title);
+    if (advcls < ArraySize(c_AdvClasses)-1) {
+	unsigned tolevel = c_AdvClasses[advcls+1].threshold - sc;
+	printf("To achieve the next higher rating, you need %u more point%s", tolevel, "s.\n"+(tolevel==1));
     }
-    printf("You just went off my scale!!!\n");
-    exit(0);
+    exit(EXIT_SUCCESS);
 }
 
 void die(int entry)

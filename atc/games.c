@@ -13,8 +13,6 @@
 // a	DIR_WEST
 // q	DIR_NW
 
-#define ArraySize(a)	(sizeof(a)/sizeof(a[0]))
-
 #define ArrayCName(game,aname)	c_##game##Game_##aname##s
 #define StaticGameArray(game,aname)\
     .num_##aname##s = ArraySize(ArrayCName(game,aname)),\

@@ -2,94 +2,72 @@
 // This file is free software, distributed under the BSD license.
 // Re-coding of advent in C: subroutines from main
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "hdr.h"
 #include "extern.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 // Statement functions
-int toting(int objj)
+int toting (int objj)
 {
-    if (place[objj] == -1)
-	return true;
-    else
-	return false;
+    return place[objj] == -1;
 }
 
-int here(int objj)
+int here (int objj)
 {
-    if (place[objj] == loc || toting(objj))
-	return true;
-    else
-	return false;
+    return place[objj] == loc || toting(objj);
 }
 
-int at(int objj)
+int at (int objj)
 {
-    if (place[objj] == loc || fixed[objj] == loc)
-	return true;
-    else
-	return false;
+    return place[objj] == loc || fixed[objj] == loc;
 }
 
-int liq2(int pbotl)
+int liq2 (int pbotl)
 {
     return (1 - pbotl) * water + (pbotl / 2) * (water + oil);
 }
 
-int liq(void)
+int liq (void)
 {
-    int i;
-    i = prop[bottle];
+    int i = prop[bottle];
     if (i > -1 - i)
 	return liq2(i);
     else
 	return liq2(-1 - i);
 }
 
-int liqloc(int locc)
+int liqloc (int locc)
 {
-    int i, j, l;
-    i = cond[locc] / 2;
-    j = ((i * 2) % 8) - 5;
-    l = cond[locc] / 4;
-    l = l % 2;
+    int i = cond[locc] / 2;
+    int j = (i * 2) % 8 - 5;
+    int l = (cond[locc] / 4) % 2;
     return liq2(j * l + 1);
 }
 
-int bitset(int l, int n)
+int bitset (int l, int n)
 {
-    if (cond[l] & setbit[n])
-	return true;
-    return false;
+    return cond[l] & setbit[n];
 }
 
-int forced(int locc)
+int forced (int locc)
 {
-    if (cond[locc] == 2)
-	return true;
-    return false;
+    return cond[locc] == 2;
 }
 
-int dark(void)
+int dark (void)
 {
-    if ((cond[loc] % 2) == 0 && (prop[lamp] == 0 || !here(lamp)))
-	return true;
-    return false;
+    return cond[loc]%2 == 0 && (!prop[lamp] || !here(lamp));
 }
 
-int pct(int n)
+int pct (int n)
 {
-    if (ran(100) < n)
-	return true;
-    return false;
+    return ran(100) < n;
 }
 
 int fdwarf(void)
 {			       // 71
     int i, j;
-    struct travlist *kk;
-
     if (newloc != loc && !forced(loc) && !bitset(loc, 3)) {
 	for (i = 1; i <= 5; i++) {
 	    if (odloc[i] != newloc || !dseen[i])
@@ -130,7 +108,7 @@ int fdwarf(void)
 	if (dloc[i] == 0)
 	    continue;
 	j = 1;
-	for (kk = travel[dloc[i]]; kk != 0; kk = kk->next) {
+	for (const struct travlist* kk = travel[dloc[i]]; kk->tverb; ++kk) {
 	    newloc = kk->tloc;
 	    if (newloc > 300 || newloc < 15 || newloc == odloc[i]
 		|| (j > 1 && newloc == tk[j - 1]) || j >= 20 || newloc == dloc[i] || forced(newloc)
@@ -231,7 +209,9 @@ int march(void)
 {			       // label 8
     int ll1, ll2;
 
-    if ((tkk = travel[newloc = loc]) == 0)
+    newloc = loc;
+    tkk = travel[newloc];
+    if (!tkk)
 	bug(26);
     if (k == null)
 	return 2;
@@ -262,10 +242,10 @@ int march(void)
     oldlc2 = oldloc;
     oldloc = loc;
   l9:
-    for (; tkk != 0; tkk = tkk->next)
+    for (; tkk && tkk->tverb; ++tkk)
 	if (tkk->tverb == 1 || tkk->tverb == k)
 	    break;
-    if (tkk == 0) {
+    if (!tkk || !tkk->tverb) {
 	badmove();
 	return 2;
     }
@@ -302,42 +282,37 @@ int march(void)
     if (prop[k] != (newloc / 100) - 3)
 	goto l16;	       // newloc still conditions
   l12:			       // alternative to probability move
-    for (; tkk != 0; tkk = tkk->next)
+    for (; tkk && tkk->tverb; ++tkk)
 	if (tkk->tloc != ll2 || tkk->conditions != ll1)
 	    break;
-    if (tkk == 0)
+    if (!tkk || !tkk->tverb)
 	bug(25);
     goto l11;
 }
 
 int mback(void)
 {			       // 20
-    struct travlist *tk2, *j;
-    int ll;
     if (forced(k = oldloc))
 	k = oldlc2;	       // k=location
     oldlc2 = oldloc;
     oldloc = loc;
-    tk2 = 0;
     if (k == loc) {
 	rspeak(91);
 	return 2;
     }
-    for (; tkk != 0; tkk = tkk->next) {	// 21
-	ll = tkk->tloc;
+    const struct travlist* tk2 = NULL;
+    for (; tkk && tkk->tverb; ++tkk) {	// 21
+	int ll = tkk->tloc;
 	if (ll == k) {
 	    k = tkk->tverb;    // k back to verb
 	    tkk = travel[loc];
 	    return 9;
 	}
-	if (ll <= 300) {
-	    j = travel[loc];
-	    if (forced(ll) && k == j->tloc)
-		tk2 = tkk;
-	}
+	if (ll <= 300 && forced(ll) && k == travel[loc]->tloc)
+	    tk2 = tkk;
     }
     tkk = tk2;		       // 23
-    if (tkk != 0) {
+    if (tkk && tkk->tverb) {
 	k = tkk->tverb;
 	tkk = travel[loc];
 	return 9;
@@ -424,8 +399,7 @@ void bug(int n)
 
 void checkhints(void)
 {			       // 2600 &c
-    int hint;
-    for (hint = 4; hint <= hntmax; hint++) {
+    for (unsigned hint = 4; hint < ArraySize(hints); ++hint) {
 	if (hinted[hint])
 	    continue;
 	if (!bitset(loc, hint))
@@ -474,7 +448,7 @@ int trsay(void)
     int i;
     if (*wd2 != 0)
 	copystr(wd2, wd1);
-    i = vocab(wd1, -1, 0);
+    i = vocab(wd1, -1);
     if (i == 62 || i == 65 || i == 71 || i == 2025) {
 	*wd2 = 0;
 	obj = 0;

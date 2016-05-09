@@ -15,7 +15,7 @@ int main(int argc, char **argv)
 {
     int i;
     int rval, ll;
-    struct text *kk;
+    const char* kk = NULL;
 
     // revoke setgid privileges from dm
     setregid(getgid(), getgid());
@@ -55,15 +55,15 @@ int main(int argc, char **argv)
 
       l2000:if (loc == 0)
 	    die(99);	       // label 2000
-	kk = &stext[loc];
-	if ((abb[loc] % abbnum) == 0 || kk->seekadr == 0)
-	    kk = &ltext[loc];
+	kk = stext[loc];
+	if ((abb[loc] % abbnum) == 0 || !kk || !kk[0])
+	    kk = ltext[loc];
 	if (!forced(loc) && dark()) {
 	    if (wzdark && pct(35)) {
 		die(90);
 		goto l2000;
 	    }
-	    kk = &rtext[16];
+	    kk = rtext[16];
 	}
 #if 0
       l2001:
@@ -190,13 +190,13 @@ int main(int argc, char **argv)
 	if ((!weq(wd1, "water") && !weq(wd1, "oil"))
 	    || (!weq(wd2, "plant") && !weq(wd2, "door")))
 	    goto l2610;
-	if (at(vocab(wd2, 1, 0)))
+	if (at(vocab(wd2, 1)))
 	    copystr("pour", wd2);
 
       l2610:if (weq(wd1, "west"))
 	    if (++iwest == 10)
 		rspeak(17);
-      l2630:i = vocab(wd1, -1, 0);
+      l2630:i = vocab(wd1, -1);
 	if (i == -1) {
 	    spk = 60;	       // 3000
 	    if (pct(20))
@@ -342,7 +342,7 @@ int main(int argc, char **argv)
 		    done(2);
 		goto l2012;
 	    case 25:	       // foo: 8250
-		k = vocab(wd1, 3, 0);
+		k = vocab(wd1, 3);
 		spk = 42;
 		if (foobar == 1 - k)
 		    goto l8252;

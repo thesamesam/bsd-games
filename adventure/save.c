@@ -1,11 +1,11 @@
 // Copyright (c) 1993 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
+#include "hdr.h"
+#include "extern.h"
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "hdr.h"
-#include "extern.h"
 
 struct savestruct {
     void *address;

@@ -10,25 +10,29 @@
 // original are reflected in this version, so that the comments of the
 // fortran are still applicable here.
 //
-// The data file distributed with the fortran source is assumed to be called
-// "glorkz" in the directory where the program is first run.
-//
 // The original FORTRAN version can be found at
 // <URL:ftp://ftp.gmd.de/if-archive/games/source/advent-original.tar.gz>.
 
-// hdr.h: included by c advent files
-
+#pragma once
+#include "../config.h"
+#include "vocab.h"
+#include <stdbool.h>
 #include <signal.h>
+#include <ctype.h>
 
 extern int datfd;		// message file descriptor
 extern volatile sig_atomic_t delhit;
 extern int yea;
-extern char data_file[];	// Virtual data file
 
-#define TAB     011
-#define LF      012
 #define FLUSHLINE do { int flushline_ch; while ((flushline_ch = getchar()) != EOF && flushline_ch != '\n'); } while (0)
 #define FLUSHLF   while (next()!=LF)
+enum {
+    TAB		= 011,
+    LF		= 012,
+    SHORT	= 50,		// How short is a demo game?
+    MAXSTR	= 20,		// max length of user's words
+    SEED	= 1815622	// "Encryption" seed
+};
 
 extern int loc, newloc, oldloc, oldlc2, wzdark, gaveup, kq, k, k2;
 extern char *wd1, *wd2;		// the complete words
@@ -36,68 +40,50 @@ extern int verb, obj, spk;
 extern int blklin;
 extern int saveday, savet, mxscor, latncy;
 
-#define SHORT 50	       // How short is a demo game?
-
-#define MAXSTR  20	       // max length of user's words
-
-#define HTSIZE  512	       // max number of vocab words
-extern struct hashtab {		// hash table for vocabulary
-    int val;			// word type &index (ktab)
-    char *atab;			// pointer to actual string
-} voc[HTSIZE];
-#define SEED 1815622	       // "Encryption" seed
-
-struct text {
-    char *seekadr;		// Msg start in virtual disk
-    int txtlen;			// length of msg starting here
+enum {
+    RTXSIZ	= 205,
+    MAGSIZ	= 35,
+    LOCSIZ	= 141,		// number of locations
+    OBJSIZ	= 101		// number of objects
 };
 
-#define RTXSIZ  205
-extern struct text rtext[RTXSIZ];	// random text messages
+extern const char* const rtext[RTXSIZ];	// random text messages
 
-#define MAGSIZ  35
-extern struct text mtext[MAGSIZ];	// magic messages
+extern const char* const mtext[MAGSIZ];	// magic messages
 
-extern int clsses;
-#define CLSMAX  12
-extern struct text ctext[CLSMAX];	// classes of adventurer
-extern int cval[CLSMAX];
+extern const char* const ptext[OBJSIZ];	// object descriptions
 
-extern struct text ptext[101];	// object descriptions
+extern const char* const ltext[LOCSIZ];	// long loc description
+extern const char* const stext[LOCSIZ];	// short loc descriptions
 
-#define LOCSIZ  141	       // number of locations
-extern struct text ltext[LOCSIZ];	// long loc description
-extern struct text stext[LOCSIZ];	// short loc descriptions
-
-extern struct travlist {	// direcs & conditions of travel
-    struct travlist *next;	// ptr to next list entry
-    int conditions;		// m in writeup (newloc / 1000)
-    int tloc;			// n in writeup (newloc % 1000)
-    int tverb;			// the verb that takes you there
-} *travel[LOCSIZ], *tkk;	// travel is closer to keys(...)
+struct travlist {		// direcs & conditions of travel
+    short int conditions;	// m in writeup (newloc / 1000)
+    short int tloc;		// n in writeup (newloc % 1000)
+    short int tverb;		// the verb that takes you there
+};
+const struct travlist* const travel[LOCSIZ];
+const struct travlist* tkk;	// travel is closer to keys(...)
 
 extern int atloc[LOCSIZ];
 
-extern int plac[101];		// initial object placement
-extern int fixd[101], fixed[101];	// location fixed?
+extern const short int plac[OBJSIZ];	// initial object placement
+extern const short int fixd[OBJSIZ];
+extern int fixed[OBJSIZ];		// location fixed?
 
-extern int actspk[35];		// rtext msg for verb <n>
+extern const short int actspk[35];	// rtext msg for verb <n>
 
-extern int cond[LOCSIZ];	// various condition bits
+extern const short int cond[LOCSIZ];	// various condition bits
 
-extern int setbit[16];		// bit defn masks 1,2,4,...
+extern const int setbit[16];	// bit defn masks 1,2,4,...
 
-extern int hntmax;
-extern int hints[20][5];	// info on hints
+extern const short int hints[10][5];	// info on hints
 extern int hinted[20], hintlc[20];
 
-extern int place[101], prop[101], links[201];
+extern int place[OBJSIZ], prop[OBJSIZ], links[201];
 extern int abb[LOCSIZ];
 
-extern int maxtrs, tally, tally2;	// treasure values
-
-#define false   0
-#define true    1
+extern const int maxtrs;
+extern int tally, tally2;	// treasure values
 
 extern int keys, lamp, grate, cage, rod, rod2, steps,	// mnemonics
     bird, door, pillow, snake, fissur, tablet, clam, oyster, magzin,
@@ -116,5 +102,3 @@ extern int turns, lmwarn, iwest, knfloc, detail, abbnum, maxdie, numdie,
    holdng, dkill, foobar, bonus, clock1, clock2, saved, closng, panic, closed, scorng;
 
 extern int demo, limit;
-
-#define DECR(a,b,c,d,e) decr(a+'+',b+'-',c+'#',d+'&',e+'%')

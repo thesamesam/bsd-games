@@ -2,20 +2,18 @@
 // This file is free software, distributed under the BSD license.
 // Re-coding of advent in C: privileged operations
 
+#include "hdr.h"
+#include "extern.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-#include "hdr.h"
-#include "extern.h"
 
 void datime(int *d, int *t)
 {
     time_t tvec;
-    struct tm *tptr;
-
     time(&tvec);
-    tptr = localtime(&tvec);
+    struct tm* tptr = localtime(&tvec);
     // day since 1977  (mod leap)
     *d = (tptr->tm_yday + 365 * (tptr->tm_year - 77)
 	  + (tptr->tm_year - 77) / 4 - (tptr->tm_year - 1) / 100 + (tptr->tm_year + 299) / 400);
@@ -25,22 +23,11 @@ void datime(int *d, int *t)
     *t = tptr->tm_hour * 60 + tptr->tm_min;
 }			       // pretty painless
 
-char magic[6];
-
-void poof(void)
+int Start (void)
 {
-    strcpy(magic, DECR('d', 'w', 'a', 'r', 'f'));
-    latncy = 45;
-}
-
-int Start(void)
-{
-    int d, t, delay;
-
+    int d, t;
     datime(&d, &t);
-    delay = (d - saveday) * 1440 + (t - savet);	// good for about a
-    // month
-
+    int delay = (d - saveday) * 1440 + (t - savet);	// good for about a month
     if (delay >= latncy) {
 	saved = -1;
 	return false;
@@ -59,14 +46,15 @@ int Start(void)
     return false;
 }
 
-int wizard(void)
+int wizard (void)
 {			       // not as complex as advent/10 (for now)
-    char *word, *x;
     if (!yesm(16, 0, 7))
 	return false;
     mspeak(17);
+    char *word, *x;
     getin(&word, &x);
-    if (!weq(word, magic)) {
+    static const char magic[6] = "dwarf";
+    if (!weq (word, magic)) {
 	mspeak(20);
 	return false;
     }
@@ -74,13 +62,12 @@ int wizard(void)
     return true;
 }
 
-void ciao(void)
+void ciao (void)
 {
-    char *c;
-    char fname[80];
-
     printf("What would you like to call the saved version?\n");
     // XXX - should use getline to avoid arbitrary limit
+    char *c;
+    char fname[80];
     for (c = fname; c < fname + sizeof fname - 1; c++) {
 	int ch;
 	ch = getchar();
@@ -96,7 +83,7 @@ void ciao(void)
     exit(0);
 }
 
-int ran(int range)
+int ran (int range)
 {
     return rand() % range;
 }
