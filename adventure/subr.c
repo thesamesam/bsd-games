@@ -108,7 +108,7 @@ int fdwarf(void)
 	if (dloc[i] == 0)
 	    continue;
 	j = 1;
-	for (const struct travlist* kk = travel[dloc[i]]; kk->tverb; ++kk) {
+	for (const struct MapDestEntry* kk = c_Map[dloc[i]].dest; kk->tverb; ++kk) {
 	    newloc = kk->tloc;
 	    if (newloc > 300 || newloc < 15 || newloc == odloc[i]
 		|| (j > 1 && newloc == tk[j - 1]) || j >= 20 || newloc == dloc[i] || forced(newloc)
@@ -210,7 +210,7 @@ int march(void)
     int ll1, ll2;
 
     newloc = loc;
-    tkk = travel[newloc];
+    tkk = c_Map[newloc].dest;
     if (!tkk)
 	bug(26);
     if (k == null)
@@ -300,21 +300,21 @@ int mback(void)
 	rspeak(91);
 	return 2;
     }
-    const struct travlist* tk2 = NULL;
+    const struct MapDestEntry* tk2 = NULL;
     for (; tkk && tkk->tverb; ++tkk) {	// 21
 	int ll = tkk->tloc;
 	if (ll == k) {
 	    k = tkk->tverb;    // k back to verb
-	    tkk = travel[loc];
+	    tkk = c_Map[loc].dest;
 	    return 9;
 	}
-	if (ll <= 300 && forced(ll) && k == travel[loc]->tloc)
+	if (ll <= 300 && forced(ll) && k == c_Map[loc].dest->tloc)
 	    tk2 = tkk;
     }
     tkk = tk2;		       // 23
     if (tkk && tkk->tverb) {
 	k = tkk->tverb;
-	tkk = travel[loc];
+	tkk = c_Map[loc].dest;
 	return 9;
     }
     rspeak(140);

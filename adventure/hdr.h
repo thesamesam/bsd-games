@@ -48,21 +48,21 @@ enum {
 };
 
 extern const char* const rtext[RTXSIZ];	// random text messages
-
 extern const char* const mtext[MAGSIZ];	// magic messages
-
 extern const char* const ptext[OBJSIZ];	// object descriptions
 
-extern const char* const ltext[LOCSIZ];	// long loc description
-extern const char* const stext[LOCSIZ];	// short loc descriptions
-
-struct travlist {		// direcs & conditions of travel
+struct MapDestEntry {		// direcs & conditions of travel
+    short int tverb;		// the verb that takes you there
     short int conditions;	// m in writeup (newloc / 1000)
     short int tloc;		// n in writeup (newloc % 1000)
-    short int tverb;		// the verb that takes you there
 };
-const struct travlist* const travel[LOCSIZ];
-const struct travlist* tkk;	// travel is closer to keys(...)
+struct MapEntry {
+    const char*	sdesc;		// short loc descriptions
+    const char*	ldesc;		// long loc description
+    const struct MapDestEntry* dest;// list of where each command takes you from here
+};
+const struct MapEntry c_Map [LOCSIZ];	// game map
+const struct MapDestEntry* tkk;
 
 extern int atloc[LOCSIZ];
 

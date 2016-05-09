@@ -55,9 +55,9 @@ int main(int argc, char **argv)
 
       l2000:if (loc == 0)
 	    die(99);	       // label 2000
-	kk = stext[loc];
+	kk = c_Map[loc].sdesc;
 	if ((abb[loc] % abbnum) == 0 || !kk || !kk[0])
-	    kk = ltext[loc];
+	    kk = c_Map[loc].ldesc;
 	if (!forced(loc) && dark()) {
 	    if (wzdark && pct(35)) {
 		die(90);
