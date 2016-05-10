@@ -925,3 +925,8 @@ void caveclose(void)
     rspeak(132);
     closed = true;
 }
+
+int ran (int range)
+{
+    return rand() % range;
+}

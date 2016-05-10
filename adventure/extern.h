@@ -5,10 +5,6 @@
 #include <stdbool.h>
 #include <string.h>
 
-// crc.c
-void crc_start(void);
-unsigned long crc(const char*, int);
-
 // done.c
 int score(void);
 void done(int) NORETURN;
@@ -30,8 +26,8 @@ void speak(const char*);
 void pspeak(int, int);
 
 // save.c
-int save(const char*);
-int restore(const char*);
+void ciao (void);
+int restore (const char*);
 
 // subr.c
 int toting(int);
@@ -63,6 +59,7 @@ int trfeed(void);
 int trfill(void);
 void closing(void);
 void caveclose(void);
+int ran(int);
 
 // vocab.c
 void dstroy(int);
@@ -78,8 +75,3 @@ int vocab(const char *, int);
 #define weq(str1, str2)		(!strncmp((str1), (str2), 5))
 
 // wizard.c
-void datime(int *, int *);
-int Start(void);
-int wizard(void);
-void ciao(void);
-int ran(int);

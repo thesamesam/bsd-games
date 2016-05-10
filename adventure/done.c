@@ -105,7 +105,7 @@ void die(int entry)
 	numdie++;
 	done(2);
     }
-    yea = yes(81 + numdie * 2, 82 + numdie * 2, 54);
+    int yea = yes(81 + numdie * 2, 82 + numdie * 2, 54);
     numdie++;
     if (numdie == maxdie || !yea)
 	done(2);

@@ -17,12 +17,11 @@ const int setbit[16] = { 1, 2, 4, 010, 020, 040, 0100, 0200, 0400, 01000, 02000,
 
 int datfd;			// message file descriptor
 volatile sig_atomic_t delhit = 0;
-int yea;
 
 int loc, newloc = 1, oldloc, oldlc2, wzdark, gaveup, kq, k, k2;
 char *wd1 = NULL, *wd2 = NULL;	// the complete words
 int verb = 0, obj = 0, spk = 0;
-int saveday = 0, savet = 0, mxscor = 0, latncy = 45;
+int mxscor = 0;
 
 const struct MapDestEntry* tkk = NULL;	// travel is closer to keys(...)
 
@@ -77,7 +76,7 @@ int panic = false;
 int closed = false;
 int scorng = false;
 
-int demo = 0, limit = 330;
+int limit = 330;
 
 void init(void)			// everything for 1st time run
 {
@@ -162,35 +161,6 @@ void init(void)			// everything for 1st time run
     throw = vocab("throw", 2);
     find = vocab("find", 2);
     invent = vocab("inven", 2);
-
-#if 0
-    printf ("struct MapEntry {\n"
-	    "    const char*	sdesc;\n"
-	    "    const char*	ldesc;\n"
-	    "    const struct MapDestEntry*	dest;\n"
-	    "};\n"
-	    "const struct MapEntry c_Map [LOCSIZ] = {\n");
-    for (unsigned i = 0; i < LOCSIZ; ++i) {
-	printf ("    { // %u\n\t", i);
-	printstring (c_Map[i].sdesc);
-	printf (",\n\t");
-	printstring (c_Map[i].ldesc);
-	printf (",\n\t");
-	printf ("(const struct MapDestEntry[]) {\n\t    ");
-	unsigned n = 0;
-	for (const struct MapDestEntry* t = c_Map[i].dest[i]; t->tverb; ++t, ++n) {
-	    if (n && !(n%4))
-		printf ("\n\t    ");
-	    printf ("{");
-	    PrintVocabEnum (t->tverb);
-	    printf (",%d,%d},", t->conditions, t->tloc);
-	}
-	printf ("{0,0,0}},\n");
-	printf ("    },\n");
-    }
-    printf ("};\n");
-    exit (EXIT_SUCCESS);
-#endif
 }
 
 void trapdel(int n UNUSED)
@@ -201,7 +171,7 @@ void trapdel(int n UNUSED)
 
 void startup(void)
 {
-    demo = Start();
+    saved = -1;
     srand (time(NULL) + getpid());	// random seed
     hinted[3] = yes(65, 1, 0);
     if (hinted[3])

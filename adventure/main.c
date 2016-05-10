@@ -10,8 +10,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <limits.h>
 
-int main(int argc, char **argv)
+int main (void)
 {
     int i;
     int rval, ll;
@@ -23,21 +24,27 @@ int main(int argc, char **argv)
     init();		       // Initialize everything
     signal(SIGINT, trapdel);
 
-    if (argc > 1) {	       // Restore file specified
-	// Restart is label 8305 (Fortran)
-	i = restore(argv[1]);  // See what we've got
-	switch (i) {
-	    case 0:	       // The restore worked fine
-		yea = Start();
-		k = null;
-		unlink(argv[1]);	// Don't re-use the save
-		goto l8;       // Get where we're going
-	    case 1:	       // Couldn't open it
-		errx(1, "can't open file");	// So give up
-	    case 2:	       // Oops -- file was altered
-		rspeak(202);   // You dissolve
-		exit(1);       // File could be non-adventure
-	}		       // So don't unlink it.
+    // See if a saved game is available
+    const char* homedir = getenv("HOME");
+    if (homedir) {
+	char savename [PATH_MAX];
+	snprintf (savename, sizeof(savename), ADVENTURE_SAVE_NAME, homedir);
+	if (0 == access (savename, R_OK)) {
+	    printf ("Restoring previous game\n");
+	    i = restore (savename);		// See what we've got
+	    switch (i) {
+		case 0:				// The restore worked fine
+		    saved = -1;
+		    k = null;
+		    unlink (savename);		// Don't re-use the save
+		    goto l8;			// Get where we're going
+		case 1:				// Couldn't open it
+		    errx(1, "can't open file");	// So give up
+		case 2:				// Oops -- file was altered
+		    rspeak(202);		// You dissolve
+		    return EXIT_FAILURE;	// File could be non-adventure
+	    }					// So don't unlink it.
+	}
     }
     startup();		       // prepare for a user
 
@@ -128,8 +135,6 @@ int main(int argc, char **argv)
 	    foobar = 0;	       // 2608
 	// should check here for "magic mode"
 	turns++;
-	if (demo && turns >= SHORT)
-	    done(1);	       // to 13000
 
 	if (verb == say && *wd2 != 0)
 	    verb = 0;
@@ -385,15 +390,9 @@ int main(int argc, char **argv)
 		goto l9270;
 	    case 30:	       // suspend=8300
 		spk = 201;
-		if (demo)
-		    goto l2011;
-		printf("I can suspend your adventure for you so");
-		printf(" you can resume later, but\n");
-		printf("you will have to wait at least");
-		printf(" %d minutes before continuing.", latncy);
+		printf("I can suspend your adventure for you so you can resume later\n");
 		if (!yes(200, 54, 54))
 		    goto l2012;
-		datime(&saveday, &savet);
 		ciao();	       // Do we quit?
 		continue;      // Maybe not
 	    case 31:	       // hours=8310

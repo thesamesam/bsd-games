@@ -20,16 +20,17 @@
 #include <signal.h>
 #include <ctype.h>
 
+#define ADVENTURE_SAVE_DIR	"%s/.local/share/"
+#define ADVENTURE_SAVE_NAME	ADVENTURE_SAVE_DIR "adventure.save"
+
 extern int datfd;		// message file descriptor
 extern volatile sig_atomic_t delhit;
-extern int yea;
 
 #define FLUSHLINE do { int flushline_ch; while ((flushline_ch = getchar()) != EOF && flushline_ch != '\n'); } while (0)
 #define FLUSHLF   while (next()!=LF)
 enum {
     TAB		= 011,
     LF		= 012,
-    SHORT	= 50,		// How short is a demo game?
     MAXSTR	= 20,		// max length of user's words
     SEED	= 1815622	// "Encryption" seed
 };
@@ -38,7 +39,7 @@ extern int loc, newloc, oldloc, oldlc2, wzdark, gaveup, kq, k, k2;
 extern char *wd1, *wd2;		// the complete words
 extern int verb, obj, spk;
 extern int blklin;
-extern int saveday, savet, mxscor, latncy;
+extern int mxscor;
 
 enum {
     RTXSIZ	= 205,
@@ -101,4 +102,4 @@ extern int tk[21], stick, dtotal, attack;
 extern int turns, lmwarn, iwest, knfloc, detail, abbnum, maxdie, numdie,
    holdng, dkill, foobar, bonus, clock1, clock2, saved, closng, panic, closed, scorng;
 
-extern int demo, limit;
+extern int limit;
