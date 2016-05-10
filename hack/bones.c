@@ -4,8 +4,6 @@
 
 #include "hack.h"
 #include "extern.h"
-#include <fcntl.h>
-#include <unistd.h>
 
 static char bones[] = "bones_xx";
 

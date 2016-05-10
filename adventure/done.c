@@ -4,8 +4,6 @@
 
 #include "hdr.h"
 #include "extern.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 int score(void)
 {			       // sort of like 20000

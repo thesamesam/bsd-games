@@ -12,17 +12,11 @@
 #include "scores.h"
 #include "tetris.h"
 #include <err.h>
-#include <errno.h>
-#include <fcntl.h>
 #include <pwd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <termcap.h>
-#include <unistd.h>
 
 // Within this code, we can hang onto one extra "high score", leaving
 // room for our current score (whether or not it is high).

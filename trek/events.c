@@ -1,11 +1,9 @@
 // Copyright (c) 1980 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
 #include "getpar.h"
 #include "trek.h"
+#include <math.h>
 
 // CAUSE TIME TO ELAPSE
 //

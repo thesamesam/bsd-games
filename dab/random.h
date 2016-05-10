@@ -4,7 +4,7 @@
 //	     returning each value exactly once. After fx calls it returns fx.
 
 #pragma once
-#include <stdlib.h>
+#include "../config.h"
 
 class RANDOM {
 public:

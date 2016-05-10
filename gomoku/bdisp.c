@@ -1,9 +1,8 @@
 // Copyright (c) 1994 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <curses.h>
-#include <string.h>
 #include "gomoku.h"
+#include <curses.h>
 
 enum {
     SCRNW = 80,	// assume 80 chars for the moment

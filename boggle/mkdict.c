@@ -7,10 +7,6 @@
 //      3) Are less that 3 characters long
 //      4) Are greater than MAXWORDLEN characters long
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "bog.h"
 
 int main (int argc, char *argv[])

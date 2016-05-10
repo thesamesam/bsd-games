@@ -1,13 +1,9 @@
 // Copyright (c) 1980 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <curses.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "deck.h"
 #include "cribbage.h"
+#include <curses.h>
 
 // the following arrays give the sum of the scores of the (50 2)*48 = 58800
 // hands obtainable for the crib given the two cards whose ranks index the

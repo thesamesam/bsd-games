@@ -3,7 +3,6 @@
 
 #pragma once
 #include "struct.h"
-#include <stdio.h>
 #include <curses.h>
 
 extern int clck, safe_planes, start_time, test_mode;

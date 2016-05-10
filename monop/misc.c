@@ -2,7 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "extern.h"
-#include <ctype.h>
 #include <signal.h>
 
 // This routine executes a truncated set of commands until a "yes or "no" answer is gotten.

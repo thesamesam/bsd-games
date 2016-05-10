@@ -3,10 +3,6 @@
 
 #include "../config.h"
 #include <err.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
 
 enum {
     N_MON	= 8,	// number of monopolies

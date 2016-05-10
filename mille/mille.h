@@ -2,18 +2,11 @@
 // This file is free software, distributed under the BSD license.
 
 #include "../config.h"
-#include <sys/types.h>
 #include <sys/uio.h>
 #include <sys/stat.h>
-#include <ctype.h>
 #include <err.h>
-#include <errno.h>
 #include <curses.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <string.h>
 #include <termios.h>
-#include <unistd.h>
 
 // Miscellaneous constants
 

@@ -1,8 +1,6 @@
 // Copyright (c) 1980 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <errno.h>
-
 #include "back.h"
 
 static const char confirm[] = "Are you sure you want to leave now?";

@@ -10,18 +10,11 @@
 #include "pathnames.h"
 #include <sys/param.h>
 #include <curses.h>
-#include <fcntl.h>
 #include <pwd.h>
-#include <stdlib.h>
 #include <time.h>
-#include <unistd.h>
-#include <sys/types.h>
 #include <err.h>
 #include <math.h>
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <termios.h>
 
 #define cashvalue	chunk*(loot-penalty)/25

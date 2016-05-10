@@ -3,9 +3,6 @@
 
 #include "extern.h"
 #include "driver.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #define couldwin(f,t) (f->specs->crew2 > t->specs->crew2 * 1.5)
 

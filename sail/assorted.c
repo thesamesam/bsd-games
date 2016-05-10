@@ -2,7 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "extern.h"
-#include <stdlib.h>
 #include <err.h>
 
 static void strike(struct ship *, struct ship *);

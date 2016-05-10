@@ -3,8 +3,6 @@
 
 #include "extern.h"
 #include "player.h"
-#include <signal.h>
-#include <stdlib.h>
 
 void acceptcombat(void)
 {

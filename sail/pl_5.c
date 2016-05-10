@@ -4,11 +4,8 @@
 #include "extern.h"
 #include "player.h"
 #include "display.h"
-#include <ctype.h>
 #include <curses.h>
 #include <signal.h>
-#include <stdio.h>
-#include <string.h>
 
 #define turnfirst(x) (*x == 'r' || *x == 'l')
 

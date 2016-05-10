@@ -7,14 +7,9 @@
 
 #include "../config.h"
 #include <err.h>
-#include <sys/types.h>
 #include <sys/file.h>
 #include <sys/wait.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 #define	_PATH_WUMPINFO		_PATH_GAME_DATA "wump.info"
 

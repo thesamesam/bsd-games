@@ -2,13 +2,8 @@
 // This file is free software, distributed under the BSD license.
 
 #include "pathnames.h"
-#include <sys/types.h>
 #include <err.h>
 #include <pwd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
 static const char *recfile = _PATH_RAWSCORES;
 enum { MAXPLAYERS = 65534 };

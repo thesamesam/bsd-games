@@ -2,8 +2,6 @@
 // Copyright (c) 1982 Jay Fenlason <hack@gnu.org>
 // This file is free software, distributed under the BSD license.
 
-#include <unistd.h>
-#include <stdlib.h>
 #include "hack.h"
 #include "extern.h"
 

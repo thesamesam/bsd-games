@@ -4,8 +4,6 @@
 #include "include.h"
 #include <sys/param.h>
 #include <sys/stat.h>
-#include <fcntl.h>
-#include <stdlib.h>
 
 static void Error(const char *, const char *) NORETURN;
 

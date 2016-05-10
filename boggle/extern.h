@@ -3,8 +3,6 @@
 
 #include "../config.h"
 #include <time.h>
-#include <stdio.h>
-#include <unistd.h>
 
 void addword(const char *);
 void badword(void);

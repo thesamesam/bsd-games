@@ -3,8 +3,6 @@
 
 #include "extern.h"
 #include "player.h"
-#include <sys/types.h>
-#include <ctype.h>
 
 void changesail(void)
 {

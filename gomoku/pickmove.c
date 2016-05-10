@@ -1,12 +1,8 @@
 // Copyright (c) 1994 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <stdlib.h>
-#include <string.h>
-#include <curses.h>
-#include <limits.h>
-
 #include "gomoku.h"
+#include <curses.h>
 
 enum {
     BITS_PER_INT = sizeof(int) * CHAR_BIT,

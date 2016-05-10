@@ -4,7 +4,7 @@
 //	  corners, and a center that maps directly to a board
 
 #pragma once
-#include <stdlib.h>
+#include "../config.h"
 
 class BOARD;
 

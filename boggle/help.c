@@ -1,11 +1,9 @@
 // Copyright (c) 1993 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <curses.h>
-#include <stdio.h>
-
 #include "bog.h"
 #include "extern.h"
+#include <curses.h>
 
 extern int nlines;
 

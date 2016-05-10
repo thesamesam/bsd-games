@@ -2,11 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "deck.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include <sys/types.h>
 
 static uint32_t h2nl(uint32_t h)
 {

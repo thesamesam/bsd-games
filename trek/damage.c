@@ -1,9 +1,8 @@
 // Copyright (c) 1980 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <stdio.h>
-#include <err.h>
 #include "trek.h"
+#include <err.h>
 
 // Schedule Ship.damages to a Device
 //

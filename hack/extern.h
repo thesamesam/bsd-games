@@ -4,8 +4,6 @@
 
 #pragma once
 #include "../config.h"
-#include <stdarg.h>
-#include <stdio.h>
 
 // alloc.c
 long *alloc(unsigned);

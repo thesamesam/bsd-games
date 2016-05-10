@@ -3,12 +3,8 @@
 
 #include "extern.h"
 #include "player.h"
-#include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 
 // If we get here before a ship is chosen, then ms == 0 and
 // we don't want to update the score file, or do any Write's either.

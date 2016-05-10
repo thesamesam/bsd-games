@@ -2,6 +2,7 @@
 // This file is free software, distributed under the BSD license.
 
 #include "include.h"
+#include <paths.h>
 
 #define MAXRULES	6
 #define MAXDEPTH	15

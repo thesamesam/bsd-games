@@ -4,7 +4,6 @@
 
 #pragma once
 #include "../config.h"
-#include <stdbool.h>
 
 enum { BILLSZ = 200 };
 

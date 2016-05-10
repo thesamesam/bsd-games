@@ -4,13 +4,10 @@
 // Worm.  Written by Michael Toy UCSC
 
 #include "../config.h"
-#include <ctype.h>
 #include <curses.h>
 #include <err.h>
 #include <signal.h>
-#include <stdlib.h>
 #include <termios.h>
-#include <unistd.h>
 
 #define newlink() (struct body *) malloc(sizeof (struct body));
 #define HEAD '@'

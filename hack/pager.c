@@ -9,11 +9,7 @@
 
 #include "hack.h"
 #include "extern.h"
-#include <sys/types.h>
 #include <signal.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 int dowhatis(void)
 {

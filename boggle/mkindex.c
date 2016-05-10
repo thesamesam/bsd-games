@@ -1,9 +1,6 @@
 // Copyright (c) 1993 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "bog.h"
 
 char *nextword(FILE *, char *, int *, int *);

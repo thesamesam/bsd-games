@@ -1,7 +1,6 @@
 // Copyright (c) 1994 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <string.h>
 #include "gomoku.h"
 
 void bdinit (struct spotstr *bp)

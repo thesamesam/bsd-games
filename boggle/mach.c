@@ -7,13 +7,8 @@
 #include "extern.h"
 #include "bog.h"
 #include <sys/ioctl.h>
-#include <ctype.h>
 #include <curses.h>
-#include <fcntl.h>
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <termios.h>
 #include <time.h>
 

@@ -4,7 +4,6 @@
 
 #include "hack.h"
 #include "extern.h"
-#include <unistd.h>
 
 xchar scrlx, scrhx, scrly, scrhy;	// corners of new area on
 					// screen

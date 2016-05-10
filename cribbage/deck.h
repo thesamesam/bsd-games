@@ -3,7 +3,6 @@
 
 #pragma once
 #include "../config.h"
-#include <stdbool.h>
 
 // define structure of a deck of cards and other related things
 

@@ -2,15 +2,12 @@
 // This file is free software, distributed under the BSD license.
 
 // main.cc: Main dots program
-#include <iostream>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <err.h>
 #include "algor.h"
 #include "board.h"
 #include "human.h"
 #include "ttyscrn.h"
+#include <iostream>
+#include <err.h>
 
 // Print the command line usage
 static void usage (char* pname)

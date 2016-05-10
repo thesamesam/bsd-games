@@ -6,11 +6,8 @@
 #include "hack.h"
 #include "extern.h"
 #include "flag.h"	       // for flags.nonull
-#include <string.h>
 #include <termios.h>
 #include <termcap.h>
-#include <stdlib.h>
-#include <unistd.h>
 
 static char tbuf[512];
 char *HO, *CL, *CE, *UP, *CM, *ND, *XD, *BC, *SO, *SE, *TI, *TE;

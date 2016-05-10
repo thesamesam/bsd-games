@@ -11,16 +11,10 @@
 //      Betting by Kirk McKusick
 
 #include "pathnames.h"
-#include <sys/types.h>
-#include <ctype.h>
 #include <curses.h>
-#include <fcntl.h>
 #include <signal.h>
-#include <stdlib.h>
-#include <string.h>
 #include <termios.h>
 #include <time.h>
-#include <unistd.h>
 
 #define	decksize	52
 #define originrow	0

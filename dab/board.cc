@@ -2,9 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 // board.cc: Board manipulations
-#include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
 #include "board.h"
 #include "gamescreen.h"
 #include "box.h"

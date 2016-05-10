@@ -1,9 +1,6 @@
 // Copyright (c) 1994 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
 #include "gomoku.h"
 
 const char *letters = "<ABCDEFGHJKLMNOPQRST>";

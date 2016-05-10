@@ -5,9 +5,6 @@
 
 #include "hack.h"
 #include "extern.h"
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdlib.h>
 
 static int drop(struct obj *);
 

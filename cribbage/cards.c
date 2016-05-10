@@ -1,13 +1,10 @@
 // Copyright (c) 1980 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <curses.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-
 #include "deck.h"
 #include "cribbage.h"
+#include <curses.h>
+#include <time.h>
 
 // Initialize a deck of cards to contain one of each type.
 void makedeck (CARD d[])

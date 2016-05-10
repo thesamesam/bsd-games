@@ -1,8 +1,6 @@
 // Copyright (c) 1980 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <stdio.h>
-#include <unistd.h>
 #include "trek.h"
 
 // CAUSE SUPERNOVA TO OCCUR

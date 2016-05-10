@@ -4,7 +4,6 @@
 
 #include "hack.h"
 #include "extern.h"
-#include <stdlib.h>
 
 long* alloc (unsigned lth)
 {

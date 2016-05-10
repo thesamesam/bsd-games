@@ -5,7 +5,6 @@
 #include <err.h>
 #include <time.h>
 #include <getopt.h>
-#include <unistd.h>
 
 // Set up the strings on the screen.
 void setup(void)

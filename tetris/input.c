@@ -5,11 +5,8 @@
 
 #include "input.h"
 #include "tetris.h"
-#include <sys/types.h>
 #include <sys/time.h>
 #include <sys/poll.h>
-#include <errno.h>
-#include <unistd.h>
 
 // return true iff the given timeval is positive
 #define	TV_POS(tv) \

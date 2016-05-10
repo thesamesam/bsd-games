@@ -16,9 +16,7 @@
 #pragma once
 #include "../config.h"
 #include "vocab.h"
-#include <stdbool.h>
 #include <signal.h>
-#include <ctype.h>
 
 #define ADVENTURE_SAVE_DIR	"%s/.local/share/"
 #define ADVENTURE_SAVE_NAME	ADVENTURE_SAVE_DIR "adventure.save"

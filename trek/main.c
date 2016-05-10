@@ -3,14 +3,10 @@
 
 #include "trek.h"
 #include "getpar.h"
-#include <stdio.h>
 #include <setjmp.h>
 #include <termios.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include <err.h>
 #include <time.h>
-#include <sys/types.h>
 
 uid_t Mother = 51 + (51 << 8);
 

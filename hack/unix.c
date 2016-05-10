@@ -13,14 +13,9 @@
 
 #include "hack.h"	       // mainly for strchr() which depends on BSD
 #include "extern.h"
-#include <errno.h>
-#include <sys/types.h>	       // for time_t and stat
 #include <sys/stat.h>
 #include <time.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include <signal.h>
-#include <fcntl.h>
 
 extern int locknum;
 

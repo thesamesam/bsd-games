@@ -2,8 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "../config.h"
-#include <stdbool.h>
-#include <string.h>
 
 // done.c
 int score(void);

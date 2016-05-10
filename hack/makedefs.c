@@ -3,11 +3,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "config.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
 
 // construct definitions of object constants
 enum {

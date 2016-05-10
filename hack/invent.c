@@ -4,7 +4,6 @@
 
 #include "hack.h"
 #include "extern.h"
-#include <stdlib.h>
 
 #ifndef NOWORM
     #include "wseg.h"

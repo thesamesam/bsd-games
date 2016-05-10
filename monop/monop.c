@@ -2,10 +2,7 @@
 // This file is free software, distributed under the BSD license.
 
 #include "board.h"
-#include <stdio.h>
 #include <signal.h>
-#include <stdlib.h>
-#include <unistd.h>
 
 static void getplayers(void);
 static void init_players(void);

@@ -1,6 +1,5 @@
 #pragma once
 #include "../config.h"
-#include <stdbool.h>
 
 // phantstruct.h - structure definitions for Phantasia
 struct player {			// player statistics

@@ -3,7 +3,7 @@
 // screen.h: Screen base class
 
 #pragma once
-#include <stdlib.h>
+#include "../config.h"
 
 class PLAYER;
 

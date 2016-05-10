@@ -2,7 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "extern.h"
-#include <stdlib.h>
 
 static int value(SQUARE *);
 

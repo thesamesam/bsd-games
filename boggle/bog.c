@@ -3,13 +3,8 @@
 
 #include "extern.h"
 #include "bog.h"
-#include <ctype.h>
 #include <err.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 static int compar(const void *, const void *);
 int main(int, char *[]);

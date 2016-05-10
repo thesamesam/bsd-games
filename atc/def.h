@@ -4,9 +4,6 @@
 #pragma once
 #include "../config.h"
 #include <math.h>
-#include <limits.h>
-#include <assert.h>
-#include <string.h>
 
 #define AUTHOR_STR		"ATC - by Ed James"
 

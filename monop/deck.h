@@ -2,8 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "../config.h"
-#include <sys/types.h>
-#include <stdbool.h>
 
 #define	CC_D	deck[0]
 #define	CH_D	deck[1]

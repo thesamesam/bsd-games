@@ -3,13 +3,8 @@
 
 #include "extern.h"
 #include "restart.h"
-#include <fcntl.h>
 #include <setjmp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 int main(int argc, char **argv)
 {

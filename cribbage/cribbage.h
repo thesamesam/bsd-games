@@ -3,7 +3,6 @@
 
 #pragma once
 #include "../config.h"
-#include <stdbool.h>
 #include <curses.h>
 
 extern CARD deck[CARDS];	// a deck

@@ -3,7 +3,6 @@
 // human.h: Human input interface
 
 #pragma once
-#include <stdlib.h>
 #include "player.h"
 
 class BOARD;

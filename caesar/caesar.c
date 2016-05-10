@@ -2,14 +2,8 @@
 // This file is free software, distributed under the BSD license.
 
 #include "../config.h"
-#include <ctype.h>
 #include <err.h>
-#include <errno.h>
 #include <math.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
 
 enum { LINELENGTH = 2048 };
 

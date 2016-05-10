@@ -1,18 +1,12 @@
 // Copyright (c) 1980 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <ctype.h>
-#include <curses.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
-#include <termios.h>
-#include <unistd.h>
-
 #include "deck.h"
 #include "cribbage.h"
 #include "cribcur.h"
+#include <curses.h>
+#include <signal.h>
+#include <termios.h>
 
 #ifdef CTRL
 #undef CTRL

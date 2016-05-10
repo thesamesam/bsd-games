@@ -4,9 +4,6 @@
 #include "extern.h"
 #include "driver.h"
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 
 int dr_main(void)
 {

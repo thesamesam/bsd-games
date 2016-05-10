@@ -7,7 +7,6 @@
 #endif
 #include <sys/file.h>
 #include <termios.h>
-#include <stdarg.h>
 
 enum { NUMSAFE = 4 };
 

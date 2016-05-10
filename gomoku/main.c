@@ -5,10 +5,7 @@
 #include <curses.h>
 #include <err.h>
 #include <signal.h>
-#include <stdlib.h>
-#include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 enum {
     USER,	// get input from standard input

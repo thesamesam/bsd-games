@@ -3,9 +3,8 @@
 
 // random.cc: Randomizer for the dots program
 
-#include <time.h>
-#include <string.h>
 #include "random.h"
+#include <time.h>
 
 RANDOM::RANDOM (size_t ns)
 :_bs (ns)

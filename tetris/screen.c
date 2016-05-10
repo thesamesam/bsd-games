@@ -9,12 +9,8 @@
 #include <sys/ioctl.h>
 #include <setjmp.h>
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <termcap.h>
 #include <termios.h>
-#include <unistd.h>
 
 #ifndef sigmask
 #define sigmask(s) (1 << ((s) - 1))

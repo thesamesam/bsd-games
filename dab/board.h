@@ -3,7 +3,7 @@
 // board.h: Board functions
 
 #pragma once
-#include <stdlib.h>
+#include "../config.h"
 
 class GAMESCREEN;
 class PLAYER;

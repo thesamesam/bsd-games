@@ -1,12 +1,9 @@
 // Copyright (c) 1980 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <unistd.h>
 #include "trek.h"
 #include "getpar.h"
+#include <math.h>
 
 // MOVE UNDER WARP POWER
 //

@@ -5,9 +5,6 @@
 #include "hdr.h"
 #include "extern.h"
 #include <err.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 
 //----------------------------------------------------------------------
 

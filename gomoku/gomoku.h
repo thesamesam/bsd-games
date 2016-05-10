@@ -2,9 +2,7 @@
 // This file is free software, distributed under the BSD license.
 
 #include "../config.h"
-#include <sys/types.h>
 #include <endian.h>
-#include <stdio.h>
 
 enum {
     BSZ=19,	// board dimensions

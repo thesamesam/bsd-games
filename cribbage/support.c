@@ -1,11 +1,10 @@
 // Copyright (c) 1980 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <curses.h>
-#include <string.h>
 #include "deck.h"
 #include "cribbage.h"
 #include "cribcur.h"
+#include <curses.h>
 
 enum { NTV = 10 };	       // number scores to test
 

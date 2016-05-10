@@ -3,8 +3,6 @@
 
 #include "extern.h"
 #include "driver.h"
-#include <stdlib.h>
-#include <string.h>
 
 static int stillmoving(int);
 static int is_isolated(struct ship *);

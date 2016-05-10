@@ -5,7 +5,6 @@
 #include "hack.h"
 #include "extern.h"
 #include "mfndpos.h"
-#include <stdlib.h>
 
 int warnlevel;			// used by movemon and dochugw
 long lastwarntime;

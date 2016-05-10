@@ -3,11 +3,10 @@
 
 // ttyscrn.cc: Curses screen implementation for dots
 
-#include <stdio.h>
-#include <curses.h>
-#include <sys/ioctl.h>
 #include "player.h"
 #include "ttyscrn.h"
+#include <curses.h>
+#include <sys/ioctl.h>
 
 void TTYSCRN::clean (void)
 {

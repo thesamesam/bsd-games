@@ -2,7 +2,6 @@
 // Copyright (c) 1982 Jay Fenlason <hack@gnu.org>
 // This file is free software, distributed under the BSD license.
 
-#include <stdlib.h>
 #include "hack.h"
 #include "extern.h"
 #define Sprintf (void) sprintf

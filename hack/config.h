@@ -4,7 +4,6 @@
 
 #pragma once
 #include "pathnames.h"
-#include <stdbool.h>
 
 #define	UNIX		       // delete if no fork(), exec() available
 #define	CHDIR		       // delete if no chdir() available

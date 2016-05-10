@@ -9,12 +9,7 @@
 #include "tetris.h"
 #include <sys/time.h>
 #include <err.h>
-#include <fcntl.h>
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
 cell board[B_SIZE];		// 1 => occupied, 0 => empty
 

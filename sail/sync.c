@@ -5,15 +5,8 @@
 #include "pathnames.h"
 #include <sys/file.h>
 #include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
 #include <signal.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 enum { BUFSIZE = 4096 };
 

@@ -2,17 +2,10 @@
 // This file is free software, distributed under the BSD license.
 
 #include "../config.h"
-#include <sys/types.h>
 #include <sys/uio.h>
-
-#include <fcntl.h>
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <termios.h>
 #include <termcap.h>
-#include <unistd.h>
 
 #define rnum(r)	(rand()%r)
 #define D0	dice[0]

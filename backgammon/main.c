@@ -4,7 +4,6 @@
 #include "back.h"
 #include "backlocal.h"
 #include <time.h>
-#include <unistd.h>
 
 #define MVPAUSE	5	       // time to sleep when stuck
 

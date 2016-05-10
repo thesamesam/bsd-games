@@ -3,7 +3,7 @@
 // player.h: Player base class
 
 #pragma once
-#include <stdlib.h>
+#include "../config.h"
 
 class BOARD;
 

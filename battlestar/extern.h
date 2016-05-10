@@ -2,15 +2,10 @@
 // This file is free software, distributed under the BSD license.
 
 #include "../config.h"
-#include <ctype.h>
 #include <err.h>
 #include <pwd.h>
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 #define BITS (8 * sizeof (int))
 

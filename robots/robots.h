@@ -2,20 +2,14 @@
 // Copyright (c) 1999 The NetBSD Foundation, Inc.
 // This file is free software, distributed under the BSD license.
 
-#include	"../config.h"
-#include	<sys/ttydefaults.h>
-#include	<ctype.h>
-#include	<curses.h>
-#include	<err.h>
-#include	<errno.h>
-#include	<fcntl.h>
-#include	<pwd.h>
-#include	<setjmp.h>
-#include	<signal.h>
-#include	<stdlib.h>
-#include	<string.h>
-#include	<termios.h>
-#include	<unistd.h>
+#include "../config.h"
+#include <sys/ttydefaults.h>
+#include <curses.h>
+#include <err.h>
+#include <pwd.h>
+#include <setjmp.h>
+#include <signal.h>
+#include <termios.h>
 
 // miscellaneous constants
 

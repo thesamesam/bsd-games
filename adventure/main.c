@@ -7,10 +7,6 @@
 #include <sys/file.h>
 #include <err.h>
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
 
 int main (void)
 {

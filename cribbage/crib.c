@@ -7,11 +7,7 @@
 #include "pathnames.h"
 #include <curses.h>
 #include <err.h>
-#include <fcntl.h>
 #include <signal.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
 int main(int argc, char *argv[])
 {

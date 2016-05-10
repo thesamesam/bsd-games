@@ -4,13 +4,6 @@
 #include "hdr.h"
 #include "extern.h"
 #include <err.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdint.h>
-#include <limits.h>
-#include <errno.h>
 #include <sys/uio.h>
 #include <sys/stat.h>
 

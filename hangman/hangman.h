@@ -2,14 +2,9 @@
 // This file is free software, distributed under the BSD license.
 
 #include "../config.h"
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <ctype.h>
 #include <curses.h>
 #include <signal.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
 enum {
     MINLEN	= 6,

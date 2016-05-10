@@ -8,9 +8,6 @@
 #include <sys/poll.h>
 #include <curses.h>
 #include <setjmp.h>
-#include <string.h>
-#include <stdio.h>
-#include <unistd.h>
 
 static int waitch(int);
 

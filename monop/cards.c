@@ -6,7 +6,6 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <endian.h>
-#include <stdbool.h>
 
 #define _PATH_CARDS	_PATH_GAME_DATA "monop/cards.pck"
 

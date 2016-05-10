@@ -4,11 +4,6 @@
 #include "extern.h"
 #include "pathnames.h"
 #include <sys/file.h>
-#include <ctype.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
 
 #define distance(x,y) (abs(x) >= abs(y) ? abs(x) + abs(y)/2 : abs(y) + abs(x)/2)
 

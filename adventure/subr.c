@@ -4,8 +4,6 @@
 
 #include "hdr.h"
 #include "extern.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 // Statement functions
 int toting (int objj)

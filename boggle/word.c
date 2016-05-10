@@ -3,12 +3,8 @@
 
 #include "extern.h"
 #include "bog.h"
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <err.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 static char *dictspace, *dictend;
 static char *sp;

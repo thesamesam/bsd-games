@@ -5,8 +5,6 @@
 #include "hdr.h"
 #include "extern.h"
 #include <err.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 struct vocmap {		// word table for vocabulary
     unsigned short val;	// word type &index (ktab)
