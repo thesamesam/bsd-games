@@ -110,7 +110,7 @@ static void show_move(void)
 		    cur_p->money -= sqp->cost;
 		} else if (num_play > 2)
 		    bid();
-	    } else if (sqp->owner == player)
+	    } else if (sqp->owner == (int) player)
 		printf("You own it.\n");
 	    else
 		rent(sqp);

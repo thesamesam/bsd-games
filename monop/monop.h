@@ -30,7 +30,6 @@ enum {
 };
 
 #define	lucky(str)	printf("%s%s\n",str,lucky_mes[roll(1,num_luck)-1])
-#define	printline()	printf("------------------------------\n")
 #define	sqnum(sqp)	(sqp - board)
 
 struct sqr_st {			// structure for square
@@ -94,7 +93,7 @@ typedef struct prp_st UTIL_S;
 
 // cards.c
 void init_decks(void);
-void get_card(DECK *);
+void get_card(unsigned);
 
 // execute.c
 void execute(int);

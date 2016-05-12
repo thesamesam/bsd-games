@@ -7,178 +7,198 @@
 #include <arpa/inet.h>
 #include <endian.h>
 
-#define _PATH_CARDS	_PATH_GAME_DATA "monop/cards.pck"
+enum ECardAction {
+    action_Money,
+    action_PayAllPlayers,
+    action_MoveTo,
+    action_MoveBack,
+    action_GoToJail,
+    action_GoToRailroad,
+    action_GoToUtility,
+    action_GetOutOfJail,
+    action_StreetRepairs,
+    action_GeneralRepairs,
+};
 
-//      These routine deal with the card decks
+enum ELocation {
+    location_GO,
+    location_Reading = 5,
+    location_StCharlesPlace = 11,
+    location_IllinoisAve = 24,
+    location_Boardwalk = 39
+};
 
-#define	GOJF	'F'	       // char for get-out-of-jail-free cards
+struct SCard {
+    const char*		msg;
+    enum ECardAction	action;
+    int			n;
+};
 
-#ifndef DEV
-static const char *cardfile = _PATH_CARDS;
-#else
-static const char *cardfile = "cards.pck";
-#endif
+static const struct SCard c_CommunityChest [c_CardsPerDeck] = {
+    { ">> GET OUT OF JAIL FREE <<\n"
+	"Keep this card until needed or sold",	action_GetOutOfJail,	0	},
+    { "Receive for Services $25.",		action_Money,		25	},
+    { "Bank Error in Your Favor.\n"
+	"Collect $200.",			action_Money,		200	},
+    { "Income Tax Refund.\nCollect $20.",	action_Money,		20	},
+    { "Pay Hospital $100",			action_Money,		-100	},
+    { "Life Insurance Matures.\nCollect $100.",	action_Money,		100	},
+    { "From sale of Stock You get $45.",	action_Money,		45	},
+    { "You are Assessed for street repairs.\n"
+	"$40 per House, $115 per Hotel",	action_StreetRepairs,	0	},
+    { "X-mas Fund Matures.\nCollect $100.",	action_Money,		100	},
+    { "You have won Second Prize in a Beauty Contest.\n"
+	"Collect $11.",				action_Money,		11,	},
+    { "Advance to GO.\n"
+	"Collect $200.",			action_MoveTo,		location_GO },
+    { "You inherit $100",			action_Money,		100	},
+    { "Pay School Tax of $150.",		action_Money,		-150	},
+    { ">> GO TO JAIL <<\n"
+	"Go Directly to Jail.\n"
+	"Do not pass GO.\n"
+	"Do not collect $200.",			action_GoToJail,	0	},
+    { ">> GRAND OPERA OPENING <<\n"
+	"Collect $50 from each player"
+	" for opening night seats.",		action_PayAllPlayers,	-50	},
+    { "Doctor's fee: pay $50.",			action_Money,		50	}
+};
+static const struct SCard c_ChanceCards [c_CardsPerDeck] = {
+    { ">> GET OUT OF JAIL FREE <<\n"
+	"Keep this card until needed or sold",	action_GetOutOfJail,	0	},
+    { "Advance to the nearest Railroad, and pay owner\n"
+	"Twice the rental to which he is otherwise entitled.\n"
+	"If Railroad is unowned"
+	" you may buy it from the bank",	action_GoToRailroad,	2	},
+    { "Advance to the nearest Utility.\n"
+	"If unowned, you may buy it from the bank.\n"
+	"If owned, throw dice and pay oner a total of ten times\n"
+	"the amount thrown.",			action_GoToUtility,	10	},
+    { "Go Back 3 Spaces.",			action_MoveBack,	3	},
+    { "Advance to the nearest Railroad, and pay owner\n"
+	"Twice the rental to which he is otherwise entitled.\n"
+	"If Railroad is unowned"
+	" you may buy it from the bank",	action_GoToRailroad,	2	},
+    { ">> GO TO JAIL <<\n"
+	"Go Directly to Jail.\n"
+	"Do not pass GO.\n"
+	"Do not collect $200.",			action_GoToJail,	0	},
+    { "Take a Ride on the Reading.\n"
+	"If you pass GO, collect $200.",	action_MoveTo,		location_Reading },
+    { "Take a Walk on the Boardwalk.",		action_MoveTo,		location_Boardwalk },
+    { "Advance to Illinois Ave.",		action_MoveTo,		location_IllinoisAve },
+    { "Advance to Go.",				action_MoveTo,		location_GO },
+    { "Advance to St.Charles Place.\n"
+	"If you pass GO, collect $200.",	action_MoveTo,		location_StCharlesPlace },
+    { "Make general repairs on all of your Property.\n"
+	"For Each House pay $25.\n"
+	"For Each Hotel pay $100.",		action_GeneralRepairs,	0	},
+    { "You have been elected Chairman of the Board.\n"
+	"Pay each player $50.",			action_PayAllPlayers,	50	},
+    { "Pay Poor Tax of $15.",			action_Money,		-15	},
+    { "Bank pays you Dividend of $50.",		action_Money,		50	},
+    { "Your Building and Loan Matures.\n"
+	"Collect $150.",			action_Money,		150	}
+};
 
-static FILE *deckf;
+DECK deck[2] = {{0,0,false,{0}},{0,0,false,{0}}};	// Chance and Community Chest
 
-static void set_up(DECK *);
-static void printmes(void);
+//----------------------------------------------------------------------
 
-// This routine initializes the decks from the data file, which it opens.
-void init_decks(void)
+static void init_deck (DECK* d);
+static void assess_house_hotel_fee (unsigned housecost, unsigned hotelcost);
+
+//----------------------------------------------------------------------
+
+void init_decks (void)
 {
-    int32_t nc;
-    if ((deckf = fopen(cardfile, "r")) == NULL) {
-      file_err:
-	perror(cardfile);
-	exit(1);
-    }
-
-    // read number of community chest cards...
-    if (fread(&nc, sizeof(nc), 1, deckf) != 1)
-	goto file_err;
-    CC_D.num_cards = be32toh(nc);
-    // ... and number of community chest cards.
-    if (fread(&nc, sizeof(nc), 1, deckf) != 1)
-	goto file_err;
-    CH_D.num_cards = be32toh(nc);
-    set_up(&CC_D);
-    set_up(&CH_D);
+    for (unsigned i = 0; i < ArraySize(deck); ++i)
+	init_deck (&deck[i]);
 }
 
-// This routine sets up the offset pointers for the given deck.
-static void set_up(DECK * dp)
+void get_card (unsigned ideck)
 {
-    int r1, r2;
-    int i;
+    DECK* dp = &deck[ideck];
+    // When all cards have been used, reshuffle and restart
+    if (dp->last_card >= dp->num_cards)
+	init_deck (dp);
+    const struct SCard* card = ideck
+	? &c_ChanceCards[dp->last_card]
+	: &c_CommunityChest[dp->last_card];
+    ++dp->last_card;
 
-    dp->offsets = (u_int64_t *) calloc(dp->num_cards, sizeof(u_int64_t));
-    if (dp->offsets == NULL)
-	err(1, NULL);
-    if (fread(dp->offsets, sizeof(u_int64_t), dp->num_cards, deckf) != (size_t) dp->num_cards) {
-	perror(cardfile);
-	exit(1);
-    }
-    // convert offsets from big-endian byte order
-    for (i = 0; i < dp->num_cards; i++)
-	dp->offsets[i] = ntohl(dp->offsets[i]);
-    dp->last_card = 0;
-    dp->gojf_used = false;
-    for (i = 0; i < dp->num_cards; i++) {
-	u_int64_t temp;
+    // Print the message
+    printf (
+	"------------------------------\n"
+	"%s\n"
+	"------------------------------\n"
+	, card->msg);
 
-	r1 = roll(1, dp->num_cards) - 1;
-	r2 = roll(1, dp->num_cards) - 1;
-	temp = dp->offsets[r2];
-	dp->offsets[r2] = dp->offsets[r1];
-	dp->offsets[r1] = temp;
-    }
-}
-
-// This routine draws a card from the given deck
-void get_card(DECK * dp)
-{
-    char type_maj, type_min;
-    int num;
-    int i, per_h, per_H, num_h, num_H;
-    OWN *op;
-
-    do {
-	fseek(deckf, dp->offsets[dp->last_card], SEEK_SET);
-	dp->last_card = (dp->last_card + 1) % dp->num_cards;
-	type_maj = getc(deckf);
-    } while (dp->gojf_used && type_maj == GOJF);
-    type_min = getc(deckf);
-    num = ntohl(getw(deckf));
-    printmes();
-    switch (type_maj) {
-	case '+':	       // get money
-	    if (type_min == 'A') {
-		for (i = 0; i < num_play; i++)
-		    if (i != player)
-			play[i].money -= num;
-		num = num * (num_play - 1);
-	    }
-	    cur_p->money += num;
+    // Apply the card action
+    switch (card->action) {
+	default:
+	case action_Money:	cur_p->money += card->n; break;
+	case action_PayAllPlayers:
+	    for (unsigned i = 0; i < num_play; ++i)
+		play[i].money += card->n;
+	    cur_p->money -= num_play * card->n;
 	    break;
-	case '-':	       // lose money
-	    if (type_min == 'A') {
-		for (i = 0; i < num_play; i++)
-		    if (i != player)
-			play[i].money += num;
-		num = num * (num_play - 1);
-	    }
-	    cur_p->money -= num;
+	case action_MoveTo:	move (card->n); break;
+	case action_MoveBack:	move (-card->n); break;
+	case action_GoToJail:	return goto_jail();
+	case action_GoToRailroad:
+	    spec = true;
+	    move ((int) ((cur_p->loc + 5) / 10) * 10 + 5 - cur_p->loc);
 	    break;
-	case 'M':	       // move somewhere
-	    switch (type_min) {
-		case 'F':     // move forward
-		    num -= cur_p->loc;
-		    if (num < 0)
-			num += 40;
-		    break;
-		case 'J':     // move to jail
-		    goto_jail();
-		    return;
-		case 'R':     // move to railroad
-		    spec = true;
-		    num = (int) ((cur_p->loc + 5) / 10) * 10 + 5 - cur_p->loc;
-		    break;
-		case 'U':     // move to utility
-		    spec = true;
-		    if (cur_p->loc >= 12 && cur_p->loc < 28)
-			num = 28 - cur_p->loc;
-		    else {
-			num = 12 - cur_p->loc;
-			if (num < 0)
-			    num += 40;
-		    }
-		    break;
-		case 'B':
-		    num = -num;
-		    break;
-	    }
-	    move(num);
-	    break;
-	case 'T':	       // tax
-	    if (dp == &CC_D) {
-		per_h = 40;
-		per_H = 115;
-	    } else {
-		per_h = 25;
-		per_H = 100;
-	    }
-	    num_h = num_H = 0;
-	    for (op = cur_p->own_list; op; op = op->next)
-		if (op->sqr->type == PRPTY) {
-		    if (op->sqr->desc->houses == 5)
-			++num_H;
-		    else
-			num_h += op->sqr->desc->houses;
-		}
-	    num = per_h * num_h + per_H * num_H;
-	    printf("You had %d Houses and %d Hotels, so that cost you $%d\n", num_h, num_H, num);
-	    if (num == 0)
-		lucky("");
+	case action_GoToUtility:
+	    spec = true;
+	    if (cur_p->loc >= 12 && cur_p->loc < 28)
+		move (28 - cur_p->loc);
 	    else
-		cur_p->money -= num;
+		move ((cur_p->loc > 12 ? 52 : 12) - cur_p->loc);
 	    break;
-	case GOJF:	       // get-out-of-jail-free card
-	    cur_p->num_gojf++;
+	case action_GetOutOfJail:
+	    ++cur_p->num_gojf;
 	    dp->gojf_used = true;
+	    break;
+	case action_StreetRepairs:
+	    assess_house_hotel_fee (25, 100);
+	    break;
+	case action_GeneralRepairs:
+	    assess_house_hotel_fee (40, 115);
 	    break;
     }
     spec = false;
 }
 
-// This routine prints out the message on the card
-static void printmes(void)
+static void init_deck (DECK* d)
 {
-    char c;
-    printline();
-    fflush(stdout);
-    while ((c = getc(deckf)) != '\0')
-	putchar(c);
-    printline();
-    fflush(stdout);
+    d->last_card = d->gojf_used;
+    d->num_cards = c_CardsPerDeck - d->last_card;
+    for (unsigned i = 0; i < c_CardsPerDeck; ++i)
+	d->pack[i] = i;
+    // Shuffle cards in pack, omitting gojf if used
+    for (unsigned i = d->last_card; i < c_CardsPerDeck; ++i) {
+	unsigned j = i + (unsigned)rand() % (c_CardsPerDeck-i);
+	uint8_t t = d->pack[i];
+	d->pack[i] = d->pack[j];
+	d->pack[j] = t;
+    }
+}
+
+static void assess_house_hotel_fee (unsigned housecost, unsigned hotelcost)
+{
+    int num_h = 0, num_H = 0;
+    for (const OWN* op = cur_p->own_list; op; op = op->next) {
+	if (op->sqr->type == PRPTY) {
+	    if (op->sqr->desc->houses == 5)
+		++num_H;
+	    else
+		num_h += op->sqr->desc->houses;
+	}
+    }
+    unsigned fee = housecost * num_h + hotelcost * num_H;
+    cur_p->money -= fee;
+    printf("You had %d Houses and %d Hotels, so that cost you $%d\n", num_h, num_H, fee);
+    if (!fee)
+	lucky("");
 }

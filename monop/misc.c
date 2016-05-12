@@ -191,7 +191,7 @@ void list(void)
 // This routine gives a list of a given players holdings
 void list_all(void)
 {
-    int pl;
+    unsigned pl;
     while ((pl = getinp("Whose holdings do you want to see? ", name_list)) < num_play)
 	printhold(pl);
 }

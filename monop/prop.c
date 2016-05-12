@@ -96,17 +96,17 @@ static int value(SQUARE * sqp)
 void bid(void)
 {
     static bool in[MAX_PL];
-    int i, num_in, cur_max;
+    int num_in, cur_max;
     char buf[80];
     int cur_bid;
 
     printf("\nSo it goes up for auction.  Type your bid after your name\n");
-    for (i = 0; i < num_play; i++)
+    for (unsigned i = 0; i < num_play; ++i)
 	in[i] = true;
-    i = -1;
     cur_max = 0;
     num_in = num_play;
-    while (num_in > 1 || (cur_max == 0 && num_in > 0)) {
+    int i = -1;
+    while ((num_in > 1 || (cur_max == 0 && num_in > 0))) {
 	i = (i + 1) % num_play;
 	if (in[i]) {
 	    do {

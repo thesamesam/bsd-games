@@ -46,10 +46,10 @@ void lux_tax(void)
 
 void cc(void)
 {			       // draw community chest card
-    get_card(&CC_D);
+    get_card (c_CommunityChestDeck);
 }
 
 void chance(void)
 {			       // draw chance card
-    get_card(&CH_D);
+    get_card (c_ChanceCardsDeck);
 }

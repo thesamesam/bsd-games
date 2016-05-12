@@ -26,10 +26,8 @@ static void move_em(TRADE *, TRADE *);
 
 void trade(void)
 {
-    int tradee, i;
-
     trading = true;
-    for (i = 0; i < 2; i++) {
+    for (unsigned i = 0; i < 2; ++i) {
 	trades[i].cash = 0;
 	trades[i].gojf = false;
 	trades[i].prop_list = NULL;
@@ -39,6 +37,7 @@ void trade(void)
 	printf("There ain't no-one around to trade WITH!!\n");
 	return;
     }
+    unsigned tradee = 1 - player;
     if (num_play > 2) {
 	tradee = getinp("Which player do you wish to trade with? ", name_list);
 	if (tradee == num_play)
@@ -47,8 +46,7 @@ void trade(void)
 	    printf("You can't trade with yourself!\n");
 	    goto over;
 	}
-    } else
-	tradee = 1 - player;
+    }
     get_list(0, player);
     get_list(1, tradee);
     if (getyn("Do you wish a summary? ") == 0)
@@ -61,32 +59,27 @@ void trade(void)
 // player, and puts in the structure given.
 static void get_list(int struct_no, int play_no)
 {
-    int sn, pn;
-    PLAY *pp;
-    int numin, prop, num_prp;
-    OWN *op;
-    TRADE *tp;
-
-    for (numin = 0; numin < MAX_PRP; numin++)
+    for (unsigned numin = 0; numin < MAX_PRP; numin++)
 	used[numin] = false;
-    sn = struct_no, pn = play_no;
-    pp = &play[pn];
-    tp = &trades[sn];
+    unsigned sn = struct_no, pn = play_no;
+    PLAY* pp = &play[pn];
+    TRADE* tp = &trades[sn];
     tp->trader = pn;
-    printf("player %s (%d):\n", pp->name, pn + 1);
+    printf("player %s (%u):\n", pp->name, pn + 1);
     if (pp->own_list) {
-	numin = set_list(pp->own_list);
-	for (num_prp = numin; num_prp;) {
-	    prop = getinp("Which property do you wish to trade? ", plist);
+	unsigned numin = set_list(pp->own_list);
+	for (unsigned num_prp = numin; num_prp;) {
+	    unsigned prop = getinp("Which property do you wish to trade? ", plist);
 	    if (prop == numin)
 		break;
 	    else if (used[prop])
 		printf("You've already allocated that.\n");
 	    else {
-		num_prp--;
+		--num_prp;
 		used[prop] = true;
-		for (op = pp->own_list; prop--; op = op->next)
-		    continue;
+		OWN* op = pp->own_list;
+		while (prop--)
+		    op = op->next;
 		add_list(pn, &(tp->prop_list), sqnum(op->sqr));
 	    }
 	}
@@ -109,11 +102,8 @@ static void get_list(int struct_no, int play_no)
 // This routine sets up the list of tradable property.
 static int set_list(OWN * the_list)
 {
-    int i;
-    OWN *op;
-
-    i = 0;
-    for (op = the_list; op; op = op->next)
+    unsigned i = 0;
+    for (const OWN* op = the_list; op; op = op->next)
 	if (!used[i])
 	    plist[i++] = op->sqr->name;
     plist[i++] = "done";
@@ -124,23 +114,18 @@ static int set_list(OWN * the_list)
 // This routine summates the trade.
 static void summate(void)
 {
-    bool some;
-    int i;
-    TRADE *tp;
-    OWN *op;
-
-    for (i = 0; i < 2; i++) {
-	tp = &trades[i];
-	some = false;
+    for (unsigned i = 0; i < 2; ++i) {
+	TRADE* tp = &trades[i];
+	bool some = false;
 	printf("Player %s (%d) gives:\n", play[tp->trader].name, tp->trader + 1);
 	if (tp->cash > 0)
 	    printf("\t$%d\n", tp->cash), some++;
 	if (tp->gojf > 0)
 	    printf("\t%d get-out-of-jail-free card(s)\n", tp->gojf), some++;
 	if (tp->prop_list) {
-	    for (op = tp->prop_list; op; op = op->next)
+	    for (const OWN* op = tp->prop_list; op; op = op->next)
 		putchar('\t'), printsq(sqnum(op->sqr), true);
-	    some++;
+	    some = true;
 	}
 	if (!some)
 	    printf("\t-- Nothing --\n");
@@ -157,17 +142,14 @@ static void do_trade(void)
 // This routine does a switch from one player to another
 static void move_em(TRADE * from, TRADE * to)
 {
-    PLAY *pl_fr, *pl_to;
-    OWN *op;
-
-    pl_fr = &play[from->trader];
-    pl_to = &play[to->trader];
+    PLAY* pl_fr = &play[from->trader];
+    PLAY* pl_to = &play[to->trader];
 
     pl_fr->money -= from->cash;
     pl_to->money += from->cash;
     pl_fr->num_gojf -= from->gojf;
     pl_to->num_gojf += from->gojf;
-    for (op = from->prop_list; op; op = op->next) {
+    for (OWN* op = from->prop_list; op; op = op->next) {
 	add_list(to->trader, &(pl_to->own_list), sqnum(op->sqr));
 	op->sqr->owner = to->trader;
 	del_list(from->trader, &(pl_fr->own_list), sqnum(op->sqr));
@@ -178,10 +160,7 @@ static void move_em(TRADE * from, TRADE * to)
 // This routine lets a player resign
 void resign(void)
 {
-    int i, new_own;
-    OWN *op;
-    SQUARE *sqp;
-
+    unsigned new_own;
     if (cur_p->money <= 0) {
 	switch (board[cur_p->loc].type) {
 	    case UTIL:
@@ -227,8 +206,8 @@ void resign(void)
 	do_trade();
     } else {		       // resign to bank
 	printf("resigning to bank\n");
-	for (op = cur_p->own_list; op; op = op->next) {
-	    sqp = op->sqr;
+	for (OWN* op = cur_p->own_list; op; op = op->next) {
+	    SQUARE* sqp = op->sqr;
 	    sqp->owner = -1;
 	    sqp->desc->morg = false;
 	    if (sqp->type == PRPTY) {
@@ -239,16 +218,16 @@ void resign(void)
 	if (cur_p->num_gojf)
 	    ret_card(cur_p);
     }
-    for (i = player; i < num_play; i++) {
+    for (unsigned i = player; i < num_play; i++) {
 	name_list[i] = name_list[i + 1];
 	if (i + 1 < num_play)
 	    play[i] = play[i + 1];
     }
     name_list[num_play--] = 0;
-    for (i = 0; i < N_SQRS; i++)
-	if (board[i].owner > player)
+    for (unsigned i = 0; i < N_SQRS; i++)
+	if (board[i].owner > (int) player)
 	    --board[i].owner;
-    player = --player < 0 ? num_play - 1 : player;
+    player = player ? player-1 : num_play-1;
     next_play();
     if (num_play < 2) {
 	printf("\nThen %s WINS!!!!!\n", play[0].name);

@@ -5,8 +5,8 @@
 #include "monop.h"
 
 extern bool trading, spec, fixing, told_em;
-extern const char *const yncoms[], *const comlist[], *name_list[], *const lucky_mes[];
-extern int num_play, player, num_doub, num_luck;
+extern const char *const yncoms[], *name_list[], *const lucky_mes[];
+extern unsigned num_play, player, num_doub, num_luck;
 extern void (*const func[]) (void);
 extern DECK deck[2];
 extern MON mon[];

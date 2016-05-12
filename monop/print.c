@@ -21,7 +21,7 @@ void printboard(void)
 void where(void)
 {
     printf("%s Player\n", header);
-    for (int i = 0; i < num_play; i++) {
+    for (unsigned i = 0; i < num_play; i++) {
 	printsq(play[i].loc, false);
 	printf(" %s (%d)", play[i].name, i + 1);
 	if (cur_p == &play[i])
