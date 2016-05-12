@@ -2,103 +2,88 @@
 // This file is free software, distributed under the BSD license.
 
 #include "../config.h"
-#include <err.h>
 #include <math.h>
 
-enum { LINELENGTH = 2048 };
+enum { ALPHABETSZ = 'Z'-'A'+1 };
 
-// letter frequencies (taken from some unix(tm) documentation)
-// (unix is a trademark of Bell Laboratories)
-static double stdf[26] = {
-    7.97, 1.35, 3.61, 4.78, 12.37, 2.01, 1.46, 4.49, 6.39, 0.04,
-    0.42, 3.81, 2.69, 5.92, 6.96, 2.91, 0.08, 6.63, 8.77, 9.68,
-    2.62, 0.81, 1.88, 0.23, 2.07, 0.06,
-};
-
-static void printit(const char *) NORETURN;
-static char rotateit (char ch, char perm);
-
-int main (int argc, char **argv)
+static char rotateit (char ch, unsigned rot)
 {
-    int ch, i, nread;
-    double dot, winnerdot;
-    char *inbuf;
-    int obs[26], try, winner;
+    if (ch >= 'A' && ch <= 'Z')
+	return 'A' + (unsigned)(ch - 'A' + rot) % ALPHABETSZ;
+    else if (ch >= 'a' && ch <= 'z')
+	return 'a' + (unsigned)(ch - 'a' + rot) % ALPHABETSZ;
+    return ch;
+}
 
-    // revoke setgid privileges
-    setregid(getgid(), getgid());
-
-    winnerdot = 0;
-    size_t prognamelen = strlen(argv[0]);
-    if (prognamelen >= 5 && 0 == strcmp(&argv[0][prognamelen - 5], "rot13"))
-	printit("13");
-    if (argc > 1)
-	printit(argv[1]);
-
-    if (!(inbuf = malloc(LINELENGTH)))
-	err(1, NULL);
-
-    // adjust frequency table to weight low probs REAL low
-    for (i = 0; i < 26; ++i)
-	stdf[i] = log(stdf[i]) + log(26.0 / 100.0);
-
-    // zero out observation table
-    memset(obs, 0, 26 * sizeof(int));
-
-    if ((nread = read(STDIN_FILENO, inbuf, LINELENGTH)) < 0)
-	err(1, "reading from stdin");
-    for (i = nread; i--;) {
-	ch = inbuf[i];
-	if (islower(ch))
-	    ++obs[ch - 'a'];
-	else if (isupper(ch))
-	    ++obs[ch - 'A'];
+static unsigned find_best_rotation (const char* s, unsigned sz)
+{
+    // Fill the observed frequency table
+    unsigned short counts [ALPHABETSZ] = { 0 };
+    unsigned nonletters = 0;
+    for (unsigned i = sz; i--;) {
+	char ch = s[i];
+	if (ch >= 'a' && ch <= 'z')
+	    ch -= 'a' - 'A';
+	if (ch >= 'A' && ch <= 'Z')
+	    ++counts[ch - 'A'];
+	else
+	    ++nonletters;
     }
+    // Normalize the frequencies
+    float obs [ALPHABETSZ], nletters = sz - nonletters;
+    for (unsigned i = 0; i < ALPHABETSZ; ++i)
+	obs[i] = counts[i] / nletters;
+
+    // Letter frequencies from Wikipedia (cited from Robert Lewand's Cryptological Mathematics)
+    static const float stdfreqs [ALPHABETSZ] = {
+	0.08167, 0.01492, 0.02782, 0.04253, 0.12702,
+	0.02228, 0.02015, 0.06094, 0.06966, 0.00153,
+	0.00772, 0.04025, 0.02406, 0.06749, 0.07507,
+	0.01929, 0.00095, 0.05987, 0.06327, 0.09056,
+	0.02758, 0.00978, 0.02361, 0.00150, 0.01974,
+	0.00074
+    };
 
     // now "dot" the freqs with the observed letter freqs
     // and keep track of best fit
-    for (try = winner = 0; try < 26; ++try) {	// += 13) {
-	dot = 0;
-	for (i = 0; i < 26; i++)
-	    dot += obs[i] * stdf[(i + try) % 26];
-	// initialize winning score
-	if (try == 0)
-	    winnerdot = dot;
+    float winnerdot = -1;
+    unsigned winner = 0;
+    for (unsigned try = 0; try < ALPHABETSZ; ++try) {
+	float dot = 0;
+	for (unsigned i = 0; i < ALPHABETSZ; ++i)
+	    dot += obs[i] * stdfreqs [(i + try) % ALPHABETSZ];
 	if (dot > winnerdot) {
-	    // got a new winner!
 	    winner = try;
 	    winnerdot = dot;
 	}
     }
+    return winner;
+}
 
-    for (;;) {
-	for (i = 0; i < nread; ++i) {
-	    ch = inbuf[i];
-	    putchar(rotateit(ch, winner));
+int main (int argc, const char* const* argv)
+{
+    unsigned rot = UINT_MAX;
+
+    // Check if invoked as rot13, with rotation value 13
+    size_t prognamelen = strlen (argv[0]);
+    if (prognamelen >= 5 && 0 == strcmp(&argv[0][prognamelen - 5], "rot13"))
+	rot = 13;
+
+    // Check if invoked with a known rotation value
+    if (argc > 1)
+	rot = atoi (argv[1]);
+
+    char inbuf [BUFSIZ];
+    for (unsigned nread = UINT_MAX; (nread = read (STDIN_FILENO, inbuf, BUFSIZ)) > 0;) {
+	if (nread > BUFSIZ) {
+	    perror ("read stdin");
+	    return EXIT_FAILURE;
 	}
-	if (nread < LINELENGTH)
-	    break;
-	if ((nread = read(STDIN_FILENO, inbuf, LINELENGTH)) < 0)
-	    err(1, "reading from stdin");
+	if (rot == UINT_MAX)
+	    rot = find_best_rotation (inbuf, nread);
+	for (unsigned i = 0; i < nread; ++i)
+	    inbuf[i] = rotateit (inbuf[i], rot);
+	write (STDOUT_FILENO, inbuf, nread);
     }
-    exit(0);
-}
-
-static char rotateit (char ch, char perm)
-{
-    if (ch >= 'A' && ch <= 'Z')
-	return 'A' + (unsigned)(ch - 'A' + perm) % 26;
-    else if (ch >= 'a' && ch <= 'z')
-	return 'a' + (unsigned)(ch - 'a' + perm) % 26;
-    return ch;
-}
-
-static void printit(const char *arg)
-{
-    int ch, rot;
-    if ((rot = atoi(arg)) < 0)
-	errx(1, "bad rotation value.");
-    while ((ch = getchar()) != EOF)
-	putchar(rotateit(ch, rot));
-    exit(0);
+    return EXIT_SUCCESS;
 }
