@@ -9,13 +9,10 @@
 // Initialize a deck of cards to contain one of each type.
 void makedeck (CARD d[])
 {
-    int i, j, k;
-    i = time(NULL);
-    i = ((i & 0xff) << 8) | ((i >> 8) & 0xff) | 1;
-    srand(i);
-    k = 0;
-    for (i = 0; i < RANKS; i++) {
-	for (j = 0; j < SUITS; j++) {
+    srandrand();
+    unsigned k = 0;
+    for (unsigned i = 0; i < RANKS; ++i) {
+	for (unsigned j = 0; j < SUITS; ++j) {
 	    d[k].suit = j;
 	    d[k++].rank = i;
 	}

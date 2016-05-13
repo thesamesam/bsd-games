@@ -35,16 +35,11 @@ static void winch_catcher(int);
 
 // Do system dependent initialization
 // This is called once, when the program starts
-int setup (int sflag, time_t seed)
+int setup (void)
 {
     if (tty_setup() < 0)
 	return -1;
-
-    if (!sflag)
-	time(&seed);
-    srand (seed);
-    if (debug)
-	(void) printf("seed = %ld\n", (long) seed);
+    srandrand();
     return 0;
 }
 

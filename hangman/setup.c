@@ -27,7 +27,7 @@ void setup(void)
 	addstr(*sp);
     }
 
-    srand(time(NULL) + getpid());
+    srandrand();
     if ((Dict = fopen(Dict_name, "r")) == NULL) {
 	endwin();
 	err(1, "fopen %s", Dict_name);

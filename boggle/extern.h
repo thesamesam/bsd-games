@@ -29,7 +29,7 @@ void prtable(const char *const[], int, int, int, void (*)(const char *const[], i
 void putstr(const char *);
 void redraw(void);
 void results(void);
-int setup(int, time_t);
+int setup(void);
 void showboard(const char *);
 void showstr(const char *, int);
 void showword(int);

@@ -11,7 +11,6 @@
 #include <sys/param.h>
 #include <curses.h>
 #include <pwd.h>
-#include <time.h>
 #include <err.h>
 #include <math.h>
 #include <signal.h>
@@ -132,7 +131,7 @@ int main (int argc, char **argv)
 		exit(1);
 	}
 
-    srand((int) tv);
+    srandrand();
 
     penalty = loot = 0;
     initscr();

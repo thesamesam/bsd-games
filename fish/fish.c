@@ -59,7 +59,7 @@ int main (int argc, char **argv)
 	}
     }
 
-    srand (time (NULL));
+    srandrand();
     instructions();
     init();
 

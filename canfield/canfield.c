@@ -1445,7 +1445,7 @@ void instruct(void)
 // procedure to initialize the game
 void initall (void)
 {
-    srand (time(NULL)+getpid());
+    srandrand();
     time(&acctstart);
     initdeck(deck);
     uid = getuid();

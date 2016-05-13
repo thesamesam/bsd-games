@@ -109,8 +109,6 @@ jmp_buf env;
 
 int main(int argc, char **argv)
 {
-    time_t curtime;
-    long vect;
     int ac;
     char **av;
     struct termios argp;
@@ -121,9 +119,7 @@ int main(int argc, char **argv)
     av = argv;
     ac = argc;
     av++;
-    time(&curtime);
-    vect = (long) curtime;
-    srand(vect);
+    srandrand();
 
     if (tcgetattr(1, &argp) == 0)
 	if (cfgetispeed(&argp) < B1200)

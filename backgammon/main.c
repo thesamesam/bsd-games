@@ -71,7 +71,7 @@ int main(int argc UNUSED, char **argv)
     // use whole screen for text
     if (tflag)
 	begscr = 0;
-    srand (time(NULL)+getpid());	// 'random' seed
+    srandrand();
 
     while (*++argv != 0)       // process arguments
 	getarg(&argv);

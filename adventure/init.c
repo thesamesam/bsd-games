@@ -168,7 +168,7 @@ void trapdel(int n UNUSED)
 void startup(void)
 {
     saved = -1;
-    srand (time(NULL) + getpid());	// random seed
+    srandrand();
     hinted[3] = yes(65, 1, 0);
     if (hinted[3])
 	limit = 1000;	       // better batteries if instrucs

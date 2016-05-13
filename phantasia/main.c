@@ -207,8 +207,7 @@ void initialstate(void)
     }
 
     // NOTREACHED
-
-    srand(time(NULL)+getpid());	// prime random numbers
+    srandrand();
 }
 
 long rollnewplayer(void)

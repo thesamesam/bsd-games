@@ -16,7 +16,7 @@ void initialize(const char *filename)
     puts("First Adventure game written by His Lordship, the honorable");
     puts("Admiral D.W. Riggle\n");
     location = dayfile;
-    srand(getpid());
+    srandrand();
     username = getutmp();
     wordinit();
     if (filename == NULL) {

@@ -22,6 +22,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <time.h>
 
 // Common function and variable attributes
 #if __GNUC__ && !defined(UNUSED)
@@ -45,4 +46,12 @@ inline static uint16_t bsdsum (const void* v, size_t n, uint16_t sum)
 	sum += *s;
     }
     return sum;
+}
+
+/// Randomly initializes the random number generator
+inline static void srandrand (void)
+{
+    struct timespec now;
+    clock_gettime (CLOCK_REALTIME, &now);
+    srand (now.tv_sec ^ now.tv_nsec ^ ((uint32_t)getpid() << 16) ^ getppid());
 }

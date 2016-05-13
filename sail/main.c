@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 	exit(1);
     close(fd);
 
-    srand (time(NULL));
+    srandrand();
 
     if ((p = strrchr(*argv, '/')) != NULL)
 	p++;

@@ -180,7 +180,7 @@ int main(int ac, char *av[])
     // Revoke setgid privileges
     setregid(getgid(), getgid());
 
-    srand(getpid());
+    srandrand();
     heapstart = sbrk(0);
     if (ac > 1) {
 	if (!rest_f(av[1]))

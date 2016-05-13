@@ -126,7 +126,7 @@ int main (int argc, const char* const* argv)
     signal (SIGSEGV, onintr);
     signal (SIGABRT, onintr);
     signal (SIGTSTP, SIG_IGN);	// Disable Ctrl+z
-    srand (time(NULL) + getpid());
+    srandrand();
 
     scr_start();
     gameloop();

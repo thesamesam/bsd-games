@@ -1,13 +1,13 @@
 // Copyright (c) 1982 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <termios.h>
-#ifndef NDEBUG
-#include <sys/param.h>
-#endif
 #include "mille.h"
 #ifndef	unctrl
 #include "unctrl.h"
+#endif
+#include <termios.h>
+#ifndef NDEBUG
+#include <sys/param.h>
 #endif
 
 #undef	CTRL

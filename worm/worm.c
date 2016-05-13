@@ -50,7 +50,7 @@ int main(int argc, char **argv)
     setregid(getgid(), getgid());
 
     setbuf(stdout, outbuf);
-    srand(getpid());
+    srandrand();
     signal(SIGALRM, wake);
     signal(SIGINT, leave);
     signal(SIGQUIT, leave);

@@ -21,7 +21,7 @@ extern int locknum;
 
 void setrandom(void)
 {
-    srand (time(NULL)+getpid());
+    srandrand();
 }
 
 struct tm *getlt(void)

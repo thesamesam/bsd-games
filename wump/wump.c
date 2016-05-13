@@ -408,7 +408,7 @@ static void cave_init(void)
     // "linkcount" data structure ensures that no room ends up with more
     // than three links, regardless of the quality of the random number
     // generator that we're using.
-    srand (time(NULL)+getpid());
+    srandrand();
 
     // initialize the cave first off.
     for (i = 1; i <= room_num; ++i)

@@ -70,15 +70,13 @@ int tlimit;
 
 int main (int argc, char *argv[])
 {
-    long seed;
-    int ch, done, i, selfuse, sflag;
+    int ch, done, i, selfuse;
     char *bspec, *p;
 
     // revoke setgid privileges
     setregid(getgid(), getgid());
 
-    seed = 0;
-    batch = debug = reuse = selfuse = sflag = 0;
+    batch = debug = reuse = selfuse = 0;
     bspec = NULL;
     minlength = 3;
     tlimit = 180;	       // 3 minutes is standard
@@ -90,10 +88,6 @@ int main (int argc, char *argv[])
 		break;
 	    case 'd':
 		debug = 1;
-		break;
-	    case 's':
-		sflag = 1;
-		seed = atol(optarg);
 		break;
 	    case 't':
 		if ((tlimit = atoi(optarg)) < 1)
@@ -148,7 +142,7 @@ int main (int argc, char *argv[])
 	    (void) printf("%s\n", p);
 	exit(0);
     }
-    setup(sflag, seed);
+    setup();
     prompt("Loading the dictionary...");
     if ((dictfp = opendict(DICT)) == NULL) {
 	warn("%s", DICT);

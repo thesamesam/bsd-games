@@ -1,7 +1,6 @@
 // Copyright (c) 1982 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <time.h>
 #include "mille.h"
 #ifndef	unctrl
 #include "unctrl.h"

@@ -114,7 +114,7 @@ int main (int ac, char** av)
 	stdscr = newwin(Y_SIZE, X_SIZE, 0, 0);
     }
 
-    srand(getpid());
+    srandrand();
     if (Real_time)
 	signal(SIGALRM, move_robots);
     do {

@@ -1,9 +1,9 @@
 // Copyright (c) 1980 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include <curses.h>
 #include "deck.h"
 #include "cribbage.h"
+#include <curses.h>
 
 bool explain = false;	// player mistakes explained
 bool iwon = false;		// if comp won last game

@@ -5,7 +5,6 @@
 #include <curses.h>
 #include <err.h>
 #include <signal.h>
-#include <time.h>
 
 enum {
     USER,	// get input from standard input
@@ -79,7 +78,7 @@ int main (int argc, char* const* argv)
     }
 
     if (!debug)
-	srand(time(0));
+	srandrand();
     if (interactive)
 	cursinit();	       // initialize curses
   again:

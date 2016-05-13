@@ -42,7 +42,7 @@ int main (int ac, char** av)
     leaveok(Score, true);
     leaveok(Miles, true);
     clearok(curscr, true);
-    srand(time(NULL)+getpid());
+    srandrand();
     cbreak();
     noecho();
     signal(SIGINT, rub);

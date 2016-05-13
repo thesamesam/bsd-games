@@ -9,7 +9,6 @@ extern FILE *yyin;
 
 int main(int ac, char *av[])
 {
-    int seed;
     int f_usage = 0, f_list = 0, f_showscore = 0;
     int f_printpath = 0;
     const char *gamename = NULL;
@@ -23,9 +22,9 @@ int main(int ac, char *av[])
     open_score_file();
     setregid(getgid(), getgid());
 
-    start_time = seed = time(NULL);
+    start_time = time(NULL);
 
-    while ((ch = getopt(ac, av, "ulstpg:f:r:")) != -1) {
+    while ((ch = getopt(ac, av, "ulstpg:f:")) != -1) {
 	switch (ch) {
 	    case '?':
 	    case 'u':
@@ -42,9 +41,6 @@ int main(int ac, char *av[])
 	    case 'p':
 		f_printpath++;
 		break;
-	    case 'r':
-		seed = atoi(optarg);
-		break;
 	    case 'f':
 	    case 'g':
 		gamename = optarg;
@@ -53,10 +49,10 @@ int main(int ac, char *av[])
     }
     if (optind < ac)
 	f_usage++;
-    srand (seed);
+    srandrand();
 
     if (f_usage)
-	fprintf(stderr, "Usage: %s -[u?lstp] [-[gf] game_name] [-r random seed]\n", av[0]);
+	fprintf(stderr, "Usage: %s -[u?lstp] [-[gf] game_name]\n", av[0]);
     if (f_showscore)
 	log_score(1);
     if (f_list)
