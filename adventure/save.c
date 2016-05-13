@@ -62,16 +62,6 @@ static struct iovec s_SaveArray[] = {
     {tk, sizeof(tk)}
 };
 
-// The standard bsd checksum, summing with right rotation
-static uint16_t bsdsum (const uint8_t* s, size_t n, uint16_t sum)
-{
-    for (; n--; ++s) {
-	sum = (sum >> 1)|(sum << 15);
-	sum += *s;
-    }
-    return sum;
-}
-
 static uint16_t sum_save_array (void)
 {
     uint16_t sum = 0;

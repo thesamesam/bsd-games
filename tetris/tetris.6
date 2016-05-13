@@ -50,7 +50,7 @@ command runs display-based game which must be played on a CRT terminal.
 The object is to fit the shapes together forming complete rows,
 which then vanish.
 When the shapes fill up to the top, the game ends.
-You can optionally select a level of play, or custom-select control keys.
+You can optionally select a level of play.
 .Pp
 The default level of play is 2.
 .Pp
@@ -71,30 +71,7 @@ pause
 quit
 .El
 .Pp
-The options are as follows:
-.Bl -tag -width indent
-.It Fl k
-The default control keys can be changed using the
-.Fl k
-option.
-The
-.Ar keys
-argument must have the six keys in order, and, remember to quote any
-space or tab characters from the shell.
-For example:
-.sp
-.Dl "tetris -l 2 -k 'jkl pq'"
-.sp
-will play the default games, i.e. level 2 and with the default
-control keys.
-The current key settings are displayed at the bottom of the screen
-during play.
-.It Fl l
-Select a level of play.
-.It Fl s
-Display the top scores.
-.It Fl p
-Switch on previewing of the shape that will appear next.
+Play level can be given as an argument to the program.
 .El
 .Pp
 .Sh PLAY
@@ -103,8 +80,7 @@ falling one square at a time.
 The speed at which it falls is determined directly by the level:
 if you select level 2, the blocks will fall twice per second;
 at level 9, they fall 9 times per second.
-(As the game goes on, things speed up,
-no matter what your initial selection.)
+(As the game goes on, things speed up, no matter what your initial selection.)
 When this shape
 .Dq touches down
 on the bottom of the field, another will appear at the top.
@@ -127,18 +103,10 @@ Each player gets at most one entry on any level,
 for a total of nine scores in the high scores file.
 Players who no longer have accounts are limited to one score.
 Also, scores over 5 years old are expired.
-The exception to these conditions is that the highest score on a given
-level is
-.Em always
-kept,
-so that following generations can pay homage to those who have
-wasted serious amounts of time.
 .Pp
 The score list is produced at the end of the game.
 The printout includes each player's overall ranking,
 name, score, and how many points were scored on what level.
-Scores which are the highest on a given level
-are marked with asterisks
 .Dq * .
 .Sh FILES
 .Bl -tag -width /var/lib/bsdgames/tetris-bsd.scoresxx

@@ -3,21 +3,22 @@
 
 #pragma once
 #include "../config.h"
-#include <sys/types.h>
 
-// Tetris scores.
+#define _PATH_SCOREFILE	_PATH_GAME_STATE "tetris-bsd.scores"
+
 struct highscore {
-    char hs_name[20];		// login name
-    int hs_score;		// raw score
-    int hs_level;		// play level
-    time_t hs_time;		// time at game end
+    char	name [16];	// login name
+    uint32_t	score;		// raw score
+    uint32_t	level;		// play level
+    time_t	time;		// time at game end
 };
 
 enum {
-    MAXHISCORES	= 80,
-    MAXSCORES	= 9,	// maximum high score entries per person
-    EXPIRATION	= 5 * 365 * 24 * 60 * 60
+    MAXHISCORES	= 20,
+    EXPIRATION	= 7 * 365*24*60*60	// 7 years
 };
 
-void savescore(int);
-void showscores(int);
+extern struct highscore _scores [MAXHISCORES+1];
+extern unsigned _nScores;
+
+void savescore (unsigned score, unsigned level);
