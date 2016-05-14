@@ -55,3 +55,9 @@ inline static void srandrand (void)
     clock_gettime (CLOCK_REALTIME, &now);
     srand (now.tv_sec ^ now.tv_nsec ^ ((uint32_t)getpid() << 16) ^ getppid());
 }
+
+/// Generate a random number in given range
+inline static unsigned nrand (unsigned r)
+{
+    return rand() % r;
+}
