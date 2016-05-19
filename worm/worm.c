@@ -8,8 +8,16 @@
 #include <signal.h>
 
 enum {
-    HEAD	= '@',
-    BODY	= 'o',
+    color_None,
+    color_Text,
+    color_Field,
+    color_Grass,
+    color_Worm
+};
+enum {
+    HEAD	= A_BOLD|COLOR_PAIR(color_Worm)|'@',
+    BODY	= COLOR_PAIR(color_Worm)|'o',
+    GRASS	= COLOR_PAIR(color_Grass)|'"',
     LENGTH	= 7,
     RUNLEN	= 8,
     XTIMER	= 120,
@@ -33,16 +41,18 @@ static unsigned start_len = LENGTH;
 static unsigned visible_len = 0;
 
 static void crash (void);
+static unsigned max_length (void);
 static void display (const struct body *, int);
+static void find_empty_spot (unsigned* y, unsigned* x);
 static void leave (int);
 static void life (void);
-static void newpos (struct body *);
 static void play (void);
 static void prize (void);
+static void newgrass (void);
 
 int main (int argc, char **argv)
 {
-    srandrand();
+    // Install signal handlers for crashes
     static const uint8_t c_FatalSignals[] = {
 	SIGINT, SIGQUIT, SIGTERM, SIGILL, SIGBUS,
 	SIGABRT, SIGFPE, SIGSYS, SIGSEGV, SIGHUP
@@ -50,26 +60,41 @@ int main (int argc, char **argv)
     for (unsigned i = 0; i < ArraySize(c_FatalSignals); ++i)
 	signal(c_FatalSignals[i], leave);
     signal(SIGTSTP, SIG_IGN);
+
+    // Initialize starting parameters; length if given
+    if (argc == 2)
+	start_len = atoi(argv[1]);
+    if (!start_len || start_len > max_length())
+	start_len = LENGTH;
+    srandrand();
+
+    // Initialize curses
     if (!initscr()) {
 	printf ("Error: unable to initialize terminal graphics\n");
 	return EXIT_FAILURE;
     }
+    start_color();
+    use_default_colors();
+    init_pair (color_Text, COLOR_DEFAULT, COLOR_DEFAULT);
+    init_pair (color_Field, COLOR_YELLOW, COLOR_BLACK);
+    init_pair (color_Grass, COLOR_BLUE, COLOR_BLACK);
+    init_pair (color_Worm, COLOR_GREEN, COLOR_BLACK);
     cbreak();
     noecho();
     keypad(stdscr, true);
+    curs_set (0);
     clear();
-    if (argc == 2)
-	start_len = atoi(argv[1]);
-    if (!start_len || start_len > ((LINES - 3) * (COLS - 2)) / 3u)
-	start_len = LENGTH;
     stw = newwin (1, COLS - 1, 0, 0);
+    wbkgdset (stw, COLOR_PAIR(color_Text));
     tv = newwin (LINES - 1, COLS - 1, 1, 0);
+    wbkgdset (tv, COLOR_PAIR(color_Field));
     box (tv, 0, 0);
     scrollok(tv, false);
     scrollok(stw, false);
-    wmove(stw, 0, 0);
-    wprintw(stw, " Worm");
+    mvwprintw (stw, 0, 0, " Worm");
     refresh();
+    for (unsigned i = 0; i < max_length()/2; ++i)
+	newgrass();
     wrefresh(stw);
     wrefresh(tv);
     life();		       // Create the worm
@@ -82,7 +107,7 @@ int main (int argc, char **argv)
 
 static struct body* newlink (void)
 {
-    struct body* l = (struct body *) malloc (sizeof (struct body));
+    struct body* l = (struct body*) malloc (sizeof (struct body));
     if (!l) {
 	perror ("malloc");
 	exit (EXIT_FAILURE);
@@ -93,8 +118,8 @@ static struct body* newlink (void)
 static void life (void)
 {
     head = newlink();
-    head->x = start_len % (COLS - 5) + 2;
-    head->y = LINES / 2;
+    head->x = start_len % (getmaxx(tv) - 5) + 2;
+    head->y = getmaxy(tv) / 2;
     head->next = NULL;
     display(head, HEAD);
     struct body* bp = head;
@@ -104,7 +129,7 @@ static void life (void)
 	np = newlink();
 	np->next = bp;
 	bp->prev = np;
-	if ((bp->x <= 2 && j == 1) || (bp->x >= COLS - 4u && j == -1)) {
+	if ((bp->x <= 2 && j == 1) || (bp->x >= getmaxx(tv) - 4u && j == -1)) {
 	    j *= -1;
 	    np->x = bp->x;
 	    np->y = bp->y + 1;
@@ -124,18 +149,19 @@ static void display(const struct body *pos, int chr)
     mvwaddch (tv, pos->y, pos->x, chr);
 }
 
-static void newpos (struct body *bp)
+static void find_empty_spot (unsigned* y, unsigned* x)
 {
-    if (visible_len == (LINES - 3) * (COLS - 3) - 1u) {
-	endwin();
-	printf("\nYou won!\nYour final score was %u\n\n", score);
-	exit (EXIT_SUCCESS);
-    }
     do {
-	bp->y = nrand (LINES - 3) + 1;
-	bp->x = nrand (COLS - 3) + 1;
-	wmove(tv, bp->y, bp->x);
-    } while (winch(tv) != ' ');
+	*y = nrand (getmaxy(tv) - 2) + 1;
+	*x = nrand (getmaxx(tv) - 2) + 1;
+    } while ((char) mvwinch (tv, *y, *x) != ' ');
+}
+
+static void newgrass (void)
+{
+    unsigned y, x;
+    find_empty_spot (&y, &x);
+    waddch (tv, GRASS);
 }
 
 static void play (void)
@@ -171,15 +197,14 @@ static void play (void)
 	} else
 	    growing--;
 	display(head, BODY);
-	wmove(tv, y, x);
-	ch = winch(tv);
-	if (isdigit(ch)) {
-	    growing += ch - '0';
+	char fc = mvwinch(tv, y, x);
+	if (isdigit(fc)) {
+	    growing += fc - '0';
 	    prize();
 	    score += growing;
-	    mvwprintw (stw, 0, COLS-12, "Score: %3u", score);
-	    wrefresh (stw);
-	} else if (ch != ' ')
+	} else if (fc == '"')
+	    newgrass();
+	else if (fc != ' ')
 	    crash();
 	struct body* nh = newlink();
 	nh->next = NULL;
@@ -191,15 +216,27 @@ static void play (void)
 	head = nh;
 	++visible_len;
 	wmove(tv, head->y, head->x);
-	wrefresh(tv);
+	mvwprintw (stw, 0, getmaxx(stw)-36, "Length: %3u of %3u    Score: %3u", visible_len, max_length(), score);
+	wrefresh (stw);
+	wrefresh (tv);
     }
+}
+
+static unsigned max_length (void)
+{
+    return (getmaxy(tv)-2) * (getmaxx(tv)-2) / 8u;
 }
 
 static void prize (void)
 {
     unsigned value = nrand(9) + 1;
-    newpos (&goody);
-    waddch (tv, value + '0');
+    if (visible_len == max_length()) {
+	endwin();
+	printf("\nYou won!\nYour final score was %u\n\n", score);
+	exit (EXIT_SUCCESS);
+    }
+    find_empty_spot (&goody.y, &goody.x);
+    waddch (tv, A_BOLD| (value + '0'));
     wrefresh (tv);
 }
 
