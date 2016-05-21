@@ -43,14 +43,25 @@ enum { COLOR_DEFAULT = -1 };
 extern "C" {
 #endif
 
-// The standard bsd checksum, summing with right rotation
+// util.c
 uint16_t bsdsum (const void* v, size_t n, uint16_t sum);
-/// Randomly initializes the random number generator
 unsigned nrand (unsigned r);
-/// Generate a random number in given range
 void srandrand (void);
-/// Initialize curses, installing cleanup handlers
+
+// ui.c
 void initialize_curses (void);
+
+// scores.c
+bool read_score_file (const char* filename, const char* magic, void* scores, size_t scoresSize);
+void write_score_file (const char* filename, const char* magic, const void* scores, size_t scoresSize);
+
+// inlines
+inline static uint32_t ror32 (uint32_t v, unsigned n)
+    { return (v >> n)|(v << (32-n)); }
+inline static uint16_t ror16 (uint16_t v, unsigned n)
+    { return (v >> n)|(v << (16-n)); }
+inline static int sign (int n)
+    { return n > 0 ? 1 : n < 0 ? -1 : 0; }
 
 #ifdef __cplusplus
 } // extern "C"

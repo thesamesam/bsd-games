@@ -10,8 +10,6 @@
 #include "../config.h"
 #include <curses.h>
 #include <math.h>
-#include <sys/uio.h>
-#include <sys/file.h>
 
 #define _PATH_SCOREFILE	_PATH_GAME_STATE "snake.scores"
 #define SCOREFILE_MAGIC	"snake"
@@ -42,10 +40,6 @@ struct point {
     unsigned short	line;
 };
 
-struct ScorefileHeader {
-    char	magic[6];
-    uint16_t	sum;
-};
 struct Score {
     unsigned	score;
     char	name [16-sizeof(unsigned)];
@@ -67,7 +61,7 @@ static unsigned short _chunk = 0;	// amount of money given at a time
 static WINDOW* _wscore = NULL;		// top line with money displayed
 static WINDOW* _wgame = NULL;		// main game field
 
-static struct Score _scores [MAXSCORES+1] = {{0,""}};
+static struct Score _scores [MAXSCORES] = {{0,""}};
 
 //----------------------------------------------------------------------
 
@@ -85,7 +79,6 @@ static void winnings (unsigned won);
 
 static int compare_scores (const void *x, const void *y);
 static bool read_scores (void);
-static void write_scores (void);
 static void show_scores (void);
 static bool save_score (unsigned score, bool won);
 
@@ -477,53 +470,24 @@ static int compare_scores (const void *x, const void *y)
     return a->score < b->score ? 1 : a->score == b->score ? 0 : -1;
 }
 
-enum { SCORESSIZE = MAXSCORES * sizeof(_scores[0]) };
-
 static bool read_scores (void)
 {
-    int fd = open (_PATH_SCOREFILE, O_RDONLY);
-    if (fd < 0)
+    if (!read_score_file (_PATH_SCOREFILE, SCOREFILE_MAGIC, _scores, sizeof(_scores)))
 	return false;
-    struct ScorefileHeader header;
-    struct iovec iov[2] = {{&header,sizeof(header)},{_scores,SCORESSIZE}};
-    while (0 != flock (fd, LOCK_SH))
-	sleep (1);
-    ssize_t br = readv (fd, iov, ArraySize(iov));
-    close (fd);
-    // Check that score list appears valid
-    bool r = true;
-    if (br != sizeof(header)+SCORESSIZE
-	|| memcmp (header.magic, SCOREFILE_MAGIC, sizeof(header.magic)) != 0
-	|| header.sum != bsdsum (_scores, SCORESSIZE, 0))
-	r = false;
     // Check each score and zero if invalid
-    for (unsigned i = 0; i < MAXSCORES; ++i)
-	if (!r || !_scores[i].name[0] || _scores[i].name[sizeof(_scores[i].name)-1] || _scores[i].score > MAXSCORE)
+    for (unsigned i = 0; i < ArraySize(_scores); ++i)
+	if (!_scores[i].name[0] || _scores[i].name[sizeof(_scores[i].name)-1] || _scores[i].score > MAXSCORE)
 	    memset (&_scores[i], 0, sizeof(_scores[i]));
     // Resort to account for the above zeroing
-    qsort (_scores, MAXSCORES, sizeof(_scores[0]), compare_scores);
-    return r;
-}
-
-static void write_scores (void)
-{
-    int fd = open (_PATH_SCOREFILE, O_WRONLY);
-    if (fd < 0)
-	return;
-    struct ScorefileHeader header = { SCOREFILE_MAGIC, bsdsum (_scores, SCORESSIZE, 0) };
-    struct iovec iov[2] = {{&header,sizeof(header)},{_scores,SCORESSIZE}};
-    while (0 != flock (fd, LOCK_EX))
-	sleep (1);
-    writev (fd, iov, ArraySize(iov));
-    ftruncate (fd, sizeof(header)+SCORESSIZE);
-    close (fd);
+    qsort (_scores, ArraySize(_scores), sizeof(_scores[0]), compare_scores);
+    return true;
 }
 
 static void show_scores (void)
 {
     if (read_scores()) {
 	printf("Snake players scores to date:\n");
-	for (unsigned i = 0; i < MAXSCORES && _scores[i].score; ++i)
+	for (unsigned i = 0; i < ArraySize(_scores) && _scores[i].score; ++i)
 	    printf("%u:\t$%u\t%s\n", i+1, _scores[i].score, _scores[i].name);
     } else
 	puts ("No scores recorded yet!");
@@ -533,7 +497,8 @@ static bool save_score (unsigned score, bool won)
 {
     read_scores();
     // Save the scores only if the new score is better than the lowest
-    if (_scores[MAXSCORES-1].score >= score)
+    struct Score* ns = &_scores[ArraySize(_scores)-1];
+    if (ns->score >= score)
 	return false;
     else if (!won)
 	return true;	// Return true to wink if the score would have been saved
@@ -541,14 +506,14 @@ static bool save_score (unsigned score, bool won)
     const char* name = getlogin();
     if (!name)
 	return false;
-    _scores[MAXSCORES].score = score;
-    strncpy (_scores[MAXSCORES].name, name, sizeof(_scores[MAXSCORES].name)-1);
-    _scores[MAXSCORES].name[sizeof(_scores[MAXSCORES].name)-1] = 0;
+    ns->score = score;
+    strncpy (ns->name, name, sizeof(ns->name)-1);
+    ns->name[sizeof(ns->name)-1] = 0;
     // Find user's previous best score
     unsigned prevbest = 0;
-    for (unsigned i = 0; i < MAXSCORES && _scores[i].score >= prevbest; ++i)
-	if (0 == strcmp (_scores[i].name, _scores[MAXSCORES].name))
-	    prevbest = _scores[i].score;
+    for (const struct Score* os = _scores; os < ns && os->score > prevbest; ++os)
+	if (0 == strcmp (os->name, ns->name))
+	    prevbest = os->score;
     // Tell him how good he is
     if (prevbest) {
 	if (prevbest < score)
@@ -557,10 +522,10 @@ static bool save_score (unsigned score, bool won)
 	    printf ("Your best to date is $%d\n", prevbest);
     }
     if (_scores[0].score) {
-	if (_scores[0].score > score)
+	if (_scores[0].score > score && !prevbest)
 	    printf ("The highest is %s with $%u\n", _scores[0].name, _scores[0].score);
 	else if (_scores[0].score < score) {
-	    if (0 == strcmp (_scores[0].name, _scores[MAXSCORES].name))
+	    if (0 == strcmp (_scores[0].name, ns->name))
 		printf ("You set a new record!\n");
 	    else
 		printf ("You beat %s's old record of $%u!\n", _scores[0].name, _scores[0].score);
@@ -568,6 +533,6 @@ static bool save_score (unsigned score, bool won)
     }
     // Save the scores if the new score is better than the lowest
     qsort (_scores, ArraySize(_scores), sizeof(_scores[0]), compare_scores);
-    write_scores();
+    write_score_file (_PATH_SCOREFILE, SCOREFILE_MAGIC, _scores, sizeof(_scores));
     return true;
 }

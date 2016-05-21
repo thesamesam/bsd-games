@@ -8,7 +8,7 @@ uint16_t bsdsum (const void* v, size_t n, uint16_t sum)
 {
     const uint8_t* s = (const uint8_t*) v;
     for (; n--; ++s) {
-	sum = (sum >> 1)|(sum << 15);
+	sum = ror16 (sum, 1);
 	sum += *s;
     }
     return sum;
@@ -19,7 +19,12 @@ void srandrand (void)
 {
     struct timespec now;
     clock_gettime (CLOCK_REALTIME, &now);
-    srand (now.tv_sec ^ now.tv_nsec ^ ((uint32_t)getpid() << 16) ^ getppid());
+    uint32_t seed = now.tv_sec;
+    seed ^= getppid();
+    seed = ror32 (seed, 16);
+    seed ^= getpid();
+    seed ^= now.tv_nsec;
+    srand (seed);
 }
 
 // Generate a random number in given range

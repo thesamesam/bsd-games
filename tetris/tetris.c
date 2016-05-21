@@ -2,11 +2,34 @@
 // This file is free software, distributed under the BSD license.
 //
 // Tetris (or however it is spelled).
+//
+// Score code for Tetris, by Darren Provine (kilroy@gboro.glassboro.edu)
+// modified 22 January 1992, to limit the number of entries any one
+// person has.
+//
+// Major whacks since then.
 
-#include "tetris.h"
-#include "scores.h"
-#include <signal.h>
+#include "../config.h"
+#include <curses.h>
 #include <time.h>
+
+//----------------------------------------------------------------------
+// Definitions for Tetris.
+
+// The display (board) is composed of 23 rows of 10 columns of characters.
+// Columns 1 to 10 of rows 1 to 20 are the actual playing area, where
+// shapes appear.
+enum {
+    S_COLS	= 80,
+    S_ROWS	= 24,
+    B_COLS	= 10,
+    B_ROWS	= 23,
+    B_STARTROW	= 1,
+    B_STARTCOL	= B_COLS/2,
+    MINLEVEL	= 1,	// Game level must be between 1 and 9.
+    MAXLEVEL	= 9,	//	This controls the initial fall rate and affects scoring.
+    ROWS_PER_LEVEL= 50	// Bump level every N rows removed
+};
 
 // A shape is the fundamental thing that makes up the game.  There
 // are 7 basic shapes, comprising all possible combinations of 4 blocks.
@@ -67,6 +90,21 @@ enum {
     color_Last
 };
 
+#define _PATH_SCOREFILE	_PATH_GAME_STATE "tetris.scores"
+#define SCOREFILE_MAGIC		"tetris"
+
+struct highscore {
+    char	name [16];	// login name
+    uint32_t	score;		// raw score
+    uint32_t	level;		// play level
+    time_t	time;		// time at game end
+};
+
+enum {
+    MAXHISCORES	= 20,
+    EXPIRATION	= 7 * 365*24*60*60	// 7 years
+};
+
 //----------------------------------------------------------------------
 // Local variables
 
@@ -81,11 +119,11 @@ static uint8_t _board [B_ROWS][B_COLS] = {{0}};	// 1 => occupied, 0 => empty
 // we find that it is at rest and integrate it---until then, it can
 // still be moved or rotated).
 static unsigned _score = 0;
-
-static unsigned _movedelay = 500;	// Delay between movements in us
-static struct timespec _nextmove = {0,0};
+struct highscore _scores [MAXHISCORES] = {{"",0,0,0}};
 
 static bool _paused = false;
+static unsigned _movedelay = 500;	// Delay between movements in us
+static struct timespec _nextmove = {0,0};
 
 static const struct shape* _curshape = NULL;
 static const struct shape* _nextshape = NULL;
@@ -112,6 +150,9 @@ static bool fits_in (const struct shape* shape, unsigned y, unsigned x);
 static void scr_create_window (void);
 static void scr_update (void);
 static void showscores (unsigned level);
+static int cmpscores (const void *x, const void *y);
+static void check_scores (void);
+static void savescore (unsigned score, unsigned level);
 
 //----------------------------------------------------------------------
 // main
@@ -431,4 +472,52 @@ static void showscores (unsigned level)
     wrefresh (_win);
     wtimeout (_win, -1);
     wgetch (_win);
+}
+
+//----------------------------------------------------------------------
+// Scorefile reading and writing
+
+// Score comparison function for qsort.
+//
+// If two scores are equal, the person who had the score first is
+// listed first in the highscore file.
+static int cmpscores (const void *x, const void *y)
+{
+    const struct highscore* a = (const struct highscore*) x;
+    const struct highscore* b = (const struct highscore*) y;
+    int l = b->level * b->score - a->level * a->score;
+    if (!l)
+	l = a->time - b->time;
+    return sign(l);
+}
+
+static void check_scores (void)
+{
+    time_t expiration = time(NULL)-EXPIRATION;
+    // Check validity of each score. Zero out any that are bad.
+    for (struct highscore *sc = _scores, *scend = &_scores[ArraySize(_scores)]; sc < scend; ++sc)
+	if (sc->level < MINLEVEL || sc->level > MAXLEVEL
+		|| sc->time < expiration
+		|| !sc->name[0] || sc->name[sizeof(sc->name)-1])
+	    memset (sc, 0, sizeof(*sc));
+    qsort (_scores, ArraySize(_scores), sizeof(_scores[0]), cmpscores);
+}
+
+static void savescore (unsigned score, unsigned level)
+{
+    read_score_file (_PATH_SCOREFILE, SCOREFILE_MAGIC, _scores, sizeof(_scores));
+    check_scores();
+    struct highscore* nsc = &_scores[MAXHISCORES-1];
+    if (nsc->score*nsc->level > score*level)
+	return;	// The new score is too low to save
+    const char* username = getlogin();
+    if (!username)
+	return;
+    strncpy (nsc->name, username, sizeof(nsc->name)-1);
+    nsc->name[sizeof(nsc->name)-1] = 0;
+    nsc->score = score;
+    nsc->level = level;
+    nsc->time = time (NULL);
+    check_scores();
+    write_score_file (_PATH_SCOREFILE, SCOREFILE_MAGIC, _scores, sizeof(_scores));
 }
