@@ -5,7 +5,7 @@ atc/EXE		:= $Oatc/${atc/NAME}
 atc/SRCS	:= $(wildcard atc/*.c)
 atc/OBJS	:= $(addprefix $O,$(atc/SRCS:.c=.o))
 atc/DEPS	:= $(atc/OBJS:.o=.d)
-atc/LIBS	:= ${CURSES_LIBS} ${MATH_LIBS}
+atc/LIBS	:= ${COMLIB} ${CURSES_LIBS} ${MATH_LIBS}
 
 ################ Compilation ###########################################
 
@@ -16,7 +16,7 @@ atc/all:	${atc/EXE}
 atc/run:	${atc/EXE}
 	@${atc/EXE}
 
-${atc/EXE}:	${atc/OBJS}
+${atc/EXE}:	${atc/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${atc/OBJS} ${atc/LIBS}
 

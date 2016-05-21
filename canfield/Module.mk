@@ -6,7 +6,7 @@ canfield/EXE2	:= $Ocanfield/cfscores
 canfield/SRCS	:= $(wildcard canfield/*.c)
 canfield/OBJS	:= $(addprefix $O,$(canfield/SRCS:.c=.o))
 canfield/DEPS	:= $(canfield/OBJS:.o=.d)
-canfield/LIBS	:= ${CURSES_LIBS}
+canfield/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
 
@@ -17,11 +17,11 @@ canfield/all:	${canfield/EXE} ${canfield/EXE2}
 canfield/run:	${canfield/EXE}
 	@${canfield/EXE}
 
-${canfield/EXE}:	$Ocanfield/canfield.o
+${canfield/EXE}:	$Ocanfield/canfield.o ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ $Ocanfield/canfield.o ${canfield/LIBS}
 
-${canfield/EXE2}:	$Ocanfield/cfscores.o
+${canfield/EXE2}:	$Ocanfield/cfscores.o ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ $Ocanfield/cfscores.o
 

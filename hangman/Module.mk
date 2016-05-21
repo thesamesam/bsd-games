@@ -5,7 +5,7 @@ hangman/EXE	:= $Ohangman/${hangman/NAME}
 hangman/SRCS	:= $(wildcard hangman/*.c)
 hangman/OBJS	:= $(addprefix $O,$(hangman/SRCS:.c=.o))
 hangman/DEPS	:= $(hangman/OBJS:.o=.d)
-hangman/LIBS	:= ${CURSES_LIBS}
+hangman/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
 
@@ -16,7 +16,7 @@ hangman/all:	${hangman/EXE}
 hangman/run:	${hangman/EXE}
 	@${hangman/EXE}
 
-${hangman/EXE}:	${hangman/OBJS}
+${hangman/EXE}:	${hangman/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${hangman/OBJS} ${hangman/LIBS}
 

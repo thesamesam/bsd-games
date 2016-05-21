@@ -5,7 +5,7 @@ cribbage/EXE	:= $Ocribbage/${cribbage/NAME}
 cribbage/SRCS	:= $(wildcard cribbage/*.c)
 cribbage/OBJS	:= $(addprefix $O,$(cribbage/SRCS:.c=.o))
 cribbage/DEPS	:= $(cribbage/OBJS:.o=.d)
-cribbage/LIBS	:= ${CURSES_LIBS}
+cribbage/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
 
@@ -16,7 +16,7 @@ cribbage/all:	${cribbage/EXE}
 cribbage/run:	${cribbage/EXE}
 	@${cribbage/EXE}
 
-${cribbage/EXE}:	${cribbage/OBJS}
+${cribbage/EXE}:	${cribbage/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${cribbage/OBJS} ${cribbage/LIBS}
 

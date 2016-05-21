@@ -5,7 +5,7 @@ dab/EXE		:= $Odab/${dab/NAME}
 dab/SRCS	:= $(wildcard dab/*.cc)
 dab/OBJS	:= $(addprefix $O,$(dab/SRCS:.cc=.o))
 dab/DEPS	:= $(dab/OBJS:.o=.d)
-dab/LIBS	:= ${CURSES_LIBS}
+dab/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
 
@@ -16,7 +16,7 @@ dab/all:	${dab/EXE}
 dab/run:	${dab/EXE}
 	@${dab/EXE}
 
-${dab/EXE}:	${dab/OBJS}
+${dab/EXE}:	${dab/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CXX} ${LDFLAGS} -o $@ ${dab/OBJS} ${dab/LIBS}
 

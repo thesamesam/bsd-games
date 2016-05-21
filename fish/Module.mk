@@ -5,7 +5,7 @@ fish/EXE	:= $Ofish/${fish/NAME}
 fish/SRCS	:= $(wildcard fish/*.c)
 fish/OBJS	:= $(addprefix $O,$(fish/SRCS:.c=.o))
 fish/DEPS	:= $(fish/OBJS:.o=.d)
-fish/LIBS	:=
+fish/LIBS	:= ${COMLIB}
 
 ################ Compilation ###########################################
 
@@ -16,7 +16,7 @@ fish/all:	${fish/EXE}
 fish/run:	${fish/EXE}
 	@${fish/EXE}
 
-${fish/EXE}:	${fish/OBJS}
+${fish/EXE}:	${fish/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${fish/OBJS} ${fish/LIBS}
 

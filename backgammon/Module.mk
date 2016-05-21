@@ -8,7 +8,7 @@ backgammon/OBJS	:= $(addprefix $O,$(backgammon/SRCS:.c=.o))
 backgammon/OBJ1	:= $(addprefix $Obackgammon/,allow.o board.o check.o fancy.o init.o odds.o one.o save.o subs.o table.o extra.o main.o move.o text.o version.o)
 backgammon/OBJ2	:= $(addprefix $Obackgammon/,allow.o board.o check.o fancy.o init.o odds.o one.o save.o subs.o table.o data.o teach.o ttext1.o ttext2.o tutor.o)
 backgammon/DEPS	:= $(backgammon/OBJS:.o=.d)
-backgammon/LIBS	:= ${CURSES_LIBS}
+backgammon/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
 
@@ -19,11 +19,11 @@ backgammon/all:	${backgammon/EXE} ${backgammon/EXE2}
 backgammon/run:	${backgammon/EXE}
 	@${backgammon/EXE}
 
-${backgammon/EXE}:	${backgammon/OBJ1}
+${backgammon/EXE}:	${backgammon/OBJ1} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${backgammon/OBJ1} ${backgammon/LIBS}
 
-${backgammon/EXE2}:	${backgammon/OBJ2}
+${backgammon/EXE2}:	${backgammon/OBJ2} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${backgammon/OBJ2} ${backgammon/LIBS}
 

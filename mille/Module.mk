@@ -5,7 +5,7 @@ mille/EXE	:= $Omille/${mille/NAME}
 mille/SRCS	:= $(wildcard mille/*.c)
 mille/OBJS	:= $(addprefix $O,$(mille/SRCS:.c=.o))
 mille/DEPS	:= $(mille/OBJS:.o=.d)
-mille/LIBS	:= ${CURSES_LIBS}
+mille/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
 
@@ -16,7 +16,7 @@ mille/all:	${mille/EXE}
 mille/run:	${mille/EXE}
 	@${mille/EXE}
 
-${mille/EXE}:	${mille/OBJS}
+${mille/EXE}:	${mille/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${mille/OBJS} ${mille/LIBS}
 

@@ -5,7 +5,7 @@ robots/EXE	:= $Orobots/${robots/NAME}
 robots/SRCS	:= $(wildcard robots/*.c)
 robots/OBJS	:= $(addprefix $O,$(robots/SRCS:.c=.o))
 robots/DEPS	:= $(robots/OBJS:.o=.d)
-robots/LIBS	:= ${CURSES_LIBS}
+robots/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
 
@@ -16,7 +16,7 @@ robots/all:	${robots/EXE}
 robots/run:	${robots/EXE}
 	@${robots/EXE}
 
-${robots/EXE}:	${robots/OBJS}
+${robots/EXE}:	${robots/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${robots/OBJS} ${robots/LIBS}
 

@@ -5,7 +5,7 @@ adventure/EXE	:= $Oadventure/${adventure/NAME}
 adventure/SRCS	:= $(wildcard adventure/*.c)
 adventure/OBJS	:= $(addprefix $O,$(adventure/SRCS:.c=.o))
 adventure/DEPS	:= $(adventure/OBJS:.o=.d)
-adventure/LIBS	:=
+adventure/LIBS	:= ${COMLIB}
 
 ################ Compilation ###########################################
 
@@ -16,7 +16,7 @@ adventure/all:	${adventure/EXE}
 adventure/run:	${adventure/EXE}
 	@${adventure/EXE}
 
-${adventure/EXE}:	${adventure/OBJS}
+${adventure/EXE}:	${adventure/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${adventure/OBJS} ${adventure/LIBS}
 

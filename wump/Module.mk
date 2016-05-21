@@ -5,7 +5,7 @@ wump/EXE	:= $Owump/${wump/NAME}
 wump/SRCS	:= $(wildcard wump/*.c)
 wump/OBJS	:= $(addprefix $O,$(wump/SRCS:.c=.o))
 wump/DEPS	:= $(wump/OBJS:.o=.d)
-wump/LIBS	:=
+wump/LIBS	:= ${COMLIB}
 
 ################ Compilation ###########################################
 
@@ -16,7 +16,7 @@ wump/all:	${wump/EXE}
 wump/run:	${wump/EXE}
 	@${wump/EXE}
 
-${wump/EXE}:	${wump/OBJS}
+${wump/EXE}:	${wump/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${wump/OBJS} ${wump/LIBS}
 

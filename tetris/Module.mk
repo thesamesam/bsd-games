@@ -5,7 +5,7 @@ tetris/EXE	:= $Otetris/${tetris/NAME}
 tetris/SRCS	:= $(wildcard tetris/*.c)
 tetris/OBJS	:= $(addprefix $O,$(tetris/SRCS:.c=.o))
 tetris/DEPS	:= $(tetris/OBJS:.o=.d)
-tetris/LIBS	:= ${CURSES_LIBS}
+tetris/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
 
@@ -16,7 +16,7 @@ tetris/all:	${tetris/EXE}
 tetris/run:	${tetris/EXE}
 	@${tetris/EXE}
 
-${tetris/EXE}:	${tetris/OBJS}
+${tetris/EXE}:	${tetris/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${tetris/OBJS} ${tetris/LIBS}
 

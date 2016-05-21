@@ -5,7 +5,7 @@ worm/EXE	:= $Oworm/${worm/NAME}
 worm/SRCS	:= $(wildcard worm/*.c)
 worm/OBJS	:= $(addprefix $O,$(worm/SRCS:.c=.o))
 worm/DEPS	:= $(worm/OBJS:.o=.d)
-worm/LIBS	:= ${CURSES_LIBS}
+worm/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
 
@@ -16,7 +16,7 @@ worm/all:	${worm/EXE}
 worm/run:	${worm/EXE}
 	@${worm/EXE}
 
-${worm/EXE}:	${worm/OBJS}
+${worm/EXE}:	${worm/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${worm/OBJS} ${worm/LIBS}
 

@@ -6,7 +6,7 @@ trek/SRCS	:= $(wildcard trek/*.c)
 trek/OBJS	:= $(addprefix $O,$(trek/SRCS:.c=.o))
 trek/DEPS	:= $(trek/OBJS:.o=.d)
 trek/DATA	:= $(wildcard trek/doc/*)
-trek/LIBS	:= ${CURSES_LIBS} ${MATH_LIBS}
+trek/LIBS	:= ${COMLIB} ${CURSES_LIBS} ${MATH_LIBS}
 
 ################ Compilation ###########################################
 
@@ -17,7 +17,7 @@ trek/all:	${trek/EXE}
 trek/run:	${trek/EXE}
 	@${trek/EXE}
 
-${trek/EXE}:	${trek/OBJS}
+${trek/EXE}:	${trek/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${trek/OBJS} ${trek/LIBS}
 

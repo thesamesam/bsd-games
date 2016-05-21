@@ -6,7 +6,7 @@ hack/SRCS	:= $(filter-out hack/makedefs.c,$(wildcard hack/*.c))
 hack/OBJS	:= $(addprefix $O,$(hack/SRCS:.c=.o))
 hack/DEPS	:= $(hack/OBJS:.o=.d)
 hack/DATA	:= $(wildcard hack/gamehelp/*)
-hack/LIBS	:= ${CURSES_LIBS}
+hack/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
 
@@ -17,7 +17,7 @@ hack/all:	${hack/EXE}
 hack/run:	${hack/EXE}
 	@${hack/EXE}
 
-${hack/EXE}:	${hack/OBJS}
+${hack/EXE}:	${hack/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${hack/OBJS} ${hack/LIBS}
 

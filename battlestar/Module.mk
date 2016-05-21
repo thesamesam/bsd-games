@@ -5,7 +5,7 @@ battlestar/EXE	:= $Obattlestar/${battlestar/NAME}
 battlestar/SRCS	:= $(wildcard battlestar/*.c)
 battlestar/OBJS	:= $(addprefix $O,$(battlestar/SRCS:.c=.o))
 battlestar/DEPS	:= $(battlestar/OBJS:.o=.d)
-battlestar/LIBS	:= ${CURSES_LIBS}
+battlestar/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
 
@@ -16,7 +16,7 @@ battlestar/all:	${battlestar/EXE}
 battlestar/run:	${battlestar/EXE}
 	@${battlestar/EXE}
 
-${battlestar/EXE}:	${battlestar/OBJS}
+${battlestar/EXE}:	${battlestar/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${battlestar/OBJS} ${battlestar/LIBS}
 

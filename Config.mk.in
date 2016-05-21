@@ -8,6 +8,8 @@ NAME		:= @PKG_NAME@
 
 CC		:= @CC@
 CXX		:= @CXX@
+AR		:= @AR@
+RANLIB		:= @RANLIB@
 INSTALL		:= @INSTALL@
 
 INSTALLEXE	:= ${INSTALL} -D -p -m 755 -s

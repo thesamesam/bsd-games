@@ -5,7 +5,7 @@ sail/EXE	:= $Osail/${sail/NAME}
 sail/SRCS	:= $(wildcard sail/*.c)
 sail/OBJS	:= $(addprefix $O,$(sail/SRCS:.c=.o))
 sail/DEPS	:= $(sail/OBJS:.o=.d)
-sail/LIBS	:= ${CURSES_LIBS}
+sail/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
 
@@ -16,7 +16,7 @@ sail/all:	${sail/EXE}
 sail/run:	${sail/EXE}
 	@${sail/EXE}
 
-${sail/EXE}:	${sail/OBJS}
+${sail/EXE}:	${sail/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${sail/OBJS} ${sail/LIBS}
 

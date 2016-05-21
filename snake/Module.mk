@@ -5,7 +5,7 @@ snake/EXE	:= $Osnake/${snake/NAME}
 snake/SRCS	:= $(wildcard snake/*.c)
 snake/OBJS	:= $(addprefix $O,$(snake/SRCS:.c=.o))
 snake/DEPS	:= $(snake/OBJS:.o=.d)
-snake/LIBS	:= ${CURSES_LIBS} ${MATH_LIBS}
+snake/LIBS	:= ${COMLIB} ${CURSES_LIBS} ${MATH_LIBS}
 
 ################ Compilation ###########################################
 
@@ -16,7 +16,7 @@ snake/all:	${snake/EXE}
 snake/run:	${snake/EXE}
 	@${snake/EXE}
 
-${snake/EXE}:	$Osnake/snake.o
+${snake/EXE}:	$Osnake/snake.o ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ $Osnake/snake.o ${snake/LIBS}
 

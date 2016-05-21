@@ -5,7 +5,7 @@ gomoku/EXE	:= $Ogomoku/${gomoku/NAME}
 gomoku/SRCS	:= $(wildcard gomoku/*.c)
 gomoku/OBJS	:= $(addprefix $O,$(gomoku/SRCS:.c=.o))
 gomoku/DEPS	:= $(gomoku/OBJS:.o=.d)
-gomoku/LIBS	:= ${CURSES_LIBS}
+gomoku/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
 
@@ -16,7 +16,7 @@ gomoku/all:	${gomoku/EXE}
 gomoku/run:	${gomoku/EXE}
 	@${gomoku/EXE}
 
-${gomoku/EXE}:	${gomoku/OBJS}
+${gomoku/EXE}:	${gomoku/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${gomoku/OBJS} ${gomoku/LIBS}
 

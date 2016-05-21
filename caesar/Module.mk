@@ -5,7 +5,7 @@ caesar/EXE	:= $Ocaesar/${caesar/NAME}
 caesar/SRCS	:= $(wildcard caesar/*.c)
 caesar/OBJS	:= $(addprefix $O,$(caesar/SRCS:.c=.o))
 caesar/DEPS	:= $(caesar/OBJS:.o=.d)
-caesar/LIBS	:= ${MATH_LIBS}
+caesar/LIBS	:= ${COMLIB} ${MATH_LIBS}
 
 ################ Compilation ###########################################
 
@@ -16,7 +16,7 @@ caesar/all:	${caesar/EXE} ${caesar/EXE2}
 caesar/run:	${caesar/EXE}
 	@${caesar/EXE}
 
-${caesar/EXE}:	$Ocaesar/caesar.o
+${caesar/EXE}:	$Ocaesar/caesar.o ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ $Ocaesar/caesar.o ${caesar/LIBS}
 

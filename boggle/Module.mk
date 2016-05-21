@@ -6,7 +6,7 @@ boggle/SRCS	:= $(addprefix boggle/, bog.c help.c mach.c prtable.c timer.c word.c
 boggle/OBJS	:= $(addprefix $O,$(boggle/SRCS:.c=.o))
 boggle/DEPS	:= $(boggle/OBJS:.o=.d)
 boggle/DATA	:= boggle/helpfile $Oboggle/dictionary $Oboggle/dictindex
-boggle/LIBS	:= ${CURSES_LIBS}
+boggle/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
 
@@ -17,14 +17,14 @@ boggle/all:	${boggle/EXE} $Oboggle/dictindex
 boggle/run:	${boggle/EXE}
 	@${boggle/EXE}
 
-${boggle/EXE}:	${boggle/OBJS}
+${boggle/EXE}:	${boggle/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${boggle/OBJS} ${boggle/LIBS}
 
-$Oboggle/mkdict:	$Oboggle/mkdict.o
+$Oboggle/mkdict:	$Oboggle/mkdict.o ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ $<
-$Oboggle/mkindex:	$Oboggle/mkindex.o
+$Oboggle/mkindex:	$Oboggle/mkindex.o ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ $<
 $Oboggle/dictionary:	${WORDLIST} boggle/mkdict.c | $Oboggle/mkdict

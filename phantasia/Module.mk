@@ -5,7 +5,7 @@ phantasia/EXE	:= $Ophantasia/${phantasia/NAME}
 phantasia/SRCS	:= $(filter-out phantasia/setup.c,$(wildcard phantasia/*.c))
 phantasia/OBJS	:= $(addprefix $O,$(phantasia/SRCS:.c=.o))
 phantasia/DEPS	:= $(phantasia/OBJS:.o=.d)
-phantasia/LIBS	:= ${CURSES_LIBS} ${MATH_LIBS}
+phantasia/LIBS	:= ${COMLIB} ${CURSES_LIBS} ${MATH_LIBS}
 
 ################ Compilation ###########################################
 
@@ -16,13 +16,13 @@ phantasia/all:	${phantasia/EXE} $Ophantasia/monsters
 phantasia/run:	${phantasia/EXE}
 	@${phantasia/EXE}
 
-${phantasia/EXE}:	${phantasia/OBJS}
+${phantasia/EXE}:	${phantasia/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ ${phantasia/OBJS} ${phantasia/LIBS}
 
-$Ophantasia/setup:	$Ophantasia/setup.o
+$Ophantasia/setup:	$Ophantasia/setup.o ${COMLIB}
 	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ $<
+	@${CC} ${LDFLAGS} -o $@ $< ${phantasia/LIBS}
 $Ophantasia/monsters:	phantasia/monsters.asc phantasia/setup.c | $Ophantasia/setup
 	@echo "    Generating $@ ..."
 	@$Ophantasia/setup $< $@

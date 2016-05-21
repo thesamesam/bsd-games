@@ -22,4 +22,4 @@
 // The pager
 #define _PATH_PAGER		"@PAGER@"
 
-#include "common.h"
+#include "common/common.h"
