@@ -2,7 +2,6 @@
 
 snake/NAME	:= snake
 snake/EXE	:= $Osnake/${snake/NAME}
-snake/EXE2	:= $Osnake/snscore
 snake/SRCS	:= $(wildcard snake/*.c)
 snake/OBJS	:= $(addprefix $O,$(snake/SRCS:.c=.o))
 snake/DEPS	:= $(snake/OBJS:.o=.d)
@@ -13,7 +12,7 @@ snake/LIBS	:= ${CURSES_LIBS} ${MATH_LIBS}
 .PHONY:	snake/all snake/clean snake/run snake/install snake/uninstall
 
 all:		snake/all
-snake/all:	${snake/EXE} ${snake/EXE2}
+snake/all:	${snake/EXE}
 snake/run:	${snake/EXE}
 	@${snake/EXE}
 
@@ -21,24 +20,16 @@ ${snake/EXE}:	$Osnake/snake.o
 	@echo "Linking $@ ..."
 	@${CC} ${LDFLAGS} -o $@ $Osnake/snake.o ${snake/LIBS}
 
-${snake/EXE2}:	$Osnake/snscore.o
-	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ $Osnake/snscore.o
-
 ################ Installation ##########################################
 
 ifdef BINDIR
 snake/EXEI	:= ${BINDIR}/${snake/NAME}
-snake/EXE2I	:= ${BINDIR}/snscore
 snake/MANI	:= ${MANDIR}/man6/${snake/NAME}.6.gz
-snake/SCOREI	:= ${STATEDIR}/snakerawscores ${STATEDIR}/snake.log
+snake/SCOREI	:= ${STATEDIR}/snakerawscores
 
 install:		snake/install
-snake/install:	${snake/EXEI} ${snake/EXE2I} ${snake/MANI} ${snake/SCOREI}
+snake/install:	${snake/EXEI} ${snake/MANI} ${snake/SCOREI}
 ${snake/EXEI}:	${snake/EXE}
-	@echo "Installing $@ ..."
-	@${INSTALLEXE} $< $@
-${snake/EXE2I}:	${snake/EXE2}
 	@echo "Installing $@ ..."
 	@${INSTALLEXE} $< $@
 ${snake/MANI}:	snake/${snake/NAME}.6
@@ -52,7 +43,7 @@ uninstall:		snake/uninstall
 snake/uninstall:
 	@if [ -f ${snake/EXEI} ]; then\
 	    echo "Removing ${snake/EXEI} ...";\
-	    rm -f ${snake/EXEI} ${snake/EXE2I} ${snake/MANI} ${snake/SCOREI};\
+	    rm -f ${snake/EXEI} ${snake/MANI} ${snake/SCOREI};\
 	fi
 endif
 
@@ -61,7 +52,7 @@ endif
 clean:	snake/clean
 snake/clean:
 	@if [ -d $O/snake ]; then\
-	    rm -f ${snake/EXE} ${snake/EXE2} ${snake/OBJS} ${snake/DEPS} $Osnake/.d;\
+	    rm -f ${snake/EXE} ${snake/OBJS} ${snake/DEPS} $Osnake/.d;\
 	    rmdir $O/snake;\
 	fi
 

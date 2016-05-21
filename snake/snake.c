@@ -4,10 +4,10 @@
 // snake - crt hack game.
 //
 // You move around the screen with arrow keys trying to pick up money
-// without getting eaten by the snake.  hjkl work as in vi in place of
-// arrow keys.  You can leave at the exit any time.
+// without getting eaten by the snake. hjkl work as in vi in place of
+// arrow keys. You can leave at the exit any time.
 
-#include "pathnames.h"
+#include "../config.h"
 #include <sys/param.h>
 #include <curses.h>
 #include <pwd.h>
@@ -15,141 +15,199 @@
 #include <math.h>
 #include <signal.h>
 #include <termios.h>
+#include <sys/uio.h>
+#include <sys/file.h>
 
-#define cashvalue	chunk*(loot-penalty)/25
-
-struct point {
-    int col, line;
-};
-
-#define	same(s1, s2)	((s1)->line == (s2)->line && (s1)->col == (s2)->col)
+#define _PATH_SCOREFILE	_PATH_GAME_STATE "snakerawscores"
+#define SCOREFILE_MAGIC	"snake"
 
 enum {
-    PENALTY	= 10,	       // % penalty for invoking spacewarp
-
-    EOT		= '\004',
-    LF		= '\n',
-    DEL		= '\177',
-
-    ME		= 'I',
-    SNAKEHEAD	= 'S',
-    SNAKETAIL	= 's',
-    TREASURE	= '$',
-    GOAL	= '#'
+    SPACEWARP_PENALTY	= 10,
+    MAXSCORES		= 10,
+    MAXSCORE		= INT_MAX
+};
+enum {
+    color_None,
+    color_Field,
+    color_Snake,
+    color_Me,
+    color_Money,
+    color_Goal
+};
+enum {
+    ME		= A_BOLD| COLOR_PAIR(color_Me)| '@',
+    SNAKEHEAD	= A_BOLD| COLOR_PAIR(color_Snake)| '@',
+    SNAKETAIL	= A_BOLD| COLOR_PAIR(color_Snake)| 's',
+    TREASURE	= A_BOLD| COLOR_PAIR(color_Money)| '$',
+    GOAL	= A_BOLD| COLOR_PAIR(color_Goal)| '#'
 };
 
-#ifndef MIN
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#endif
-#ifndef CTRL
-#define CTRL(x)	((x) & 037)
-#endif
+struct point {
+    unsigned short	col;
+    unsigned short	line;
+};
 
-#define pchar(point, c)	mvaddch((point)->line + 1, (point)->col + 1, (c))
-#define delay(t)	usleep(t * 50000);
+struct ScorefileHeader {
+    char	magic[6];
+    uint16_t	sum;
+};
+struct Score {
+    unsigned	score;
+    char	name [16-sizeof(unsigned)];
+};
 
-static struct point you;
-static struct point money;
-static struct point finish;
-static struct point snake[6];
+//----------------------------------------------------------------------
 
-static int loot, penalty;
-static int moves;
-static int fast = 1;
+static struct point _you = {0};
+static struct point _money = {0};
+static struct point _finish = {0};
+static struct point _snake[6] = {{0}};
 
-static int rawscores;
-static FILE *logfile;
+static unsigned _loot = 0;
+static unsigned _moves = 0;
 
-static int lcnt, ccnt;			// user's idea of screen size
-static int chunk;			// amount of money given at a time
+static unsigned short _penalty = 0;	// current spacewarp penalty
+static unsigned short _chunk = 0;	// amount of money given at a time
 
-static void chase(struct point *, struct point *);
-static int chk(const struct point *);
-static void drawbox(void);
-static void flushi(void);
-static void length(int);
-static void logit(const char *);
-static void mainloop(void);
-static struct point *point(struct point *, int, int);
-static int post(int, int);
-static int pushsnake(void);
-static void setup(void);
-static void snap(void);
-static void snrand(struct point *);
-static void spacewarp(int);
-static void stop(int);
-static int stretch(const struct point *);
-static void surround(struct point *);
-static void suspend(void);
-static void win(const struct point *);
-static void winnings(int);
+static WINDOW* _wscore = NULL;		// top line with money displayed
+static WINDOW* _wgame = NULL;		// main game field
 
-int main (int argc, char **argv)
+static struct Score _scores [MAXSCORES+1] = {{0,""}};
+
+//----------------------------------------------------------------------
+
+static void calculate_screen_size (unsigned short rcols, unsigned short rlines);
+static struct point find_empty_spot (void);
+static void setup (void);
+
+static void chase (struct point *, struct point *);
+static void length (void);
+static bool pushsnake (void);
+static void spacewarp (bool bonus);
+static void stop (int);
+static void surround (struct point *);
+static void win (const struct point *);
+static void winnings (unsigned won);
+
+static int compare_scores (const void *x, const void *y);
+static bool read_scores (void);
+static void write_scores (void);
+static void show_scores (void);
+static bool save_score (unsigned score, bool won);
+
+//----------------------------------------------------------------------
+
+static inline bool same (const struct point* p1, const struct point* p2)
+    { return p1->line == p2->line && p1->col == p2->col; }
+static void pchar (const struct point* p, int c)
+    { mvwaddch (_wgame, p->line+1, p->col+1, c); }
+static inline void delay (unsigned t)
+    { usleep (t*50000); }
+static inline int cashvalue (void)
+    { return _chunk*(_loot-_penalty)/25; }
+
+//----------------------------------------------------------------------
+
+int main (int argc, const char* const* argv)
 {
-    int ch, i;
-    time_t tv;
-
-    // Open score files then revoke setgid privileges
-    rawscores = open(_PATH_RAWSCORES, O_RDWR | O_CREAT, 0664);
-    if (rawscores < 0) {
-	warn("open %s", _PATH_RAWSCORES);
-	sleep(2);
-    } else if (rawscores < 3)
-	exit(1);
-    logfile = fopen(_PATH_LOGFILE, "a");
-    if (logfile == NULL) {
-	warn("fopen %s", _PATH_LOGFILE);
-	sleep(2);
+    unsigned short rlines = 0, rcols = 0;	// user requested field size
+    if (argc == 3) {
+	rcols = atoi (argv[1]);
+	rlines = atoi (argv[2]);
+    } else if (argc == 2) {
+	show_scores();
+	return EXIT_SUCCESS;
+    } else if (argc != 1) {
+	puts ("Usage: snake [width height] [-s]");
+	return EXIT_SUCCESS;
     }
-    setregid(getgid(), getgid());
-
-    (void) time(&tv);
-
-    while ((ch = getopt(argc, argv, "l:w:t")) != -1)
-	switch ((char) ch) {
-#ifndef NDEBUG
-	    case 'd':
-		tv = atol(optarg);
-		break;
-#endif
-	    case 'w':	       // width
-		ccnt = atoi(optarg);
-		break;
-	    case 'l':	       // length
-		lcnt = atoi(optarg);
-		break;
-	    case 't':
-		fast = 0;
-		break;
-	    case '?':
-	    default:
-#ifndef NDEBUG
-		fputs("usage: snake [-d seed] [-w width] [-l length] [-t]\n", stderr);
-#else
-		fputs("usage: snake [-w width] [-l length] [-t]\n", stderr);
-#endif
-		exit(1);
-	}
-
     srandrand();
 
-    penalty = loot = 0;
-    initscr();
+    if (!initscr())
+	return EXIT_FAILURE;
+    start_color();
+    use_default_colors();
+    init_pair (color_Field,	COLOR_YELLOW, COLOR_BLACK);
+    init_pair (color_Snake,	COLOR_GREEN, COLOR_BLACK);
+    init_pair (color_Me,	COLOR_RED, COLOR_BLACK);
+    init_pair (color_Money,	COLOR_YELLOW, COLOR_BLACK);
+    init_pair (color_Goal,	COLOR_CYAN, COLOR_BLACK);
     cbreak();
     noecho();
-#ifdef KEY_LEFT
-    keypad(stdscr, true);
-#endif
-    if (!lcnt || lcnt > LINES - 2)
-	lcnt = LINES - 2;
-    if (!ccnt || ccnt > COLS - 2)
-	ccnt = COLS - 2;
+    curs_set (0);
+    calculate_screen_size (rcols, rlines);
 
-    i = MIN(lcnt, ccnt);
-    if (i < 4) {
-	endwin();
-	errx(1, "screen too small for a fair game.");
+    signal (SIGINT, stop);
+    signal (SIGQUIT, stop);
+    signal (SIGTERM, stop);
+    signal (SIGTSTP, SIG_IGN);
+
+    box (_wgame, 0, 0);
+    _finish = find_empty_spot();
+    _you = find_empty_spot();
+    _money = find_empty_spot();
+    _snake[0] = find_empty_spot();
+    for (unsigned i = 1; i < ArraySize(_snake); ++i)
+	chase (&_snake[i], &_snake[i-1]);
+    setup();
+
+    for (int lastc = 0;;) {
+	wrefresh (_wgame);
+	int c = wgetch (_wgame);
+	if (c == ERR)
+	    c = lastc;
+	if (c == 'q' || c == KEY_F(10))
+	    break;
+	else if (c == 'w' || c == ';') {
+	    spacewarp (false);
+	    continue;
+	}
+	pchar (&_you, ' ');
+	if ((c == 'h' || c == KEY_LEFT) && _you.col > 0)
+	    --_you.col;
+	else if ((c == 'l' || c == KEY_RIGHT) && _you.col < getmaxx(_wgame)-3)
+	    ++_you.col;
+	else if ((c == 'k' || c == KEY_UP) && _you.line > 0)
+	    --_you.line;
+	else if ((c == 'j' || c == KEY_DOWN) && _you.line < getmaxy(_wgame)-3)
+	    ++_you.line;
+	pchar (&_you, ME);
+	lastc = c;
+	++_moves;
+	if (same (&_you, &_money)) {
+	    _loot += 25;
+	    _money = find_empty_spot();
+	    pchar (&_money, TREASURE);
+	    winnings (cashvalue());
+	    continue;
+	}
+	if (same (&_you, &_finish)) {
+	    win (&_finish);
+	    flushinp();
+	    endwin();
+	    printf ("You have won with $%d.\n", cashvalue());
+	    save_score (cashvalue(), true);
+	    break;
+	}
+	if (pushsnake())
+	    break;
     }
+    flushinp();
+    endwin();
+    length();
+    return EXIT_SUCCESS;
+}
+
+static void calculate_screen_size (unsigned short rcols, unsigned short rlines)
+{
+    enum { c_MinFairFieldSize = 12 };
+    if (!rlines || rlines < c_MinFairFieldSize || rlines > LINES-1)
+	rlines = LINES-1;
+    if (!rcols || rcols < c_MinFairFieldSize || rcols > COLS)
+	rcols = COLS;
+    unsigned mindim = rlines;
+    if (rcols < mindim)
+	mindim = rcols;
     // chunk is the amount of money the user gets for each $.
     // The formula below tries to be fair for various screen sizes.
     // We only pay attention to the smaller of the 2 edges, since
@@ -161,345 +219,59 @@ int main (int argc, char **argv)
     // This will give a 4x4 screen $99/shot.  We don't allow anything
     // smaller than 4x4 because there is a 3x3 game where you can win
     // an infinite amount of money.
-    if (i < 12)
-	i = 12;		       // otherwise it isn't fair
+    //
     // Compensate for border.  This really changes the game since
     // the screen is two squares smaller but we want the default
     // to be $25, and the high scores on small screens were a bit
     // much anyway.
-    i += 2;
-    chunk = (675.0 / (i + 6)) + 2.5;	// min screen edge
+    mindim += 2;
+    _chunk = (675.0 / (mindim + 6)) + 2.5;	// min screen edge
 
-    signal(SIGINT, stop);
-
-    snrand(&finish);
-    snrand(&you);
-    snrand(&money);
-    snrand(&snake[0]);
-
-    for (i = 1; i < 6; i++)
-	chase(&snake[i], &snake[i - 1]);
-    setup();
-    mainloop();
-    // NOTREACHED
-    return 0;
-}
-
-static struct point *point(struct point *ps, int x, int y)
-{
-    ps->col = x;
-    ps->line = y;
-    return ps;
-}
-
-// Main command loop
-static void mainloop(void)
-{
-    int k;
-    int repeat = 1;
-    int lastc = 0;
-
-    for (;;) {
-	int c;
-
-	// Highlight you, not left & above
-	move(you.line + 1, you.col + 1);
-	refresh();
-	if (((c = getch()) <= '9') && (c >= '0')) {
-	    repeat = c - '0';
-	    while (((c = getch()) <= '9') && (c >= '0'))
-		repeat = 10 * repeat + (c - '0');
-	} else if (c != '.')
-	    repeat = 1;
-	if (c == '.')
-	    c = lastc;
-	if (!fast)
-	    flushi();
-	lastc = c;
-	switch (c) {
-	    case CTRL('z'):
-		suspend();
-		continue;
-	    case EOT:
-	    case 'x':
-	    case 0177:	       // del or end of file
-		endwin();
-		length(moves);
-		logit("quit");
-		exit(0);
-	    case CTRL('l'):
-		setup();
-		winnings(cashvalue);
-		continue;
-	    case 'p':
-	    case 'd':
-		snap();
-		continue;
-	    case 'w':
-		spacewarp(0);
-		continue;
-	    case 'A':
-		repeat = you.col;
-		c = 'h';
-		break;
-	    case 'H':
-	    case 'S':
-		repeat = you.col - money.col;
-		c = 'h';
-		break;
-	    case 'T':
-		repeat = you.line;
-		c = 'k';
-		break;
-	    case 'K':
-	    case 'E':
-		repeat = you.line - money.line;
-		c = 'k';
-		break;
-	    case 'P':
-		repeat = ccnt - 1 - you.col;
-		c = 'l';
-		break;
-	    case 'L':
-	    case 'F':
-		repeat = money.col - you.col;
-		c = 'l';
-		break;
-	    case 'B':
-		repeat = lcnt - 1 - you.line;
-		c = 'j';
-		break;
-	    case 'J':
-	    case 'C':
-		repeat = money.line - you.line;
-		c = 'j';
-		break;
-	}
-	for (k = 1; k <= repeat; k++) {
-	    moves++;
-	    switch (c) {
-		case 's':
-		case 'h':
-#ifdef KEY_LEFT
-		case KEY_LEFT:
-#endif
-		case '\b':
-		    if (you.col > 0) {
-			if ((fast) || (k == 1))
-			    pchar(&you, ' ');
-			you.col--;
-			if ((fast) || (k == repeat) || (you.col == 0))
-			    pchar(&you, ME);
-		    }
-		    break;
-		case 'f':
-		case 'l':
-#ifdef KEY_RIGHT
-		case KEY_RIGHT:
-#endif
-		case ' ':
-		    if (you.col < ccnt - 1) {
-			if ((fast) || (k == 1))
-			    pchar(&you, ' ');
-			you.col++;
-			if ((fast) || (k == repeat) || (you.col == ccnt - 1))
-			    pchar(&you, ME);
-		    }
-		    break;
-		case CTRL('p'):
-		case 'e':
-		case 'k':
-#ifdef KEY_UP
-		case KEY_UP:
-#endif
-		case 'i':
-		    if (you.line > 0) {
-			if ((fast) || (k == 1))
-			    pchar(&you, ' ');
-			you.line--;
-			if ((fast) || (k == repeat) || (you.line == 0))
-			    pchar(&you, ME);
-		    }
-		    break;
-		case CTRL('n'):
-		case 'c':
-		case 'j':
-#ifdef KEY_DOWN
-		case KEY_DOWN:
-#endif
-		case LF:
-		case 'm':
-		    if (you.line + 1 < lcnt) {
-			if ((fast) || (k == 1))
-			    pchar(&you, ' ');
-			you.line++;
-			if ((fast) || (k == repeat) || (you.line == lcnt - 1))
-			    pchar(&you, ME);
-		    }
-		    break;
-	    }
-
-	    if (same(&you, &money)) {
-		loot += 25;
-		if (k < repeat)
-		    pchar(&you, ' ');
-		do {
-		    snrand(&money);
-		} while ((money.col == finish.col && money.line == finish.line) || (money.col < 5 && money.line == 0) || (money.col == you.col && money.line == you.line));
-		pchar(&money, TREASURE);
-		winnings(cashvalue);
-		continue;
-	    }
-	    if (same(&you, &finish)) {
-		win(&finish);
-		flushi();
-		endwin();
-		printf("You have won with $%d.\n", cashvalue);
-		fflush(stdout);
-		logit("won");
-		post(cashvalue, 1);
-		length(moves);
-		exit(0);
-	    }
-	    if (pushsnake())
-		break;
-	}
-    }
+    // Create the score and game field windows
+    _wscore = newwin (1, rcols, LINES-rlines-1, 0);
+    _wgame = newwin (rlines, rcols, LINES-rlines, 0);
+    keypad (_wgame, true);
+    wbkgdset (_wgame, COLOR_PAIR(color_Field));
 }
 
 // setup the board
 static void setup(void)
 {
-    erase();
-    pchar(&you, ME);
-    pchar(&finish, GOAL);
-    pchar(&money, TREASURE);
-    for (int i = 1; i < 6; ++i)
-	pchar(&snake[i], SNAKETAIL);
-    pchar(&snake[0], SNAKEHEAD);
-    drawbox();
-    refresh();
+    werase (_wgame);
+    pchar(&_you, ME);
+    pchar(&_finish, GOAL);
+    pchar(&_money, TREASURE);
+    for (unsigned i = 1; i < ArraySize(_snake); ++i)
+	pchar(&_snake[i], SNAKETAIL);
+    pchar(&_snake[0], SNAKEHEAD);
+    box (_wgame, 0, 0);
+    wrefresh (_wgame);
 }
 
-static void drawbox(void)
-{
-    for (int i = 1; i <= ccnt; ++i) {
-	mvaddch(0, i, '-');
-	mvaddch(lcnt + 1, i, '-');
-    }
-    for (int i = 0; i <= lcnt + 1; ++i) {
-	mvaddch(i, 0, '|');
-	mvaddch(i, ccnt + 1, '|');
-    }
-}
-
-static void snrand(struct point *sp)
+static struct point find_empty_spot (void)
 {
     struct point p;
-    for (;;) {
-	p.col = rand() % ccnt;
-	p.line = rand() % lcnt;
-
-	// make sure it's not on top of something else
-	if (p.line == 0 && p.col < 5)
-	    continue;
-	if (same(&p, &you))
-	    continue;
-	if (same(&p, &money))
-	    continue;
-	if (same(&p, &finish))
-	    continue;
-	int i;
-	for (i = 0; i < 6; i++)
-	    if (same(&p, &snake[i]))
-		break;
-	if (i < 6)
-	    continue;
-	break;
-    }
-    *sp = p;
+    do {
+	p.col = nrand (getmaxx(_wgame)-2);
+	p.line = nrand (getmaxy(_wgame)-2);
+    } while ((char) mvwinch (_wgame, p.line+1, p.col+1) != ' ');
+    return p;
 }
 
-static int post(int iscore, int flag)
+static void chase (struct point *np, struct point *sp)
 {
-    short score = iscore;
-    short uid;
-    short oldbest = 0;
-    short allbwho = 0, allbscore = 0;
-    struct passwd *p;
+    static const int8_t mx[8] = { 0, 1, 1, 1, 0, -1, -1, -1 };
+    static const int8_t my[8] = { -1, -1, 0, 1, 1, 1, 0, -1 };
+    static const float absv[8] = { 1, 1.4, 1, 1.4, 1, 1.4, 1, 1.4 };
+    static unsigned oldw = 0;
 
-    // I want to printf() the scores for terms that clear on cook(),
-    // but this routine also gets called with flag == 0 to see if
-    // the snake should wink.  If (flag) then we're at game end and
-    // can printf.
-    // Neg uid, 0, and 1 cannot have scores recorded.
-    if ((uid = getuid()) <= 1) {
-	if (flag)
-	    printf("No saved scores for uid %d.\n", uid);
-	return 1;
-    }
-    if (rawscores < 0) {
-	// Error reported earlier
-	return 1;
-    }
-    // Figure out what happened in the past
-    read(rawscores, &allbscore, sizeof(short));
-    read(rawscores, &allbwho, sizeof(short));
-    lseek(rawscores, uid * sizeof(short), SEEK_SET);
-    read(rawscores, &oldbest, sizeof(short));
-    if (!flag) {
-	lseek(rawscores, 0, SEEK_SET);
-	return score > oldbest ? 1 : 0;
-    }
-
-    // Update this jokers best
-    if (score > oldbest) {
-	lseek(rawscores, uid * sizeof(short), SEEK_SET);
-	write(rawscores, &score, sizeof(short));
-	printf("You bettered your previous best of $%d\n", oldbest);
-    } else
-	printf("Your best to date is $%d\n", oldbest);
-
-    // See if we have a new champ
-    p = getpwuid(allbwho);
-    if (p == NULL || score > allbscore) {
-	lseek(rawscores, 0, SEEK_SET);
-	write(rawscores, &score, sizeof(short));
-	write(rawscores, &uid, sizeof(short));
-	if (allbwho)
-	    printf("You beat %s's old record of $%d!\n", p->pw_name, allbscore);
-	else
-	    printf("You set a new record!\n");
-    } else
-	printf("The highest is %s with $%d\n", p->pw_name, allbscore);
-    lseek(rawscores, 0, SEEK_SET);
-    return 1;
-}
-
-// Flush typeahead to keep from buffering a bunch of chars and then
-// overshooting.  This loses horribly at 9600 baud, but works nicely
-// if the terminal gets behind.
-static void flushi(void)
-{
-    tcflush(0, TCIFLUSH);
-}
-
-static const int mx[8] = { 0, 1, 1, 1, 0, -1, -1, -1 };
-static const int my[8] = { -1, -1, 0, 1, 1, 1, 0, -1 };
-static const float absv[8] = { 1, 1.4, 1, 1.4, 1, 1.4, 1, 1.4 };
-static int oldw = 0;
-
-static void chase(struct point *np, struct point *sp)
-{
     // this algorithm has bugs; otherwise the snake would get too good
-    struct point d;
-    int w, i, wt[8];
-    double v1, v2, vp, max;
-    point(&d, you.col - sp->col, you.line - sp->line);
-    v1 = sqrt((double) (d.col * d.col + d.line * d.line));
-    w = 0;
-    max = 0;
-    for (i = 0; i < 8; i++) {
+    struct point d = { _you.col - sp->col, _you.line - sp->line };
+    double v1 = sqrt((double) (d.col * d.col + d.line * d.line));
+    unsigned w = 0;
+    double max = 0;
+    double v2, vp;
+    for (unsigned i = 0; i < 8; ++i) {
 	vp = d.col * mx[i] + d.line * my[i];
 	v2 = absv[i];
 	if (v1 > 0)
@@ -511,351 +283,317 @@ static void chase(struct point *np, struct point *sp)
 	    w = i;
 	}
     }
-    for (i = 0; i < 8; i++) {
-	point(&d, sp->col + mx[i], sp->line + my[i]);
-	wt[i] = 0;
-	if (d.col < 0 || d.col >= ccnt || d.line < 0 || d.line >= lcnt)
+    int wt[8] = {0};
+    for (unsigned i = 0; i < 8; ++i) {
+	d.col = sp->col + mx[i];
+	d.line = sp->line + my[i];
+	if (d.col >= getmaxx(_wgame)-2 || d.line >= getmaxy(_wgame)-2)
 	    continue;
 	// Change to allow snake to eat you if you're on the money,
 	// otherwise, you can just crouch there until the snake goes
-	// away.  Not positive it's right.
+	// away. Not positive it's right.
 	// if (d.line == 0 && d.col < 5) continue;
-	if (same(&d, &money))
+	if (same(&d, &_money))
 	    continue;
-	if (same(&d, &finish))
+	if (same(&d, &_finish))
 	    continue;
-	wt[i] = i == w ? loot / 10 : 1;
+	wt[i] = i == w ? _loot / 10 : 1;
 	if (i == oldw)
-	    wt[i] += loot / 20;
+	    wt[i] += _loot / 20;
     }
-    for (w = i = 0; i < 8; i++)
+    w = 0;
+    for (unsigned i = 0; i < 8; ++i)
 	w += wt[i];
-    vp = ((rand() >> 6) & 01777) % w;
-    for (i = 0; i < 8; i++)
+    vp = nrand(w);
+    unsigned i = 0;
+    for (; i < 8; ++i) {
 	if (vp < wt[i])
 	    break;
 	else
 	    vp -= wt[i];
+    }
     if (i == 8) {
-	printw("failure\n");
+	wprintw (_wgame, "failure\n");
 	i = 0;
 	while (wt[i] == 0)
-	    i++;
+	    ++i;
     }
     oldw = w = i;
-    point(np, sp->col + mx[w], sp->line + my[w]);
+    np->col = sp->col + mx[w];
+    np->line = sp->line + my[w];
 }
 
-static void spacewarp(int w)
+static void spacewarp (bool bonus)
 {
-    struct point p;
-    int j;
-    const char *str;
-
-    snrand(&you);
-    point(&p, COLS / 2 - 8, LINES / 2 - 1);
-    if (p.col < 0)
-	p.col = 0;
-    if (p.line < 0)
-	p.line = 0;
-    if (w) {
+    _you = find_empty_spot();
+    const char* str = "SPACE WARP!!!";
+    if (bonus) {
 	str = "BONUS!!!";
-	loot = loot - penalty;
-	penalty = 0;
-    } else {
-	str = "SPACE WARP!!!";
-	penalty += loot / PENALTY;
-    }
-    for (j = 0; j < 3; j++) {
-	erase();
-	refresh();
+	_loot -= _penalty;
+	_penalty = 0;
+    } else
+	_penalty += _loot / SPACEWARP_PENALTY;
+    // Flash the message in the center of the empty screen
+    wattrset (_wgame, A_BOLD|COLOR_PAIR(color_Goal));
+    for (unsigned j = 0; j < 3; ++j) {
+	werase (_wgame);
+	box (_wgame, 0, 0);
+	wrefresh (_wgame);
 	delay(5);
-	mvaddstr(p.line + 1, p.col + 1, str);
-	refresh();
+	mvwaddstr (_wgame, getmaxy(_wgame)/2, (getmaxx(_wgame)-strlen(str))/2, str);
+	wrefresh (_wgame);
 	delay(10);
     }
+    wattrset (_wgame, COLOR_PAIR(color_Field));
     setup();
-    winnings(cashvalue);
+    winnings (cashvalue());
 }
 
-static void snap(void)
+static void draw_snake_head_frame (struct point* ps, const char (*f)[4])
 {
-#if 0			       // This code doesn't really make sense.
-    struct point p;
-
-    if (you.line < 3)
-	mvaddch(1, you.col + 1, '-');
-    if (you.line > lcnt - 4)
-	mvaddch(lcnt, you.col + 1, '_');
-    if (you.col < 10)
-	mvaddch(you.line + 1, 1, '(');
-    if (you.col > ccnt - 10)
-	mvaddch(you.line + 1, ccnt, ')');
-#endif
-    if (!stretch(&money))
-	if (!stretch(&finish)) {
-	    pchar(&you, '?');
-	    refresh();
-	    delay(10);
-	    pchar(&you, ME);
-	}
-#if 0
-    if (you.line < 3) {
-	point(&p, you.col, 0);
-	chk(&p);
-    }
-    if (you.line > lcnt - 4) {
-	point(&p, you.col, lcnt - 1);
-	chk(&p);
-    }
-    if (you.col < 10) {
-	point(&p, 0, you.line);
-	chk(&p);
-    }
-    if (you.col > ccnt - 10) {
-	point(&p, ccnt - 1, you.line);
-	chk(&p);
-    }
-#endif
-    refresh();
-}
-
-static int stretch(const struct point *ps)
-{
-    struct point p;
-
-    point(&p, you.col, you.line);
-    if ((abs(ps->col - you.col) < (ccnt / 12)) && (you.line != ps->line)) {
-	if (you.line < ps->line) {
-	    for (p.line = you.line + 1; p.line <= ps->line; p.line++)
-		pchar(&p, 'v');
-	    refresh();
-	    delay(10);
-	    for (; p.line > you.line; p.line--)
-		chk(&p);
-	} else {
-	    for (p.line = you.line - 1; p.line >= ps->line; p.line--)
-		pchar(&p, '^');
-	    refresh();
-	    delay(10);
-	    for (; p.line < you.line; p.line++)
-		chk(&p);
-	}
-	return 1;
-    } else if ((abs(ps->line - you.line) < (lcnt / 7))
-	       && (you.col != ps->col)) {
-	p.line = you.line;
-	if (you.col < ps->col) {
-	    for (p.col = you.col + 1; p.col <= ps->col; p.col++)
-		pchar(&p, '>');
-	    refresh();
-	    delay(10);
-	    for (; p.col > you.col; p.col--)
-		chk(&p);
-	} else {
-	    for (p.col = you.col - 1; p.col >= ps->col; p.col--)
-		pchar(&p, '<');
-	    refresh();
-	    delay(10);
-	    for (; p.col < you.col; p.col++)
-		chk(&p);
-	}
-	return 1;
-    }
-    return 0;
+    for (unsigned i = 0; i < 3; ++i)
+	mvwaddstr (_wgame, ps->line+i,   ps->col, f[i]);
 }
 
 static void surround(struct point *ps)
 {
-    int j;
-
+    // Adjust snake to not leave the window
     if (ps->col == 0)
-	ps->col++;
+	++ps->col;
     if (ps->line == 0)
-	ps->line++;
-    if (ps->line == LINES - 1)
-	ps->line--;
-    if (ps->col == COLS - 1)
-	ps->col--;
-    mvaddstr(ps->line, ps->col, "/*\\");
-    mvaddstr(ps->line + 1, ps->col, "* *");
-    mvaddstr(ps->line + 2, ps->col, "\\*/");
-    for (j = 0; j < 20; j++) {
-	pchar(ps, '@');
-	refresh();
+	++ps->line;
+    if (ps->line == LINES-1)
+	--ps->line;
+    if (ps->col == COLS-1)
+	--ps->col;
+
+    // Eating animation frames
+    enum { frame_BigMouth, frame_ClosedMouth, frame_Wink, frame_NFrames};
+    static const char c_SnakeHeadFrames [frame_NFrames][3][4] = {
+	{"/*\\",
+	 "* *",
+	 "\\*/"},	// big mouth
+	{"   ",
+	 "o.o",
+	 "\\_/"},	// closed mouth, eyes
+	{"   ",
+	 "o.-",
+	 "\\_/"}	// wink
+    };
+
+    draw_snake_head_frame (ps, c_SnakeHeadFrames[frame_BigMouth]);
+    for (unsigned j = 0; j < 20; ++j) {		// chewing :)
+	pchar (ps, '@');
+	wrefresh (_wgame);
 	delay(1);
-	pchar(ps, ' ');
-	refresh();
+	pchar (ps, ' ');
+	wrefresh (_wgame);
 	delay(1);
     }
-    if (post(cashvalue, 0)) {
-	mvaddstr(ps->line, ps->col, "   ");
-	mvaddstr(ps->line + 1, ps->col, "o.o");
-	mvaddstr(ps->line + 2, ps->col, "\\_/");
-	refresh();
+    if (save_score (cashvalue(), false)) {	// wink if better score
+	draw_snake_head_frame (ps, c_SnakeHeadFrames[frame_ClosedMouth]);
+	wrefresh (_wgame);
 	delay(6);
-	mvaddstr(ps->line, ps->col, "   ");
-	mvaddstr(ps->line + 1, ps->col, "o.-");
-	mvaddstr(ps->line + 2, ps->col, "\\_/");
-	refresh();
+	draw_snake_head_frame (ps, c_SnakeHeadFrames[frame_Wink]);
+	wrefresh (_wgame);
 	delay(6);
     }
-    mvaddstr(ps->line, ps->col, "   ");
-    mvaddstr(ps->line + 1, ps->col, "o.o");
-    mvaddstr(ps->line + 2, ps->col, "\\_/");
-    refresh();
+    draw_snake_head_frame (ps, c_SnakeHeadFrames[frame_ClosedMouth]);
+    wrefresh (_wgame);
     delay(6);
 }
 
-static void win(const struct point *ps)
+static void win (const struct point* ps)
 {
-    struct point x;
-    int j, k;
-    int boxsize;		// actually diameter of box, not radius
-
-    boxsize = fast ? 10 : 4;
-    point(&x, ps->col, ps->line);
-    for (j = 1; j < boxsize; j++) {
-	for (k = 0; k < j; k++) {
+    enum { c_BoxSize = 10 };	// The size of box at full expansion
+    struct point x = *ps;
+    wattrset (_wgame, A_BOLD|COLOR_PAIR(color_Goal));
+    for (unsigned j = 1; j < c_BoxSize; ++j) {
+	for (unsigned k = 0; k < j; ++k) {
 	    pchar(&x, '#');
-	    x.line--;
+	    --x.line;
 	}
-	for (k = 0; k < j; k++) {
+	for (unsigned k = 0; k < j; ++k) {
 	    pchar(&x, '#');
-	    x.col++;
+	    --x.col;
 	}
 	j++;
-	for (k = 0; k < j; k++) {
+	for (unsigned k = 0; k < j; ++k) {
 	    pchar(&x, '#');
-	    x.line++;
+	    ++x.line;
 	}
-	for (k = 0; k < j; k++) {
+	for (unsigned k = 0; k < j; ++k) {
 	    pchar(&x, '#');
-	    x.col--;
+	    ++x.col;
 	}
-	refresh();
+	wrefresh (_wgame);
 	delay(1);
     }
 }
 
-static int pushsnake(void)
+static bool pushsnake (void)
 {
-    int i, bonus;
-    int issame = 0;
-    struct point tmp;
-
-    // My manual says times doesn't return a value.  Furthermore, the
-    // snake should get his turn every time no matter if the user is
-    // on a fast terminal with typematic keys or not.
-    // So I have taken the call to times out.
-    for (i = 4; i >= 0; i--)
-	if (same(&snake[i], &snake[5]))
-	    issame++;
+    bool issame = false;
+    for (int i = 4; i >= 0; --i)
+	if (same(&_snake[i], &_snake[5]))
+	    issame = true;
     if (!issame)
-	pchar(&snake[5], ' ');
+	pchar(&_snake[5], ' ');
     // Need the following to catch you if you step on the snake's tail
-    tmp.col = snake[5].col;
-    tmp.line = snake[5].line;
-    for (i = 4; i >= 0; i--)
-	snake[i + 1] = snake[i];
-    chase(&snake[0], &snake[1]);
-    pchar(&snake[1], SNAKETAIL);
-    pchar(&snake[0], SNAKEHEAD);
-    for (i = 0; i < 6; i++) {
-	if (same(&snake[i], &you) || same(&tmp, &you)) {
-	    surround(&you);
-	    i = (cashvalue) % 10;
-	    bonus = ((rand() >> 8) & 0377) % 10;
-	    mvprintw(lcnt + 1, 0, "%d\n", bonus);
-	    refresh();
+    struct point tmp = _snake[5];
+    for (int i = 4; i >= 0; --i)
+	_snake[i+1] = _snake[i];
+    chase(&_snake[0], &_snake[1]);
+    pchar(&_snake[1], SNAKETAIL);
+    pchar(&_snake[0], SNAKEHEAD);
+    for (unsigned i = 0; i < 6; ++i) {
+	if (same(&_snake[i], &_you) || same(&tmp, &_you)) {
+	    surround(&_you);
+	    i = cashvalue() % 10;
+	    unsigned bonus = nrand(10);
+	    mvwprintw (_wgame, getmaxy(_wgame)-2, 2, "Bonus %u!\n", bonus);
+	    wrefresh (_wgame);
 	    delay(30);
 	    if (bonus == i) {
-		spacewarp(1);
-		logit("bonus");
-		flushi();
-		return 1;
+		spacewarp (true);
+		return true;
 	    }
-	    flushi();
+	    flushinp();
 	    endwin();
-	    if (loot >= penalty)
-		printf("\nYou and your $%d have been eaten\n", cashvalue);
+	    if (_loot >= _penalty)
+		printf("You and your $%d have been eaten\n", cashvalue());
 	    else
-		printf("\nThe snake ate you.  You owe $%d.\n", -cashvalue);
-	    logit("eaten");
-	    length(moves);
-	    exit(0);
+		printf("The snake ate you. You owe $%d.\n", -cashvalue());
+	    length();
+	    exit (EXIT_SUCCESS);
 	}
     }
-    return 0;
+    return false;
 }
 
-static int chk(const struct point *sp)
+static void winnings (unsigned won)
 {
-    if (same(sp, &money)) {
-	pchar(sp, TREASURE);
-	return 2;
+    if (won > 0) {
+	mvwprintw (_wscore, 0, 1, "$%u ", won);
+	wrefresh (_wscore);
     }
-    if (same(sp, &finish)) {
-	pchar(sp, GOAL);
-	return 3;
-    }
-    if (same(sp, &snake[0])) {
-	pchar(sp, SNAKEHEAD);
-	return 4;
-    }
-    for (int j = 1; j < 6; j++) {
-	if (same(sp, &snake[j])) {
-	    pchar(sp, SNAKETAIL);
-	    return 4;
-	}
-    }
-    if ((sp->col < 4) && (sp->line == 0)) {
-	winnings(cashvalue);
-	if ((you.line == 0) && (you.col < 4))
-	    pchar(&you, ME);
-	return 5;
-    }
-    if (same(sp, &you)) {
-	pchar(sp, ME);
-	return 1;
-    }
-    pchar(sp, ' ');
-    return 0;
-}
-
-static void winnings (int won)
-{
-    if (won > 0)
-	mvprintw(1, 1, "$%d", won);
 }
 
 static void stop (int dummy UNUSED)
 {
-    signal(SIGINT, SIG_IGN);
+    flushinp();
     endwin();
-    length(moves);
-    exit(0);
+    length();
+    exit (EXIT_SUCCESS);
 }
 
-static void suspend (void)
+static void length (void)
 {
-    endwin();
-    kill (getpid(), SIGTSTP);
-    refresh();
-    winnings (cashvalue);
+    printf ("You made %u moves.\n", _moves);
 }
 
-static void length (int num)
+//----------------------------------------------------------------------
+// Scorefile reading and writing
+
+// Score comparator for qsort, in reverse order
+static int compare_scores (const void *x, const void *y)
 {
-    printf ("You made %d moves.\n", num);
+    const struct Score* a = (const struct Score*) x;
+    const struct Score* b = (const struct Score*) y;
+    return a->score < b->score ? 1 : a->score == b->score ? 0 : -1;
 }
 
-static void logit(const char *msg)
+enum { SCORESSIZE = MAXSCORES * sizeof(_scores[0]) };
+
+static bool read_scores (void)
 {
-    if (logfile) {
-	time_t t;
-	time(&t);
-	fprintf(logfile, "%s $%d %dx%d %s %s", getlogin(), cashvalue, lcnt, ccnt, msg, ctime(&t));
-	fflush(logfile);
+    int fd = open (_PATH_SCOREFILE, O_RDONLY);
+    if (fd < 0)
+	return false;
+    struct ScorefileHeader header;
+    struct iovec iov[2] = {{&header,sizeof(header)},{_scores,SCORESSIZE}};
+    while (0 != flock (fd, LOCK_SH))
+	sleep (1);
+    ssize_t br = readv (fd, iov, ArraySize(iov));
+    close (fd);
+    // Check that score list appears valid
+    bool r = true;
+    if (br != sizeof(header)+SCORESSIZE
+	|| memcmp (header.magic, SCOREFILE_MAGIC, sizeof(header.magic)) != 0
+	|| header.sum != bsdsum (_scores, SCORESSIZE, 0))
+	r = false;
+    // Check each score and zero if invalid
+    for (unsigned i = 0; i < MAXSCORES; ++i)
+	if (!r || !_scores[i].name[0] || _scores[i].name[sizeof(_scores[i].name)-1] || _scores[i].score > MAXSCORE)
+	    memset (&_scores[i], 0, sizeof(_scores[i]));
+    // Resort to account for the above zeroing
+    qsort (_scores, MAXSCORES, sizeof(_scores[0]), compare_scores);
+    return r;
+}
+
+static void write_scores (void)
+{
+    int fd = open (_PATH_SCOREFILE, O_WRONLY);
+    if (fd < 0)
+	return;
+    struct ScorefileHeader header = { SCOREFILE_MAGIC, bsdsum (_scores, SCORESSIZE, 0) };
+    struct iovec iov[2] = {{&header,sizeof(header)},{_scores,SCORESSIZE}};
+    while (0 != flock (fd, LOCK_EX))
+	sleep (1);
+    writev (fd, iov, ArraySize(iov));
+    ftruncate (fd, sizeof(header)+SCORESSIZE);
+    close (fd);
+}
+
+static void show_scores (void)
+{
+    if (read_scores()) {
+	printf("Snake players scores to date:\n");
+	for (unsigned i = 0; i < MAXSCORES && _scores[i].score; ++i)
+	    printf("%u:\t$%u\t%s\n", i+1, _scores[i].score, _scores[i].name);
+    } else
+	puts ("No scores recorded yet!");
+}
+
+static bool save_score (unsigned score, bool won)
+{
+    read_scores();
+    // Save the scores only if the new score is better than the lowest
+    if (_scores[MAXSCORES-1].score >= score)
+	return false;
+    else if (!won)
+	return true;	// Return true to wink if the score would have been saved
+    // Get user name
+    const char* name = getlogin();
+    if (!name)
+	return false;
+    _scores[MAXSCORES].score = score;
+    strncpy (_scores[MAXSCORES].name, name, sizeof(_scores[MAXSCORES].name)-1);
+    _scores[MAXSCORES].name[sizeof(_scores[MAXSCORES].name)-1] = 0;
+    // Find user's previous best score
+    unsigned prevbest = 0;
+    for (unsigned i = 0; i < MAXSCORES && _scores[i].score >= prevbest; ++i)
+	if (0 == strcmp (_scores[i].name, _scores[MAXSCORES].name))
+	    prevbest = _scores[i].score;
+    // Tell him how good he is
+    if (prevbest) {
+	if (prevbest < score)
+	    printf ("You bettered your previous best of $%u\n", prevbest);
+	else if (prevbest > score)
+	    printf ("Your best to date is $%d\n", prevbest);
     }
+    if (_scores[0].score) {
+	if (_scores[0].score > score)
+	    printf ("The highest is %s with $%u\n", _scores[0].name, _scores[0].score);
+	else if (_scores[0].score < score) {
+	    if (0 == strcmp (_scores[0].name, _scores[MAXSCORES].name))
+		printf ("You set a new record!\n");
+	    else
+		printf ("You beat %s's old record of $%u!\n", _scores[0].name, _scores[0].score);
+	}
+    }
+    // Save the scores if the new score is better than the lowest
+    qsort (_scores, ArraySize(_scores), sizeof(_scores[0]), compare_scores);
+    write_scores();
+    return true;
 }

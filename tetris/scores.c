@@ -10,14 +10,13 @@
 #include "tetris.h"
 #include "scores.h"
 #include <sys/file.h>
-#include <time.h>
+#include <sys/uio.h>
 
 //----------------------------------------------------------------------
 
 // Within this code, we can hang onto one extra "high score", leaving
 // room for our current score (whether or not it is high).
-struct highscore _scores [MAXHISCORES+1];
-unsigned _nScores;
+struct highscore _scores [MAXHISCORES] = {{"",0,0,0}};
 
 #define SCOREFILE_MAGIC		"tetris"
 #define SCOREFILE_MAGIC_INIT	{'t','e','t','r','i','s'}
@@ -25,8 +24,6 @@ unsigned _nScores;
 struct ScorefileHeader {
     char	magic[6];
     uint16_t	sum;
-    uint32_t	nScores;
-    uint32_t	reserved;
 };
 
 //----------------------------------------------------------------------
@@ -43,53 +40,35 @@ static unsigned read_scores (void)
 {
     int fd = open (_PATH_SCOREFILE, O_RDONLY);
     if (fd < 0)
-	goto error;
+	return 0;
+    struct ScorefileHeader header;
+    struct iovec iov[2] = {{&header,sizeof(header)},{_scores,sizeof(_scores)}};
     while (0 != flock (fd, LOCK_SH))
 	sleep (1);
-    struct ScorefileHeader header;
-    if (read (fd, &header, sizeof(header)) != sizeof(header))
-	goto error;
-    if (memcmp (header.magic, SCOREFILE_MAGIC, sizeof(header.magic)) != 0)
-	goto error;
-    if (header.nScores > MAXHISCORES)
-	goto error;
-    memset (_scores, 0, sizeof(_scores));
-    unsigned btr = header.nScores * sizeof(_scores[0]);
-    if (read (fd, _scores, btr) != btr)
-	goto error;
-    if (header.sum != bsdsum (_scores, sizeof(_scores), 0))
-	goto error;
-    flock (fd, LOCK_UN);
+    ssize_t br = readv (fd, iov, ArraySize(iov));
     close (fd);
-    return _nScores = header.nScores;
-error:
-    _nScores = 0;
-    memset (_scores, 0, sizeof(_scores));
-    flock (fd, LOCK_UN);
-    close (fd);
-    return 0;
+    // Check that score list appears valid
+    if (br != sizeof(header)+sizeof(_scores)
+	|| memcmp (header.magic, SCOREFILE_MAGIC, sizeof(header.magic)) != 0
+	|| header.sum != bsdsum (_scores, sizeof(_scores), 0))
+	return 0;
+    return MAXHISCORES;
 }
 
 static void write_scores (void)
 {
-    struct ScorefileHeader header = {
-	SCOREFILE_MAGIC_INIT,
-	bsdsum (_scores, sizeof(_scores), 0),
-	_nScores, 0
-    };
     int fd = open (_PATH_SCOREFILE, O_WRONLY);
     if (fd < 0)
-	goto error;
+	return;
     while (0 != flock (fd, LOCK_EX))
 	sleep (1);
-    if (write (fd, &header, sizeof(header)) != sizeof(header))
-	goto error;
-    unsigned btw = header.nScores * sizeof(_scores[0]);
-    if (write (fd, _scores, btw) != btw)
-	goto error;
-    ftruncate (fd, sizeof(header)+btw);
-error:
-    flock (fd, LOCK_UN);
+    struct ScorefileHeader header = {
+	SCOREFILE_MAGIC_INIT,
+	bsdsum (_scores, sizeof(_scores), 0)
+    };
+    struct iovec iov[2] = {{&header,sizeof(header)},{_scores,sizeof(_scores)}};
+    writev (fd, iov, ArraySize(iov));
+    ftruncate (fd, sizeof(header)+sizeof(_scores));
     close (fd);
 }
 
@@ -115,7 +94,6 @@ static int cmpscores (const void *x, const void *y)
 
 static void check_scores (void)
 {
-    assert (_nScores < ArraySize(_scores));
     time_t expiration = time(NULL)-EXPIRATION;
     // Check validity of each score. Zero out any that are bad.
     for (struct highscore *sc = _scores, *scend = &_scores[ArraySize(_scores)]; sc < scend; ++sc)
@@ -123,28 +101,24 @@ static void check_scores (void)
 		|| sc->time < expiration
 		|| !sc->name[0] || sc->name[sizeof(sc->name)-1])
 	    memset (sc, 0, sizeof(*sc));
-    // Sort and count valid scores
     qsort (_scores, ArraySize(_scores), sizeof(_scores[0]), cmpscores);
-    while (_nScores && !_scores[_nScores-1].score)
-	--_nScores;
-    // Truncate at MAXHISCORES
-    if (_nScores > MAXHISCORES)
-	_nScores = MAXHISCORES;
-    memset (&_scores[_nScores], 0, sizeof(_scores[0])*(ArraySize(_scores)-_nScores));
 }
 
 void savescore (unsigned score, unsigned level)
 {
     read_scores();
-    struct highscore* nsc = &_scores[_nScores];
+    check_scores();
+    struct highscore* nsc = &_scores[MAXHISCORES-1];
+    if (nsc->score*nsc->level > score*level)
+	return;	// The new score is too low to save
     const char* username = getlogin();
     if (!username)
 	return;
-    snprintf (nsc->name, sizeof(nsc->name), "%s", username);
+    strncpy (nsc->name, username, sizeof(nsc->name)-1);
+    nsc->name[sizeof(nsc->name)-1] = 0;
     nsc->score = score;
     nsc->level = level;
     nsc->time = time (NULL);
-    ++_nScores;
     check_scores();
     write_scores();
 }

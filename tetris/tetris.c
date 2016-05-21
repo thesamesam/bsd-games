@@ -459,7 +459,7 @@ static void showscores (unsigned level)
     werase (_win);
     mvwaddstr (_win, 0, 0, "Tetris High Scores");
     mvwaddstr (_win, 1, 0, "Rank  Score   Name             (points/level)");
-    for (unsigned i = 0; i < _nScores; ++i) {
+    for (unsigned i = 0; i < MAXHISCORES && _scores[i].score; ++i) {
 	const struct highscore* sp = &_scores[i];
 	bool bMeOnThisRow = (sp->level == level && sp->score == _score && username && !strcmp(sp->name, username));
 	if (bMeOnThisRow)

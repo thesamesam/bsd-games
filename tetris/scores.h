@@ -18,7 +18,6 @@ enum {
     EXPIRATION	= 7 * 365*24*60*60	// 7 years
 };
 
-extern struct highscore _scores [MAXHISCORES+1];
-extern unsigned _nScores;
+extern struct highscore _scores [MAXHISCORES];
 
 void savescore (unsigned score, unsigned level);
