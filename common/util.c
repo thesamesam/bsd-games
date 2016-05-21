@@ -1,4 +1,6 @@
-// This file is free software, distributed under the BSD license.
+// Copyright (c) 2016 by Mike Sharov <msharov@users.sourceforge.net>
+// This file is free software, distributed under the MIT license.
+
 #include "../config.h"
 
 // The standard bsd checksum, summing with right rotation
@@ -12,7 +14,7 @@ uint16_t bsdsum (const void* v, size_t n, uint16_t sum)
     return sum;
 }
 
-/// Randomly initializes the random number generator
+// Randomly initializes the random number generator
 void srandrand (void)
 {
     struct timespec now;
@@ -20,7 +22,7 @@ void srandrand (void)
     srand (now.tv_sec ^ now.tv_nsec ^ ((uint32_t)getpid() << 16) ^ getppid());
 }
 
-/// Generate a random number in given range
+// Generate a random number in given range
 unsigned nrand (unsigned r)
 {
     return rand() % r;

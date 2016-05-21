@@ -8,13 +8,8 @@
 // arrow keys. You can leave at the exit any time.
 
 #include "../config.h"
-#include <sys/param.h>
 #include <curses.h>
-#include <pwd.h>
-#include <err.h>
 #include <math.h>
-#include <signal.h>
-#include <termios.h>
 #include <sys/uio.h>
 #include <sys/file.h>
 
@@ -84,7 +79,6 @@ static void chase (struct point *, struct point *);
 static void length (void);
 static bool pushsnake (void);
 static void spacewarp (bool bonus);
-static void stop (int);
 static void surround (struct point *);
 static void win (const struct point *);
 static void winnings (unsigned won);
@@ -121,26 +115,14 @@ int main (int argc, const char* const* argv)
 	puts ("Usage: snake [width height] [-s]");
 	return EXIT_SUCCESS;
     }
-    srandrand();
 
-    if (!initscr())
-	return EXIT_FAILURE;
-    start_color();
-    use_default_colors();
+    initialize_curses();
     init_pair (color_Field,	COLOR_YELLOW, COLOR_BLACK);
     init_pair (color_Snake,	COLOR_GREEN, COLOR_BLACK);
     init_pair (color_Me,	COLOR_RED, COLOR_BLACK);
     init_pair (color_Money,	COLOR_YELLOW, COLOR_BLACK);
     init_pair (color_Goal,	COLOR_CYAN, COLOR_BLACK);
-    cbreak();
-    noecho();
-    curs_set (0);
     calculate_screen_size (rcols, rlines);
-
-    signal (SIGINT, stop);
-    signal (SIGQUIT, stop);
-    signal (SIGTERM, stop);
-    signal (SIGTSTP, SIG_IGN);
 
     box (_wgame, 0, 0);
     _finish = find_empty_spot();
@@ -477,14 +459,6 @@ static void winnings (unsigned won)
 	mvwprintw (_wscore, 0, 1, "$%u ", won);
 	wrefresh (_wscore);
     }
-}
-
-static void stop (int dummy UNUSED)
-{
-    flushinp();
-    endwin();
-    length();
-    exit (EXIT_SUCCESS);
 }
 
 static void length (void)

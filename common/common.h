@@ -1,4 +1,5 @@
-// This file is free software, distributed under the BSD license.
+// Copyright (c) 2016 by Mike Sharov <msharov@users.sourceforge.net>
+// This file is free software, distributed under the MIT license.
 
 #pragma once
 #ifndef _GNU_SOURCE
@@ -48,6 +49,8 @@ uint16_t bsdsum (const void* v, size_t n, uint16_t sum);
 unsigned nrand (unsigned r);
 /// Generate a random number in given range
 void srandrand (void);
+/// Initialize curses, installing cleanup handlers
+void initialize_curses (void);
 
 #ifdef __cplusplus
 } // extern "C"

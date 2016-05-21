@@ -44,7 +44,6 @@ static void crash (void);
 static unsigned max_length (void);
 static void display (const struct body *, int);
 static void find_empty_spot (unsigned* y, unsigned* x);
-static void leave (int);
 static void life (void);
 static void play (void);
 static void prize (void);
@@ -52,45 +51,22 @@ static void newgrass (void);
 
 int main (int argc, char **argv)
 {
-    // Install signal handlers for crashes
-    static const uint8_t c_FatalSignals[] = {
-	SIGINT, SIGQUIT, SIGTERM, SIGILL, SIGBUS,
-	SIGABRT, SIGFPE, SIGSYS, SIGSEGV, SIGHUP
-    };
-    for (unsigned i = 0; i < ArraySize(c_FatalSignals); ++i)
-	signal(c_FatalSignals[i], leave);
-    signal(SIGTSTP, SIG_IGN);
-
     // Initialize starting parameters; length if given
     if (argc == 2)
 	start_len = atoi(argv[1]);
     if (!start_len || start_len > max_length())
 	start_len = LENGTH;
-    srandrand();
 
-    // Initialize curses
-    if (!initscr()) {
-	printf ("Error: unable to initialize terminal graphics\n");
-	return EXIT_FAILURE;
-    }
-    start_color();
-    use_default_colors();
+    initialize_curses();
     init_pair (color_Text, COLOR_DEFAULT, COLOR_DEFAULT);
     init_pair (color_Field, COLOR_YELLOW, COLOR_BLACK);
     init_pair (color_Grass, COLOR_BLUE, COLOR_BLACK);
     init_pair (color_Worm, COLOR_GREEN, COLOR_BLACK);
-    cbreak();
-    noecho();
-    keypad(stdscr, true);
-    curs_set (0);
-    clear();
     stw = newwin (1, COLS - 1, 0, 0);
     wbkgdset (stw, COLOR_PAIR(color_Text));
     tv = newwin (LINES - 1, COLS - 1, 1, 0);
     wbkgdset (tv, COLOR_PAIR(color_Field));
     box (tv, 0, 0);
-    scrollok(tv, false);
-    scrollok(stw, false);
     mvwprintw (stw, 0, 0, " Worm");
     refresh();
     for (unsigned i = 0; i < max_length()/2; ++i)
@@ -245,12 +221,5 @@ static void crash (void)
     endwin();
     printf("Well, you ran into something and the game is over.\n"
 	    "Your final score was %u\n", score);
-    exit (EXIT_SUCCESS);
-}
-
-static void leave (int signo)
-{
-    endwin();
-    psignal (signo, "Fatal error");
     exit (EXIT_SUCCESS);
 }

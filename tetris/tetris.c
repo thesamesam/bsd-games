@@ -56,6 +56,17 @@ struct shape {
     } off[3];		// offsets to other blocks if center is at (0,0)
 };
 
+enum {
+    color_None,
+    color_Default,
+    color_Background,
+    color_Text,
+    color_HelpText,
+    color_Borders,
+    color_Shapes,
+    color_Last
+};
+
 //----------------------------------------------------------------------
 // Local variables
 
@@ -84,7 +95,6 @@ static WINDOW* _win = NULL;
 //----------------------------------------------------------------------
 // Local prototypes
 
-static void onintr(int);
 static unsigned ms_to_next_move_time (void);
 static void set_next_move_time (void);
 static struct timespec get_current_time (void);
@@ -99,9 +109,7 @@ static const struct shape* randshape (void);
 static void place (const struct shape *shape, unsigned y, unsigned x, bool onoff);
 static bool fits_in (const struct shape* shape, unsigned y, unsigned x);
 
-static void scr_start (void);
 static void scr_create_window (void);
-static void scr_end (void);
 static void scr_update (void);
 static void showscores (unsigned level);
 
@@ -122,25 +130,21 @@ int main (int argc, const char* const* argv)
 	set_level (level);
     }
 
-    signal (SIGINT, onintr);
-    signal (SIGSEGV, onintr);
-    signal (SIGABRT, onintr);
-    signal (SIGTSTP, SIG_IGN);	// Disable Ctrl+z
-    srandrand();
+    initialize_curses();
+    scr_create_window();
+    init_pair (color_Default, COLOR_DEFAULT, COLOR_DEFAULT);
+    init_pair (color_Background, COLOR_DEFAULT, COLOR_DEFAULT);
+    init_pair (color_Text, COLOR_CYAN, COLOR_BLACK);
+    init_pair (color_HelpText, COLOR_BLACK, COLOR_DEFAULT);
+    init_pair (color_Borders, COLOR_MAGENTA, COLOR_BLACK);
+    init_pair (color_Shapes, COLOR_CYAN, COLOR_BLACK);
+    nodelay (_win, true);
+    keypad (_win, true);
 
-    scr_start();
     gameloop();
     savescore (_score, get_level());
     showscores (get_level());
-    scr_end();
     return EXIT_SUCCESS;
-}
-
-static void onintr (int signo)
-{
-    scr_end();
-    psignal (signo, "Fatal error");
-    exit (EXIT_SUCCESS);
 }
 
 static struct timespec get_current_time (void)
@@ -340,57 +344,11 @@ static void place (const struct shape* shape, unsigned y, unsigned x, bool onoff
 //----------------------------------------------------------------------
 // Game window drawing
 
-enum {
-    color_None,
-    color_Default,
-    color_Background,
-    color_Text,
-    color_HelpText,
-    color_Borders,
-    color_Shapes,
-    color_Last
-};
-
-static void scr_start (void)
-{
-    if (!initscr()) {
-	printf ("Error: unable to initialize this terminal for graphics.");
-	exit (EXIT_FAILURE);
-    }
-    atexit (scr_end);
-
-    scr_create_window();
-    if (has_colors()) {
-	start_color();
-	use_default_colors();
-	init_pair (color_Default, COLOR_DEFAULT, COLOR_DEFAULT);
-	init_pair (color_Background, COLOR_DEFAULT, COLOR_DEFAULT);
-	init_pair (color_Text, COLOR_CYAN, COLOR_BLACK);
-	init_pair (color_HelpText, COLOR_BLACK, COLOR_DEFAULT);
-	init_pair (color_Borders, COLOR_MAGENTA, COLOR_BLACK);
-	init_pair (color_Shapes, COLOR_CYAN, COLOR_BLACK);
-    }
-    noecho();
-    nodelay (_win, true);
-    keypad (_win, true);
-    cbreak();
-    curs_set (0);
-}
-
 static void scr_create_window (void)
 {
     if (_win)
 	delwin (_win);
     _win = newwin (S_ROWS, S_COLS, LINES-S_ROWS, 0);
-}
-
-static void scr_end (void)
-{
-    if (isendwin())
-	return;
-    delwin (_win);
-    _win = NULL;
-    endwin();
 }
 
 static void scr_drawbar (unsigned y, unsigned x, unsigned h, unsigned w)
