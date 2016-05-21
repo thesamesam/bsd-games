@@ -10,7 +10,6 @@ extern FILE *yyin;
 int main(int ac, char *av[])
 {
     int f_usage = 0, f_list = 0, f_showscore = 0;
-    int f_printpath = 0;
     const char *gamename = NULL;
     int ch;
     struct sigaction sa;
@@ -38,9 +37,6 @@ int main(int ac, char *av[])
 	    case 't':
 		f_showscore++;
 		break;
-	    case 'p':
-		f_printpath++;
-		break;
 	    case 'f':
 	    case 'g':
 		gamename = optarg;
@@ -57,15 +53,8 @@ int main(int ac, char *av[])
 	log_score(1);
     if (f_list)
 	list_games();
-    if (f_printpath) {
-	char buf[100];
 
-	strcpy(buf, _PATH_GAMES);
-	buf[strlen(buf) - 1] = '\0';
-	puts(buf);
-    }
-
-    if (f_usage || f_showscore || f_list || f_printpath)
+    if (f_usage || f_showscore || f_list)
 	return EXIT_SUCCESS;
 
     if (!gamename)

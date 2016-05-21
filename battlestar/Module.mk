@@ -25,7 +25,7 @@ ${battlestar/EXE}:	${battlestar/OBJS}
 ifdef BINDIR
 battlestar/EXEI	:= ${BINDIR}/${battlestar/NAME}
 battlestar/MANI	:= ${MANDIR}/man6/${battlestar/NAME}.6.gz
-battlestar/SCOREI	:= ${STATEDIR}/battlestar.log
+battlestar/SCOREI	:= ${STATEDIR}/battlestar.scores
 
 install:		battlestar/install
 battlestar/install:	${battlestar/EXEI} ${battlestar/MANI} ${battlestar/SCOREI}

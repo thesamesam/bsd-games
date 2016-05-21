@@ -50,7 +50,7 @@ ${hack/DATAI}:	${DATADIR}/hack/%:	hack/gamehelp/%
 ${hack/SCOREI}:	${STATEDIR}/hack
 ${STATEDIR}/hack:
 	@echo "Creating hack dir and score files ..."
-	@mkdir -m 770 ${STATEDIR}/hack
+	@mkdir -m 755 ${STATEDIR}/hack
 	@chgrp users ${STATEDIR}/hack
 	@${INSTALLSCORE} /dev/null ${STATEDIR}/hack/perm
 	@${INSTALLSCORE} /dev/null ${STATEDIR}/hack/record

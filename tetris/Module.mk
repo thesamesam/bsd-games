@@ -25,7 +25,7 @@ ${tetris/EXE}:	${tetris/OBJS}
 ifdef BINDIR
 tetris/EXEI	:= ${BINDIR}/${tetris/NAME}
 tetris/MANI	:= ${MANDIR}/man6/${tetris/NAME}.6.gz
-tetris/SCOREI	:= ${STATEDIR}/tetris-bsd.scores
+tetris/SCOREI	:= ${STATEDIR}/tetris.scores
 
 install:		tetris/install
 tetris/install:	${tetris/EXEI} ${tetris/MANI} ${tetris/SCOREI}

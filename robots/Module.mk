@@ -25,7 +25,7 @@ ${robots/EXE}:	${robots/OBJS}
 ifdef BINDIR
 robots/EXEI	:= ${BINDIR}/${robots/NAME}
 robots/MANI	:= ${MANDIR}/man6/${robots/NAME}.6.gz
-robots/SCOREI	:= ${STATEDIR}/robots_roll
+robots/SCOREI	:= ${STATEDIR}/robots.scores
 
 install:		robots/install
 robots/install:	${robots/EXEI} ${robots/MANI} ${robots/SCOREI}

@@ -31,7 +31,7 @@ ifdef BINDIR
 canfield/EXEI	:= ${BINDIR}/${canfield/NAME}
 canfield/EXE2I	:= ${BINDIR}/cfscores
 canfield/MANI	:= ${MANDIR}/man6/${canfield/NAME}.6.gz
-canfield/SCOREI	:= ${STATEDIR}/cfscores
+canfield/SCOREI	:= ${STATEDIR}/canfield.scores
 
 install:		canfield/install
 canfield/install:	${canfield/EXEI} ${canfield/EXE2I} ${canfield/MANI} ${canfield/SCOREI}

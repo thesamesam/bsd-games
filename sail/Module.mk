@@ -25,7 +25,7 @@ ${sail/EXE}:	${sail/OBJS}
 ifdef BINDIR
 sail/EXEI	:= ${BINDIR}/${sail/NAME}
 sail/MANI	:= ${MANDIR}/man6/${sail/NAME}.6.gz
-sail/SCOREI	:= ${STATEDIR}/saillog
+sail/SCOREI	:= ${STATEDIR}/sail.scores
 
 install:		sail/install
 sail/install:	${sail/EXEI} ${sail/MANI} ${sail/SCOREI}

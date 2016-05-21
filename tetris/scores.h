@@ -4,7 +4,7 @@
 #pragma once
 #include "../config.h"
 
-#define _PATH_SCOREFILE	_PATH_GAME_STATE "tetris-bsd.scores"
+#define _PATH_SCOREFILE	_PATH_GAME_STATE "tetris.scores"
 
 struct highscore {
     char	name [16];	// login name

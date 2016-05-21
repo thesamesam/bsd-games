@@ -25,7 +25,7 @@ ${atc/EXE}:	${atc/OBJS}
 ifdef BINDIR
 atc/EXEI	:= ${BINDIR}/${atc/NAME}
 atc/MANI	:= ${MANDIR}/man6/${atc/NAME}.6.gz
-atc/SCOREI	:= ${STATEDIR}/atc_score
+atc/SCOREI	:= ${STATEDIR}/atc.scores
 
 install:		atc/install
 atc/install:	${atc/EXEI} ${atc/MANI} ${atc/SCOREI}

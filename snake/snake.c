@@ -18,7 +18,7 @@
 #include <sys/uio.h>
 #include <sys/file.h>
 
-#define _PATH_SCOREFILE	_PATH_GAME_STATE "snakerawscores"
+#define _PATH_SCOREFILE	_PATH_GAME_STATE "snake.scores"
 #define SCOREFILE_MAGIC	"snake"
 
 enum {

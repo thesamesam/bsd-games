@@ -26,7 +26,7 @@ ifdef BINDIR
 cribbage/EXEI	:= ${BINDIR}/${cribbage/NAME}
 cribbage/DATAI	:= ${DATADIR}/cribbage.instr
 cribbage/MANI	:= ${MANDIR}/man6/${cribbage/NAME}.6.gz
-cribbage/SCOREI	:= ${STATEDIR}/criblog
+cribbage/SCOREI	:= ${STATEDIR}/cribbage.scores
 
 install:		cribbage/install
 cribbage/install:	${cribbage/EXEI} ${cribbage/DATAI} ${cribbage/MANI} ${cribbage/SCOREI}

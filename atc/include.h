@@ -22,5 +22,4 @@
 #define BSD 1
 #define YY_NO_UNPUT 1
 
-#define	_PATH_GAMES	_PATH_GAME_DATA "atc/"
-#define	_PATH_SCORE	_PATH_GAME_STATE "atc_score"
+#define	_PATH_SCORE	_PATH_GAME_STATE "atc.scores"

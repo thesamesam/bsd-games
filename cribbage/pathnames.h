@@ -4,4 +4,4 @@
 #include "../config.h"
 
 #define	_PATH_INSTR	_PATH_GAME_DATA "cribbage.instr"
-#define	_PATH_LOG	_PATH_GAME_STATE "criblog"
+#define	_PATH_LOG	_PATH_GAME_STATE "cribbage.scores"

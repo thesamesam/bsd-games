@@ -32,7 +32,7 @@ enum {
 };
 
 #define	MS_NAME		"Ten"
-#define	_PATH_SCORE	_PATH_GAME_STATE "robots_roll"
+#define	_PATH_SCORE	_PATH_GAME_STATE "robots.scores"
 
 // characters on screen
 enum {

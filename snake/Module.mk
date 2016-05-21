@@ -25,7 +25,7 @@ ${snake/EXE}:	$Osnake/snake.o
 ifdef BINDIR
 snake/EXEI	:= ${BINDIR}/${snake/NAME}
 snake/MANI	:= ${MANDIR}/man6/${snake/NAME}.6.gz
-snake/SCOREI	:= ${STATEDIR}/snakerawscores
+snake/SCOREI	:= ${STATEDIR}/snake.scores
 
 install:		snake/install
 snake/install:	${snake/EXEI} ${snake/MANI} ${snake/SCOREI}

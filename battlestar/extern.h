@@ -16,7 +16,7 @@
 #define setbit(array, index)	(array[index/BITS] |= (1 << (index % BITS)))
 #define clearbit(array, index)	(array[index/BITS] &= ~(1 << (index % BITS)))
 
-#define	_PATH_SCORE	_PATH_GAME_STATE "battlestar.log"
+#define	_PATH_SCORE	_PATH_GAME_STATE "battlestar.scores"
 
  // well known rooms
 #define FINAL	275
