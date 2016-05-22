@@ -17,7 +17,6 @@ atc:		air traffic control
 backgammon:	backgammon
 banner:		display a message in big letters
 battlestar:	adventure game on a battlestar
-boggle:		boggle word game
 caesar:		performs rotated-alphabet cryptography (like rot13)
 canfield:	curses-based solitaire
 cribbage:	cribbage

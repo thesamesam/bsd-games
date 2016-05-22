@@ -10,7 +10,6 @@ include adventure/Module.mk
 include atc/Module.mk
 include backgammon/Module.mk
 include battlestar/Module.mk
-include boggle/Module.mk
 include caesar/Module.mk
 include canfield/Module.mk
 include cribbage/Module.mk
