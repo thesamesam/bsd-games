@@ -15,7 +15,6 @@ This package contains the following games:
 adventure:	the original adventure by Crowther and Woods
 atc:		air traffic control
 backgammon:	backgammon
-banner:		display a message in big letters
 battlestar:	adventure game on a battlestar
 caesar:		performs rotated-alphabet cryptography (like rot13)
 canfield:	curses-based solitaire
@@ -38,3 +37,19 @@ trek:		We come in peace, shoot to kill.  It's worse than that, he's
 		bow ...
 worm:		eat the numbers without running into anything
 wump:		hunt the wumpus
+
+Some games that were in the original 2.17 distribution were removed.
+Some were maintained elsewhere:
+
+banner:		https://packages.debian.org/stable/bsdmainutils
+factor:		http://www.gnu.org/software/coreutils/coreutils.html
+fortune:	ftp://ftp.ibiblio.org/pub/linux/games/amusements/fortune
+primes:		http://primesieve.org/
+rogue:		http://coredumpcentral.org/
+
+hunt was completely broken, and its premise of playing with other users
+logged on to the same machine is as obsolete as mainframes and dumb
+terminals. dm was a game access limiter; a dumb idea. arithmetic, boggle,
+quiz, and wtf were flashcard study aids. rain and worms were screensavers,
+and should be implemented as part of a lockscreen program. bcd, morse,
+number, pig, pom, ppt, random, and wargames were utterly pointless.
