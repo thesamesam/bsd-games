@@ -99,5 +99,4 @@ COORD *rnd_pos(void);
 void score(int);
 void set_name(SCORE *);
 void show_score(void);
-int sign(int);
 void telmsg(int);

@@ -9,12 +9,12 @@
 
 #include "../config.h"
 #include <curses.h>
-#include <math.h>
 
 #define _PATH_SCOREFILE	_PATH_GAME_STATE "snake.scores"
 #define SCOREFILE_MAGIC	"snake"
 
 enum {
+    SNAKE_LENGTH	= 16,
     SPACEWARP_PENALTY	= 10,
     MAXSCORES		= 10,
     MAXSCORE		= INT_MAX
@@ -34,6 +34,14 @@ enum {
     TREASURE	= A_BOLD| COLOR_PAIR(color_Money)| '$',
     GOAL	= A_BOLD| COLOR_PAIR(color_Goal)| '#'
 };
+enum EDir {
+    dir_North,
+    dir_East,
+    dir_South,
+    dir_West,
+    dir_N,
+    dir_Opposite = 2
+};
 
 struct point {
     unsigned short	col;
@@ -47,13 +55,12 @@ struct Score {
 
 //----------------------------------------------------------------------
 
-static struct point _you = {0};
-static struct point _money = {0};
-static struct point _finish = {0};
-static struct point _snake[6] = {{0}};
+static struct point _you = {0,0};
+static struct point _money = {0,0};
+static struct point _finish = {0,0};
+static struct point _snake [SNAKE_LENGTH] = {{0,0}};
 
 static unsigned _loot = 0;
-static unsigned _moves = 0;
 
 static unsigned short _penalty = 0;	// current spacewarp penalty
 static unsigned short _chunk = 0;	// amount of money given at a time
@@ -69,11 +76,12 @@ static void calculate_screen_size (unsigned short rcols, unsigned short rlines);
 static struct point find_empty_spot (void);
 static void setup (void);
 
-static void chase (struct point *, struct point *);
-static void length (void);
-static bool pushsnake (void);
+static inline bool stepped_on_snake (void);
+static enum EDir segment_direction (const struct point* p1, const struct point* p2);
+static void pushsnake (void);
 static void spacewarp (bool bonus);
 static void surround (struct point *);
+static void be_eaten (void);
 static void win (const struct point *);
 static void winnings (unsigned won);
 
@@ -122,10 +130,14 @@ int main (int argc, const char* const* argv)
     _you = find_empty_spot();
     _money = find_empty_spot();
     _snake[0] = find_empty_spot();
-    for (unsigned i = 1; i < ArraySize(_snake); ++i)
-	chase (&_snake[i], &_snake[i-1]);
+    for (unsigned i = 1; i < ArraySize(_snake); ++i) {
+	_snake[i] = _snake[i-1];
+	if (_snake[i].col > 1)
+	    --_snake[i].col;
+    }
     setup();
 
+    wtimeout (_wgame, 100);
     for (int lastc = 0;;) {
 	wrefresh (_wgame);
 	int c = wgetch (_wgame);
@@ -148,29 +160,41 @@ int main (int argc, const char* const* argv)
 	    ++_you.line;
 	pchar (&_you, ME);
 	lastc = c;
-	++_moves;
+	pushsnake();
 	if (same (&_you, &_money)) {
 	    _loot += 25;
 	    _money = find_empty_spot();
 	    pchar (&_money, TREASURE);
 	    winnings (cashvalue());
-	    continue;
-	}
-	if (same (&_you, &_finish)) {
+	} else if (same (&_you, &_finish)) {
 	    win (&_finish);
 	    flushinp();
 	    endwin();
 	    printf ("You have won with $%d.\n", cashvalue());
 	    save_score (cashvalue(), true);
 	    break;
-	}
-	if (pushsnake())
+	} else if (stepped_on_snake()) {
+	    be_eaten();
+	    flushinp();
+	    endwin();
+	    if (_loot >= _penalty)
+		printf("You and your $%d have been eaten\n", cashvalue());
+	    else
+		printf("The snake ate you. You owe $%d.\n", -cashvalue());
 	    break;
+	}
     }
     flushinp();
     endwin();
-    length();
     return EXIT_SUCCESS;
+}
+
+static inline bool stepped_on_snake (void)
+{
+    for (unsigned i = 0; i < ArraySize(_snake); ++i)
+	if (same(&_snake[i], &_you))
+	    return true;
+    return false;
 }
 
 static void calculate_screen_size (unsigned short rcols, unsigned short rlines)
@@ -233,69 +257,58 @@ static struct point find_empty_spot (void)
     return p;
 }
 
-static void chase (struct point *np, struct point *sp)
+static enum EDir segment_direction (const struct point* p1, const struct point* p2)
 {
-    static const int8_t mx[8] = { 0, 1, 1, 1, 0, -1, -1, -1 };
-    static const int8_t my[8] = { -1, -1, 0, 1, 1, 1, 0, -1 };
-    static const float absv[8] = { 1, 1.4, 1, 1.4, 1, 1.4, 1, 1.4 };
-    static unsigned oldw = 0;
+    int dl = p2->line - p1->line, dc = p2->col - p1->col;
+    if (absv(dl) > absv(dc))
+	return dl > 0 ? dir_South : dir_North;
+    else
+	return dc > 0 ? dir_East : dir_West;
+}
 
-    // this algorithm has bugs; otherwise the snake would get too good
-    struct point d = { _you.col - sp->col, _you.line - sp->line };
-    double v1 = sqrt((double) (d.col * d.col + d.line * d.line));
-    unsigned w = 0;
-    double max = 0;
-    double v2, vp;
-    for (unsigned i = 0; i < 8; ++i) {
-	vp = d.col * mx[i] + d.line * my[i];
-	v2 = absv[i];
-	if (v1 > 0)
-	    vp = ((double) vp) / (v1 * v2);
-	else
-	    vp = 1.0;
-	if (vp > max) {
-	    max = vp;
-	    w = i;
-	}
+static void pushsnake (void)
+{
+    // Draw the shifted tail
+    if (!same (&_snake[ArraySize(_snake)-1], &_you))	// If the player did not step on the tail
+	pchar(&_snake[ArraySize(_snake)-1], ' ');	// Erase tail
+    for (unsigned i = ArraySize(_snake)-1; i > 0; --i)
+	_snake[i] = _snake[i-1];		// Segments roll over in sequence
+    pchar(&_snake[1], SNAKETAIL);		// This was the head
+    
+    // Find previous direction
+    unsigned d = segment_direction (&_snake[2], &_snake[1]);
+    enum EDir playerDir = segment_direction (&_snake[1], &_you);
+    if (playerDir == (d+dir_Opposite)%dir_N)
+	playerDir = d;	// snake can't see behind it
+
+    // There are three directions available
+    // Pick one at random, favoring the current direction, and toward player
+    unsigned choice = nrand (16);
+    if (choice < 1)		// turn left
+	d = (d-1)%dir_N;
+    else if (choice < 2)	// turn right
+	d = (d+1)%dir_N;
+    else if (choice < 4)	// turn toward player
+	d = playerDir;
+
+    do {	// Create the new head point
+	static const struct { int8_t dl,dc; } c_DirDPts [dir_N] =
+	    {{-1,0},{0,1},{1,0},{0,-1}};
+	_snake[0].line = _snake[1].line + c_DirDPts[d].dl;
+	_snake[0].col = _snake[1].col + c_DirDPts[d].dc;
+	d = (d+1)%dir_N;	// if hit something, keep turning until free
+    } while (_snake[0].line >= getmaxy(_wgame)-2
+	    || _snake[0].col >= getmaxx(_wgame)-2
+	    || same (&_snake[0], &_finish));
+
+    // Draw the new head
+    pchar (&_snake[0], SNAKEHEAD);
+
+    // The snake can eat money
+    if (same (&_snake[0], &_money)) {
+	_money = find_empty_spot();
+	pchar (&_money, TREASURE);
     }
-    int wt[8] = {0};
-    for (unsigned i = 0; i < 8; ++i) {
-	d.col = sp->col + mx[i];
-	d.line = sp->line + my[i];
-	if (d.col >= getmaxx(_wgame)-2 || d.line >= getmaxy(_wgame)-2)
-	    continue;
-	// Change to allow snake to eat you if you're on the money,
-	// otherwise, you can just crouch there until the snake goes
-	// away. Not positive it's right.
-	// if (d.line == 0 && d.col < 5) continue;
-	if (same(&d, &_money))
-	    continue;
-	if (same(&d, &_finish))
-	    continue;
-	wt[i] = i == w ? _loot / 10 : 1;
-	if (i == oldw)
-	    wt[i] += _loot / 20;
-    }
-    w = 0;
-    for (unsigned i = 0; i < 8; ++i)
-	w += wt[i];
-    vp = nrand(w);
-    unsigned i = 0;
-    for (; i < 8; ++i) {
-	if (vp < wt[i])
-	    break;
-	else
-	    vp -= wt[i];
-    }
-    if (i == 8) {
-	wprintw (_wgame, "failure\n");
-	i = 0;
-	while (wt[i] == 0)
-	    ++i;
-    }
-    oldw = w = i;
-    np->col = sp->col + mx[w];
-    np->line = sp->line + my[w];
 }
 
 static void spacewarp (bool bonus)
@@ -378,72 +391,27 @@ static void surround(struct point *ps)
     delay(6);
 }
 
-static void win (const struct point* ps)
+static void be_eaten (void)
 {
-    enum { c_BoxSize = 10 };	// The size of box at full expansion
-    struct point x = *ps;
-    wattrset (_wgame, A_BOLD|COLOR_PAIR(color_Goal));
-    for (unsigned j = 1; j < c_BoxSize; ++j) {
-	for (unsigned k = 0; k < j; ++k) {
-	    pchar(&x, '#');
-	    --x.line;
-	}
-	for (unsigned k = 0; k < j; ++k) {
-	    pchar(&x, '#');
-	    --x.col;
-	}
-	j++;
-	for (unsigned k = 0; k < j; ++k) {
-	    pchar(&x, '#');
-	    ++x.line;
-	}
-	for (unsigned k = 0; k < j; ++k) {
-	    pchar(&x, '#');
-	    ++x.col;
-	}
+    surround(&_you);
+    unsigned bonus = nrand(10);
+    if (cashvalue()%10u == bonus) {
+	mvwprintw (_wgame, getmaxy(_wgame)-2, 2, "Bonus %u!\n", bonus);
 	wrefresh (_wgame);
-	delay(1);
+	delay(30);
+	return spacewarp (true);
     }
 }
 
-static bool pushsnake (void)
+static void win (const struct point* ps)
 {
-    bool issame = false;
-    for (int i = 4; i >= 0; --i)
-	if (same(&_snake[i], &_snake[5]))
-	    issame = true;
-    if (!issame)
-	pchar(&_snake[5], ' ');
-    // Need the following to catch you if you step on the snake's tail
-    struct point tmp = _snake[5];
-    for (int i = 4; i >= 0; --i)
-	_snake[i+1] = _snake[i];
-    chase(&_snake[0], &_snake[1]);
-    pchar(&_snake[1], SNAKETAIL);
-    pchar(&_snake[0], SNAKEHEAD);
-    for (unsigned i = 0; i < 6; ++i) {
-	if (same(&_snake[i], &_you) || same(&tmp, &_you)) {
-	    surround(&_you);
-	    i = cashvalue() % 10;
-	    unsigned bonus = nrand(10);
-	    mvwprintw (_wgame, getmaxy(_wgame)-2, 2, "Bonus %u!\n", bonus);
-	    wrefresh (_wgame);
-	    delay(30);
-	    if (bonus == i) {
-		spacewarp (true);
-		return true;
-	    }
-	    flushinp();
-	    endwin();
-	    if (_loot >= _penalty)
-		printf("You and your $%d have been eaten\n", cashvalue());
-	    else
-		printf("The snake ate you. You owe $%d.\n", -cashvalue());
-	    length();
-	    exit (EXIT_SUCCESS);
-	}
+    enum { c_BoxSize = 5 };	// The size of box at full expansion
+    for (unsigned j = 1; j < c_BoxSize; ++j) {
+	for (unsigned l = ps->line+1-j; l <= ps->line+1+j; ++l)
+	    mvwhline (_wgame, l, ps->col+1-j, GOAL, 2*j+1);
+	wrefresh (_wgame);
+	delay(1);
     }
-    return false;
 }
 
 static void winnings (unsigned won)
@@ -454,11 +422,6 @@ static void winnings (unsigned won)
     }
 }
 
-static void length (void)
-{
-    printf ("You made %u moves.\n", _moves);
-}
-
 //----------------------------------------------------------------------
 // Scorefile reading and writing
 
@@ -467,7 +430,7 @@ static int compare_scores (const void *x, const void *y)
 {
     const struct Score* a = (const struct Score*) x;
     const struct Score* b = (const struct Score*) y;
-    return a->score < b->score ? 1 : a->score == b->score ? 0 : -1;
+    return sign (b->score - a->score);
 }
 
 static bool read_scores (void)

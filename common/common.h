@@ -62,6 +62,8 @@ inline static uint16_t ror16 (uint16_t v, unsigned n)
     { return (v >> n)|(v << (16-n)); }
 inline static int sign (int n)
     { return n > 0 ? 1 : n < 0 ? -1 : 0; }
+inline static unsigned absv (int n)
+    { return n >= 0 ? n : -n; }
 
 #ifdef __cplusplus
 } // extern "C"

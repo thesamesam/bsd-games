@@ -87,9 +87,3 @@ void add_score (int add)
     move(Y_SCORE, X_SCORE);
     printw("%d", Score);
 }
-
-// Return the sign of the number
-int sign (int n)
-{
-    return n < 0 ? -1 : (n > 0 ? 1 : 0);
-}

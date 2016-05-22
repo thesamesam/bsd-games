@@ -5,7 +5,7 @@ snake/EXE	:= $Osnake/${snake/NAME}
 snake/SRCS	:= $(wildcard snake/*.c)
 snake/OBJS	:= $(addprefix $O,$(snake/SRCS:.c=.o))
 snake/DEPS	:= $(snake/OBJS:.o=.d)
-snake/LIBS	:= ${COMLIB} ${CURSES_LIBS} ${MATH_LIBS}
+snake/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
 
