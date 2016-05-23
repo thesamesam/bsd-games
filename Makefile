@@ -24,7 +24,6 @@ include phantasia/Module.mk
 include robots/Module.mk
 include sail/Module.mk
 include snake/Module.mk
-include trek/Module.mk
 include worm/Module.mk
 include wump/Module.mk
 
