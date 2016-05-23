@@ -14,6 +14,7 @@ include caesar/Module.mk
 include canfield/Module.mk
 include cribbage/Module.mk
 include dab/Module.mk
+include drop4/Module.mk
 include fish/Module.mk
 include gomoku/Module.mk
 include hack/Module.mk
@@ -24,7 +25,6 @@ include phantasia/Module.mk
 include robots/Module.mk
 include sail/Module.mk
 include snake/Module.mk
-include tetris/Module.mk
 include trek/Module.mk
 include worm/Module.mk
 include wump/Module.mk

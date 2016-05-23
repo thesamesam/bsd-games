@@ -1,20 +1,65 @@
 // Copyright (c) 1992 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 //
-// Tetris (or however it is spelled).
+// Drop4
 //
-// Score code for Tetris, by Darren Provine (kilroy@gboro.glassboro.edu)
+// Score code for Drop4, by Darren Provine (kilroy@gboro.glassboro.edu)
 // modified 22 January 1992, to limit the number of entries any one
-// person has.
+// person has. This feature was removed in 2016.
 //
-// Major whacks since then.
+// Renamed to drop4 in 2016 to differentiate from tetris.
+//
+// Excerpt from the ruling in drop4 Holding, LLC vs. Xio Interactive, Inc.:
+//
+//    drop4 is a puzzle game where a user manipulates pieces composed of
+//    square blocks, each made into a different geometric shape, that fall from
+//    the top of the game board to the bottom where the pieces accumulate. The
+//    user is given a new piece after the current one reaches the bottom of the
+//    available game space. While a piece is falling, the user rotates it in
+//    order to fit it in with the accumulated pieces. The object of the puzzle
+//    is to fill all spaces along a horizontal line. If that is accomplished,
+//    the line is erased, points are earned, and more of the game board is
+//    available for play. But if the pieces accumulate and reach the top of
+//    the screen, then the game is over. These then are the general, abstract
+//    ideas underlying drop4 and cannot be protected by copyright nor can
+//    expressive elements that are inseparable from them.
+//
+//    The court noted that “if one has to squint to find distinctions
+//    only at a granular level, then the works are likely to be substantially
+//    similar.” Further, the court pointed to numerous elements of the games
+//    that were difficult to distinguish, such as the shape, color, and look of
+//    game bricks, the pieces formed from the bricks, the way the game pieces
+//    could be fitted together in a complete line, the pieces’ movement and
+//    rotation, the precise size of the playing field, the behavior of the
+//    display upon certain events
+//
+// Every precaution must be taken to avoid the above elements. Specific
+// differences from drop4 in this implementation are:
+//
+// - the game has a distinctive name
+// - the pieces are not formed with distinct bricks, but are solid.
+// - all pieces are drawn in the same color
+// - pieces are drawn with spaces instead of # used in the original tetris
+// - there is no color variations within each piece
+// - the size of the board is different
+// - row removal is not animated (behavior of display mentioned above)
+// - pieces do not pause while being rotated (another behavior)
+// - score and next piece display are to the right of the board
+//
+// The shapes themselves are an exhaustive enumeration of tetrominos with
+// mirror images being distinct. Just as other polyomino sets, the number
+// of shapes and their shape in the full set for each block count is
+// mathematically unique and therefore not copyrightable.
+//
+// The rest of the game merely implements the game rules as described in
+// the first cited paragraph of the ruling and is non-infringing.
 
 #include "../config.h"
 #include <curses.h>
 #include <time.h>
 
 //----------------------------------------------------------------------
-// Definitions for Tetris.
+// Definitions for Drop4.
 
 // The display (board) is composed of 23 rows of 10 columns of characters.
 // Columns 1 to 10 of rows 1 to 20 are the actual playing area, where
@@ -22,10 +67,14 @@
 enum {
     S_COLS	= 80,
     S_ROWS	= 24,
-    B_COLS	= 10,
-    B_ROWS	= 23,
+    B_COLS	= 12,
+    B_ROWS	= S_ROWS-1,
     B_STARTROW	= 1,
     B_STARTCOL	= B_COLS/2,
+    BOARD_COL	= (S_COLS-B_COLS*2)/2,
+    SCORE_ROWS	= 8,
+    SCORE_COLS	= SCORE_ROWS*2,
+    SCORE_COL	= S_COLS-SCORE_COLS-1,
     MINLEVEL	= 1,	// Game level must be between 1 and 9.
     MAXLEVEL	= 9,	//	This controls the initial fall rate and affects scoring.
     ROWS_PER_LEVEL= 50	// Bump level every N rows removed
@@ -90,8 +139,8 @@ enum {
     color_Last
 };
 
-#define _PATH_SCOREFILE	_PATH_GAME_STATE "tetris.scores"
-#define SCOREFILE_MAGIC		"tetris"
+#define _PATH_SCOREFILE	_PATH_GAME_STATE "drop4.scores"
+#define SCOREFILE_MAGIC		"drop4\0"
 
 struct highscore {
     char	name [16];	// login name
@@ -160,7 +209,7 @@ static void savescore (unsigned score, unsigned level);
 int main (int argc, const char* const* argv)
 {
     if (argc > 2) {
-	printf ("Usage: tetris [level]\n");
+	printf ("Usage: drop4 [level]\n");
 	return EXIT_SUCCESS;
     } else if (argc == 2) {
 	int level = atoi(argv[1]);
@@ -301,13 +350,9 @@ static void remove_full_rows (void)
 	    firstNonempty = r;
 	if (rowFull && r > firstNonempty) {
 	    memset (_board[r], 0, B_COLS);
-	    scr_update();
-	    usleep (250000);
 	    memmove (_board[firstNonempty+1], _board[firstNonempty], (r-firstNonempty)*sizeof(_board[0]));
 	    memset (_board[firstNonempty], 0, B_COLS);
 	    ++firstNonempty;
-	    scr_update();
-	    usleep (250000);
 	    // Bump level every N rows
 	    static unsigned s_RowsRemoved = 0;
 	    unsigned level = get_level();
@@ -405,15 +450,14 @@ static void scr_update(void)
     scr_drawbar (0, 0, S_ROWS, S_COLS);
 
     // Explicitly draw black boxes under
-    unsigned brdx = (S_COLS-B_COLS*2)/2;
     wattrset (_win, COLOR_PAIR(color_Shapes));
-    scr_drawbar (0, brdx, B_ROWS, B_COLS*2);
-    scr_drawbar (1, 2, 8, 15);
+    scr_drawbar (0, BOARD_COL, B_ROWS, B_COLS*2);
+    scr_drawbar (1, SCORE_COL, SCORE_ROWS, SCORE_COLS);
 
     // Draw score and level
     wattrset (_win, COLOR_PAIR(color_Text));
-    mvwprintw (_win, 2, 4, "Score: %d", _score);
-    mvwprintw (_win, 3, 4, "Level: %u", get_level());
+    mvwprintw (_win, 2, SCORE_COL+2, "Score: %d", _score);
+    mvwprintw (_win, 3, SCORE_COL+2, "Level: %u", get_level());
 
     if (_paused)
 	mvwaddstr (_win, S_ROWS/2, (S_COLS-strlen("Paused"))/2, "Paused");
@@ -422,7 +466,7 @@ static void scr_update(void)
 	wattrset (_win, A_REVERSE| COLOR_PAIR(color_Shapes));
 	unsigned py = 1, px = 1, ip = 0;
 	for (;;) {
-	    mvwaddstr (_win, 5+py, 4+px*2, "  ");
+	    mvwaddstr (_win, 5+py, SCORE_COL+4+px*2, "  ");
 	    if (ip < ArraySize(_nextshape->off)) {
 		py = 1 + _nextshape->off[ip].dy;
 		px = 1 + _nextshape->off[ip++].dx;
@@ -433,19 +477,19 @@ static void scr_update(void)
 	for (unsigned y = 0; y < B_ROWS; ++y)
 	    for (unsigned x = 0; x < B_COLS; ++x)
 		if (_board[y][x])
-		    mvwaddstr (_win, y, brdx + 2*x, "  ");
+		    mvwaddstr (_win, y, BOARD_COL + 2*x, "  ");
     }
 
     // Draw the board border
     wattrset (_win, A_REVERSE| COLOR_PAIR(color_Borders));
-    mvwvline (_win, 0, brdx-1, ' ', B_ROWS+1);
-    mvwvline (_win, 0, brdx-2, ' ', B_ROWS+1);
-    mvwvline (_win, 0, brdx+B_COLS*2, ' ', B_ROWS+1);
-    mvwvline (_win, 0, brdx+B_COLS*2+1, ' ', B_ROWS+1);
-    mvwhline (_win, B_ROWS, brdx, ' ', B_COLS*2);
+    mvwvline (_win, 0, BOARD_COL-1, ' ', B_ROWS+1);
+    mvwvline (_win, 0, BOARD_COL-2, ' ', B_ROWS+1);
+    mvwvline (_win, 0, BOARD_COL+B_COLS*2, ' ', B_ROWS+1);
+    mvwvline (_win, 0, BOARD_COL+B_COLS*2+1, ' ', B_ROWS+1);
+    mvwhline (_win, B_ROWS, BOARD_COL, ' ', B_COLS*2);
     wattroff (_win, A_REVERSE);
-    mvwvline (_win, 0, brdx-3, ACS_VLINE, B_ROWS+1);
-    mvwvline (_win, 0, brdx+B_COLS*2+2, ACS_VLINE, B_ROWS+1);
+    mvwvline (_win, 0, BOARD_COL-3, ACS_VLINE, B_ROWS+1);
+    mvwvline (_win, 0, BOARD_COL+B_COLS*2+2, ACS_VLINE, B_ROWS+1);
 
     wattrset (_win, COLOR_PAIR(color_Default));
     wrefresh (_win);
@@ -456,7 +500,7 @@ static void showscores (unsigned level)
 {
     const char* username = getlogin();
     werase (_win);
-    mvwaddstr (_win, 0, 0, "Tetris High Scores");
+    mvwaddstr (_win, 0, 0, "Drop4 High Scores");
     mvwaddstr (_win, 1, 0, "Rank  Score   Name             (points/level)");
     for (unsigned i = 0; i < MAXHISCORES && _scores[i].score; ++i) {
 	const struct highscore* sp = &_scores[i];
