@@ -20,21 +20,16 @@ caesar:		performs rotated-alphabet cryptography (like rot13)
 canfield:	curses-based solitaire
 cribbage:	cribbage
 dab:		dots and boxes
+drop4:		tetromino packing game
 fish:		go fish
 gomoku:		gomoku
 hack:		exploring the Dungeons of Doom
 hangman:	guess the word before it is too late
 mille:		mille borne against the computer
-monop:		monopoly
 phantasia:	interterminal fantasy game
 robots:		well... avoid the robots
 sail:		sail your ship into battle
 snake:		grab the cash and avoid the snake and exit
-tetris:		tetris
-trek:		We come in peace, shoot to kill.  It's worse than that, he's
-		dead Jim.  Ye cannot change the laws of physics.  It's life
-		Jim, but not as we know it.  There's Klingons on the starboard
-		bow ...
 worm:		eat the numbers without running into anything
 wump:		hunt the wumpus
 
@@ -47,9 +42,16 @@ fortune:	ftp://ftp.ibiblio.org/pub/linux/games/amusements/fortune
 primes:		http://primesieve.org/
 rogue:		http://coredumpcentral.org/
 
+Some were infringing on copyrights:
+
+boggle:		Exactly like the eponymous game by Parker Brothers.
+monop:		Uses Hasbro's Monopoly board and other content.
+tetris:		Renamed to drop4 after removing infringing elements.
+trek:		Uses Star Trek universe and characters.
+
 hunt was completely broken, and its premise of playing with other users
 logged on to the same machine is as obsolete as mainframes and dumb
-terminals. dm was a game access limiter; a dumb idea. arithmetic, boggle,
-quiz, and wtf were flashcard study aids. rain and worms were screensavers,
+terminals. dm was a game access limiter; a dumb idea. arithmetic, quiz,
+and wtf were flashcard study aids. rain and worms were screensavers,
 and should be implemented as part of a lockscreen program. bcd, morse,
 number, pig, pom, ppt, random, and wargames were utterly pointless.
