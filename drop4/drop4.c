@@ -214,7 +214,7 @@ int main (int argc, const char* const* argv)
     } else if (argc == 2) {
 	int level = atoi(argv[1]);
 	if (level < MINLEVEL || level > MAXLEVEL) {
-	    printf ("Level must be from %u to %u", MINLEVEL, MAXLEVEL);
+	    printf ("Level must be from %u to %u\n", MINLEVEL, MAXLEVEL);
 	    return EXIT_FAILURE;
 	}
 	set_level (level);
