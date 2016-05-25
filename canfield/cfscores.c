@@ -2,7 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "pathnames.h"
-#include <err.h>
 #include <pwd.h>
 
 struct betinfo {
@@ -33,9 +32,11 @@ int main(int argc, char *argv[])
 	printf("Usage: cfscores [user]\n");
 	exit(1);
     }
-    dbfd = open(_PATH_SCORE, O_RDONLY);
-    if (dbfd < 0)
-	err(2, "open %s", _PATH_SCORE);
+    dbfd = open (_PATH_SCORE, O_RDONLY);
+    if (dbfd < 0) {
+	perror ("open "_PATH_SCORE);
+	return EXIT_FAILURE;
+    }
     setpwent();
     if (argc == 1) {
 	uid = getuid();
@@ -66,11 +67,11 @@ void printuser(const struct passwd *pw, int printfail)
 {
     int i = lseek(dbfd, pw->pw_uid * sizeof(struct betinfo), SEEK_SET);
     if (i < 0)
-	warn("lseek %s", _PATH_SCORE);
+	perror ("lseek "_PATH_SCORE);
     struct betinfo total;
     i = read(dbfd, &total, sizeof(total));
     if (i < 0)
-	warn("read %s", _PATH_SCORE);
+	perror ("read "_PATH_SCORE);
     if (i == 0 || total.hand == 0) {
 	if (printfail)
 	    printf("%s has never played canfield.\n", pw->pw_name);

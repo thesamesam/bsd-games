@@ -92,12 +92,12 @@ bool rest_f (const char* file)
     STAT sbuf;
 
     if ((inf = open(file, O_RDONLY)) < 0) {
-	warn("%s", file);
-	exit(1);
+	perror ("open saved game");
+	exit (EXIT_FAILURE);
     }
     if (fstat(inf, &sbuf) < 0) {	// get file stats
-	warn("%s", file);
-	exit(1);
+	perror ("stat saved game");
+	exit (EXIT_FAILURE);
     }
     varpush(inf, readv);
     close(inf);

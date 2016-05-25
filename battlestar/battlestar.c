@@ -45,6 +45,7 @@ int main(int argc, char **argv)
 	case 0:
 	    goto start;
 	default:
-	    errx(1, "bad return from cypher(): please submit a bug report");
+	    printf ("bad return from cypher(): please submit a bug report");
+	    exit (EXIT_FAILURE);
     }
 }

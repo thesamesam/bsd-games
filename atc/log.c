@@ -32,13 +32,13 @@ const char *timestr(int t)
     static char s[80];
 
     if (DAY(t) > 0)
-	(void) sprintf(s, "%dd+%02dhrs", DAY(t), HOUR(t));
+	sprintf(s, "%dd+%02dhrs", DAY(t), HOUR(t));
     else if (HOUR(t) > 0)
-	(void) sprintf(s, "%d:%02d:%02d", HOUR(t), MIN(t), SEC(t));
+	sprintf(s, "%d:%02d:%02d", HOUR(t), MIN(t), SEC(t));
     else if (MIN(t) > 0)
-	(void) sprintf(s, "%d:%02d", MIN(t), SEC(t));
+	sprintf(s, "%d:%02d", MIN(t), SEC(t));
     else if (SEC(t) > 0)
-	(void) sprintf(s, ":%02d", SEC(t));
+	sprintf(s, ":%02d", SEC(t));
     else
 	*s = '\0';
 
@@ -47,32 +47,20 @@ const char *timestr(int t)
 
 void open_score_file(void)
 {
-    mode_t old_mask;
-    int score_fd;
-    int flags;
-
-    old_mask = umask(0);
-    score_fd = open(_PATH_SCORE, O_CREAT | O_RDWR, 0664);
-    umask(old_mask);
+    mode_t old_mask = umask (0);
+    int score_fd = open (_PATH_SCORE, O_CREAT| O_RDWR, 0664);
+    umask (old_mask);
     if (score_fd < 0) {
-	warn("open %s", _PATH_SCORE);
+	perror ("open "_PATH_SCORE);
 	return;
     }
     if (score_fd < 3)
 	exit(1);
-    // Set the close-on-exec flag.  If this fails for any reason, quit
-    // rather than leave the score file open to tampering.
-    flags = fcntl(score_fd, F_GETFD);
-    if (flags < 0)
-	err(1, "fcntl F_GETFD");
-    flags |= FD_CLOEXEC;
-    if (fcntl(score_fd, F_SETFD, flags) == -1)
-	err(1, "fcntl F_SETFD");
     // This is done to take advantage of stdio, while still
     // allowing a O_CREAT during the open(2) of the log file.
     score_fp = fdopen(score_fd, "r+");
     if (score_fp == NULL) {
-	warn("fdopen %s", _PATH_SCORE);
+	printf ("Error: fdopen %s failed", _PATH_SCORE);
 	return;
     }
 }
@@ -87,7 +75,7 @@ int log_score(int list_em)
     long offset;
 
     if (score_fp == NULL) {
-	warnx("no score file available");
+	printf ("no score file available");
 	return -1;
     }
 #ifdef BSD
@@ -97,7 +85,7 @@ int log_score(int list_em)
 	while (lockf(fileno(score_fp), F_LOCK, 1) < 0)
 #endif
 	{
-	    warn("flock %s", _PATH_SCORE);
+	    perror ("flock "_PATH_SCORE);
 	    return -1;
 	}
     for (;;) {
@@ -160,7 +148,7 @@ int log_score(int list_em)
 		fprintf(score_fp, "%s %s %s %d %d %d\n", score[i].name, score[i].host, score[i].game, score[i].planes, score[i].time, score[i].real_time);
 	    fflush(score_fp);
 	    if (ferror(score_fp))
-		warn("error writing %s", _PATH_SCORE);
+		perror ("error writing " _PATH_SCORE);
 	    // It is just possible that updating an entry could
 	    // have reduced the length of the file, so we
 	    // truncate it.  The seeks are required for stream/fd

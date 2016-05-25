@@ -7,7 +7,6 @@
 #include "human.h"
 #include "ttyscrn.h"
 #include <iostream>
-#include <err.h>
 
 // Print the command line usage
 static void usage (char* pname)
@@ -99,8 +98,10 @@ int main (int argc, char** argv)
     }
 
     GAMESCREEN *sc = TTYSCRN::create(acs, ny, nx);
-    if (!sc)
-	::errx(1, "Dimensions too large for current screen.");
+    if (!sc) {
+	printf ("Error: dimensions too large for current screen.\n");
+	return EXIT_FAILURE;
+    }
 
     BOARD b(ny, nx, sc);
 

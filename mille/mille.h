@@ -4,7 +4,6 @@
 #include "../config.h"
 #include <sys/uio.h>
 #include <sys/stat.h>
-#include <err.h>
 #include <curses.h>
 #include <termios.h>
 

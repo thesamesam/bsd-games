@@ -6,51 +6,34 @@
 #include "cribcur.h"
 #include "pathnames.h"
 #include <curses.h>
-#include <err.h>
 #include <signal.h>
 
 int main(int argc, char *argv[])
 {
-    bool playing;
-    FILE *f;
-    int ch;
-    int fd;
-    int flags;
-
-    f = fopen(_PATH_LOG, "a");
-    if (f == NULL)
-	warn("fopen %s", _PATH_LOG);
-    if (f != NULL && fileno(f) < 3)
-	exit(1);
+    FILE* f = fopen(_PATH_LOG, "a");
+    if (!f) {
+	perror ("fopen " _PATH_LOG);
+	return EXIT_FAILURE;
+    } else if (fileno(f) < 3)
+	return EXIT_FAILURE;
 
     // Revoke setgid privileges
     setregid(getgid(), getgid());
 
-    // Set close-on-exec flag on log file
-    if (f != NULL) {
-	fd = fileno(f);
-	flags = fcntl(fd, F_GETFD);
-	if (flags < 0)
-	    err(1, "fcntl F_GETFD");
-	flags |= FD_CLOEXEC;
-	if (fcntl(fd, F_SETFD, flags) == -1)
-	    err(1, "fcntl F_SETFD");
-    }
-
-    while ((ch = getopt(argc, argv, "eqr")) != -1) {
+    for (int ch; (ch = getopt(argc, argv, "eqr")) != -1;) {
 	switch (ch) {
 	    case 'e': explain = true; break;
 	    case 'q': quiet = true; break;
 	    case 'r': rflag = true; break;
 	    case '?':
 	    default:
-		(void) fprintf(stderr, "usage: cribbage [-eqr]\n");
-		exit(1);
+		fprintf (stderr, "usage: cribbage [-eqr]\n");
+		return EXIT_SUCCESS;
 	}
     }
 
     initscr();
-    (void) signal(SIGINT, receive_intr);
+    signal(SIGINT, receive_intr);
     cbreak();
     noecho();
 
@@ -78,8 +61,7 @@ int main(int argc, char *argv[])
 	    msg("For cribbage rules, use \"man cribbage\"");
 	}
     }
-    playing = true;
-    do {
+    for (bool playing = true; playing;) {
 	wclrtobot(Msgwin);
 	msg(quiet ? "L or S? " : "Long (to 121) or Short (to 61)? ");
 	if (glimit == SGAME)
@@ -89,14 +71,14 @@ int main(int argc, char *argv[])
 	game();
 	msg("Another game? ");
 	playing = (getuchar() == 'Y');
-    } while (playing);
+    }
 
     if (f != NULL) {
 	(void) fprintf(f, "%s: won %5.5d, lost %5.5d\n", getlogin(), cgames, pgames);
 	(void) fclose(f);
     }
     bye();
-    exit(0);
+    return EXIT_SUCCESS;
 }
 
 // makeboard: Print out the initial board on the screen

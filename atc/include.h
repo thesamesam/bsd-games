@@ -12,7 +12,6 @@
 #include <sys/utsname.h>
 #include <sys/wait.h>
 #include <curses.h>
-#include <err.h>
 #include <math.h>
 #include <pwd.h>
 #include <signal.h>

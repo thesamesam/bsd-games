@@ -3,7 +3,6 @@
 
 #include "gomoku.h"
 #include <curses.h>
-#include <err.h>
 #include <signal.h>
 
 enum {
@@ -59,8 +58,10 @@ int main (int argc, char* const* argv)
 		debug++;
 		break;
 	    case 'D':	       // log debug output to file
-		if ((debugfp = fopen(optarg, "w")) == NULL)
-		    err(1, "%s", optarg);
+		if ((debugfp = fopen(optarg, "w")) == NULL) {
+		    printf ("Error: failed to open debug log %s\n", optarg);
+		    return EXIT_FAILURE;
+		}
 		break;
 	    case 'u':	       // testing: user verses user
 		test = 1;
@@ -73,8 +74,10 @@ int main (int argc, char* const* argv)
     argc -= optind;
     argv += optind;
     if (argc) {
-	if ((inputfp = fopen(*argv, "r")) == NULL)
-	    err(1, "%s", *argv);
+	if ((inputfp = fopen(*argv, "r")) == NULL) {
+	    printf ("Error: failed to open input file %s\n", argv[0]);
+	    return EXIT_FAILURE;
+	}
     }
 
     if (!debug)

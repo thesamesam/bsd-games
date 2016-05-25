@@ -54,7 +54,7 @@ void shuffle(void)
     for (i = 0; i < DECK_SZ; i++) {
 	r = roll(1, DECK_SZ) - 1;
 	if (r < 0 || r > DECK_SZ - 1) {
-	    warnx("shuffle: card no. error: %d", r);
+	    printf ("shuffle: card no. error: %d", r);
 	    die(1);
 	}
 	temp = Deck[r];

@@ -10,9 +10,10 @@ void restore (const char *filename)
     FILE *fp;
 
     if (filename == NULL)
-	exit(1);	       // Error determining save file name.
+	exit (EXIT_FAILURE);	       // Error determining save file name.
     if ((fp = fopen(filename, "r")) == 0) {
-	err(1, "fopen %s", filename);
+	perror (filename);
+	exit (EXIT_FAILURE);
     }
     fread(&WEIGHT, sizeof WEIGHT, 1, fp);
     fread(&CUMBER, sizeof CUMBER, 1, fp);
@@ -49,12 +50,14 @@ void restore (const char *filename)
     fread(&pleasure, sizeof pleasure, 1, fp);
     fread(&power, sizeof power, 1, fp);
     // We must check the last read, to catch truncated save files
-    if (fread(&ego, sizeof ego, 1, fp) < 1)
-	errx(1, "save file %s too short", filename);
+    if (fread(&ego, sizeof ego, 1, fp) < 1) {
+	printf ("save file %s too short", filename);
+	exit (EXIT_FAILURE);
+    }
     fclose(fp);
 }
 
-void save(const char *filename)
+void save (const char *filename)
 {
     int n;
     int tmp;
@@ -63,7 +66,7 @@ void save(const char *filename)
     if (filename == NULL)
 	return;		       // Error determining save file name.
     if ((fp = fopen(filename, "w")) == NULL) {
-	warn("fopen %s", filename);
+	perror (filename);
 	return;
     }
     printf("Saved in %s.\n", filename);
@@ -104,7 +107,7 @@ void save(const char *filename)
     fwrite(&ego, sizeof ego, 1, fp);
     fflush(fp);
     if (ferror(fp))
-	warn("fwrite %s", filename);
+	perror (filename);
     fclose(fp);
 }
 
@@ -121,7 +124,7 @@ char* save_file_name (const char* filename, size_t len)
     if (memchr(filename, '/', len)) {
 	newname = malloc(len + 1);
 	if (newname == NULL) {
-	    warn(NULL);
+	    printf ("Out of memory");
 	    return NULL;
 	}
 	memcpy(newname, filename, len);
@@ -132,7 +135,7 @@ char* save_file_name (const char* filename, size_t len)
 	    tmpl = strlen(home);
 	    newname = malloc(tmpl + len + 2);
 	    if (newname == NULL) {
-		warn(NULL);
+		printf ("Out of memory");
 		return NULL;
 	    }
 	    memcpy(newname, home, tmpl);
@@ -142,7 +145,7 @@ char* save_file_name (const char* filename, size_t len)
 	} else {
 	    newname = malloc(len + 1);
 	    if (newname == NULL) {
-		warn(NULL);
+		printf ("Out of memory");
 		return NULL;
 	    }
 	    memcpy(newname, filename, len);

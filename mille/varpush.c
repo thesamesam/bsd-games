@@ -46,7 +46,7 @@ bool varpush (int file, ssize_t(*func) (int, const struct iovec *, int))
 	    printf("Debug file:");
 	    fgets(buf, sizeof(buf), stdin);
 	    if ((outf = fopen(buf, "w")) == NULL) {
-		warn("%s", buf);
+		perror (buf);
 		goto over;
 	    }
 	    if (strcmp(buf, _PATH_DEVNULL) != 0)

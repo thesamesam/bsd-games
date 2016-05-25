@@ -3,7 +3,6 @@
 
 #include "hdr.h"
 #include "extern.h"
-#include <err.h>
 #include <sys/uio.h>
 #include <sys/stat.h>
 

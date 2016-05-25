@@ -4,7 +4,6 @@
 #include "../config.h"
 #include <sys/wait.h>
 #include <time.h>
-#include <err.h>
 
 #define	_PATH_INSTR	_PATH_GAME_DATA "fish.instr"
 
@@ -351,39 +350,21 @@ static int nrandom (int n)
 
 static void instructions (void)
 {
-    int input;
-    pid_t pid;
-    int fd;
-    const char *pager;
-    int status;
-
     printf("Would you like instructions (y or n)? ");
-    input = getchar();
+    int input = getchar();
     while (getchar() != '\n');
     if (input != 'y')
 	return;
 
-    switch (pid = fork()) {
-	case 0:	       // child
-	    if (!isatty(1))
-		pager = "cat";
-	    else {
-		if (!(pager = getenv("PAGER")) || (*pager == 0))
-		    pager = _PATH_PAGER;
-	    }
-	    if ((fd = open(_PATH_INSTR, O_RDONLY)) == -1)
-		err(1, "open %s", _PATH_INSTR);
-	    if (dup2(fd, 0) == -1)
-		err(1, "dup2");
-	    execl("/bin/sh", "sh", "-c", pager, (char *) NULL);
-	    err(1, "exec sh -c %s", pager);
-	    // NOTREACHED
-	case -1:
-	    err(1, "fork");
-	    // NOTREACHED
-	default:
-	    waitpid(pid, &status, 0);
-	    break;
+    int status;
+    pid_t pid = fork();
+    switch (pid) {
+	default: waitpid (pid, &status, 0); break;
+	case -1: perror ("fork"); break;
+	case 0:
+	    execlp (_PATH_PAGER, _PATH_PAGER, _PATH_INSTR, NULL);
+	    perror ("execlp");
+	    exit (EXIT_FAILURE);
     }
     printf ("Hit return to continue...\n");
     while ((input = getchar()) != EOF && input != '\n') {}

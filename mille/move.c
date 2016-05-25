@@ -408,7 +408,7 @@ void getmove(void)
 		    *sp = '\0';
 		    leaveok(Board, true);
 		    if ((outf = fopen(buf, "w")) == NULL)
-			warn("%s", buf);
+			perror (buf);
 		    setbuf(outf, (char *) NULL);
 		}
 		Debug = !Debug;

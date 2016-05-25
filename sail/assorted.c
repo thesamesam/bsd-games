@@ -2,7 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "extern.h"
-#include <err.h>
 
 static void strike(struct ship *, struct ship *);
 
@@ -120,7 +119,8 @@ void table(struct ship *from, struct ship *on, int rig, int shot, int hittable, 
 	    message = "exploding shot on $$";
 	    break;
 	default:
-	    errx(1, "Unknown shot type %d", shot);
+	    printf ("Unknown shot type %d", shot);
+	    exit (EXIT_FAILURE);
 
     }
     makesignal(from, message, on);
@@ -148,7 +148,8 @@ void table(struct ship *from, struct ship *on, int rig, int shot, int hittable, 
 		message = "main topmast and mizzen mast shattered";
 		break;
 	    default:
-		errx(1, "Bad Rhit = %d", Rhit);
+		printf ("Bad Rhit = %d", Rhit);
+		exit (EXIT_FAILURE);
 	}
 	makemsg(on, message);
     } else if (roll == 6) {
@@ -176,7 +177,8 @@ void table(struct ship *from, struct ship *on, int rig, int shot, int hittable, 
 		message = "shot holes below the water line";
 		break;
 	    default:
-		errx(1, "Bad Hhit = %d", Hhit);
+		printf ("Bad Hhit = %d", Hhit);
+		exit (EXIT_FAILURE);
 	}
 	makemsg(on, message);
     }

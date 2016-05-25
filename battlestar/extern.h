@@ -2,7 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "../config.h"
-#include <err.h>
 #include <pwd.h>
 #include <signal.h>
 #include <time.h>
@@ -17,192 +16,209 @@
 #define clearbit(array, index)	(array[index/BITS] &= ~(1 << (index % BITS)))
 
 #define	_PATH_SCORE	_PATH_GAME_STATE "battlestar.scores"
+#define DEFAULT_SAVE_FILE	".Bstar"
 
- // well known rooms
-#define FINAL	275
-#define GARDEN	197
-#define POOLS	126
-#define DOCK	93
+// well known rooms
+enum {
+    FINAL	= 275,
+    GARDEN	= 197,
+    POOLS	= 126,
+    DOCK	= 93
+};
 
- // word types
-#define VERB	0
-#define OBJECT  1
-#define NOUNS	2
-#define PREPS	3
-#define ADJS	4
-#define CONJ	5
+// word types
+enum {
+    VERB,
+    OBJECT,
+    NOUNS,
+    PREPS,
+    ADJS,
+    CONJ
+};
 
- // words numbers
-#define KNIFE		0
-#define SWORD		1
-#define LAND		2
-#define WOODSMAN 	3
-#define TWO_HANDED	4
-#define CLEAVER		5
-#define BROAD		6
-#define MAIL		7
-#define HELM		8
-#define SHIELD		9
-#define MAID		10
-#define BODY		10
-#define VIPER		11
-#define LAMPON		12
-#define SHOES		13
-#define CYLON		14
-#define PAJAMAS		15
-#define ROBE		16
-#define AMULET		17
-#define MEDALION	18
-#define TALISMAN	19
-#define DEADWOOD	20
-#define MALLET		21
-#define LASER		22
-#define BATHGOD		23
-#define NORMGOD		24
-#define GRENADE		25
-#define CHAIN		26
-#define ROPE		27
-#define LEVIS		28
-#define MACE		29
-#define SHOVEL		30
-#define HALBERD		31
-#define	COMPASS		32
-#define	CRASH		33
-#define ELF		34
-#define FOOT		35
-#define COINS		36
-#define MATCHES		37
-#define MAN		38
-#define PAPAYAS		39
-#define PINEAPPLE	40
-#define KIWI		41
-#define COCONUTS	42
-#define MANGO		43
-#define RING		44
-#define POTION		45
-#define BRACELET	46
-#define GIRL		47
-#define GIRLTALK	48
-#define DARK		49
-#define TIMER		50
-#define CHAR		53
-#define BOMB		54
-#define DEADGOD		55
-#define DEADTIME	56
-#define DEADNATIVE	57
-#define NATIVE		58
-#define HORSE		59
-#define CAR		60
-#define POT		61
-#define BAR		62
-#define	BLOCK		63
-#define NUMOFOBJECTS	64
- // non-objects below
-#define UP	1000
-#define DOWN	1001
-#define AHEAD	1002
-#define BACK	1003
-#define RIGHT	1004
-#define LEFT	1005
-#define TAKE	1006
-#define USE	1007
-#define LOOK	1008
-#define QUIT	1009
-#define NORTH	1010
-#define SOUTH	1011
-#define EAST	1012
-#define WEST	1013
-#define SU      1014
-#define DROP	1015
-#define TAKEOFF	1016
-#define DRAW	1017
-#define PUTON	1018
-#define WEARIT	1019
-#define PUT	1020
-#define INVEN	1021
-#define EVERYTHING 1022
-#define AND	1023
-#define KILL	1024
-#define RAVAGE	1025
-#define UNDRESS	1026
-#define THROW	1027
-#define LAUNCH	1028
-#define LANDIT	1029
-#define LIGHT	1030
-#define FOLLOW	1031
-#define KISS	1032
-#define LOVE	1033
-#define GIVE	1034
-#define SMITE	1035
-#define SHOOT	1036
-#define ON	1037
-#define	OFF	1038
-#define TIME	1039
-#define SLEEP	1040
-#define DIG	1041
-#define EAT	1042
-#define SWIM	1043
-#define DRINK	1044
-#define DOOR	1045
-#define SAVE	1046
-#define RIDE	1047
-#define DRIVE	1048
-#define SCORE	1049
-#define BURY	1050
-#define JUMP	1051
-#define KICK	1052
-#define OPEN	1053
-#define VERBOSE	1054
-#define BRIEF	1055
-#define AUXVERB	1056
+// words numbers
+enum {
+    KNIFE,
+    SWORD,
+    LAND,
+    WOODSMAN,
+    TWO_HANDED,
+    CLEAVER,
+    BROAD,
+    MAIL,
+    HELM,
+    SHIELD,
+    MAID,
+    BODY = MAID,
+    VIPER,
+    LAMPON,
+    SHOES,
+    CYLON,
+    PAJAMAS,
+    ROBE,
+    AMULET,
+    MEDALION,
+    TALISMAN,
+    DEADWOOD,
+    MALLET,
+    LASER,
+    BATHGOD,
+    NORMGOD,
+    GRENADE,
+    CHAIN,
+    ROPE,
+    LEVIS,
+    MACE,
+    SHOVEL,
+    HALBERD,
+    COMPASS,
+    CRASH,
+    ELF,
+    FOOT,
+    COINS,
+    MATCHES,
+    MAN,
+    PAPAYAS,
+    PINEAPPLE,
+    KIWI,
+    COCONUTS,
+    MANGO,
+    RING,
+    POTION,
+    BRACELET,
+    GIRL,
+    GIRLTALK,
+    DARK,
+    TIMER,
+    CHAR = TIMER+3,
+    BOMB,
+    DEADGOD,
+    DEADTIME,
+    DEADNATIVE,
+    NATIVE,
+    HORSE,
+    CAR,
+    POT,
+    BAR,
+    BLOCK,
+    NUMOFOBJECTS
+};
 
- // injuries
-#define ARM	6	       // broken arm
-#define RIBS	7	       // broken ribs
-#define SPINE	9	       // broken back
-#define SKULL	11	       // fractured skull
-#define INCISE	10	       // deep incisions
-#define NECK	12	       // broken NECK
-#define NUMOFINJURIES 13
+// non-objects below
+enum {
+    UP = 1000,
+    DOWN,
+    AHEAD,
+    BACK,
+    RIGHT,
+    LEFT,
+    TAKE,
+    USE,
+    LOOK,
+    QUIT,
+    NORTH,
+    SOUTH,
+    EAST,
+    WEST,
+    SU,
+    DROP,
+    TAKEOFF,
+    DRAW,
+    PUTON,
+    WEARIT,
+    PUT,
+    INVEN,
+    EVERYTHING,
+    AND,
+    KILL,
+    RAVAGE,
+    UNDRESS,
+    THROW,
+    LAUNCH,
+    LANDIT,
+    LIGHT,
+    FOLLOW,
+    KISS,
+    LOVE,
+    GIVE,
+    SMITE,
+    SHOOT,
+    ON,
+    OFF,
+    TIME,
+    SLEEP,
+    DIG,
+    EAT,
+    SWIM,
+    DRINK,
+    DOOR,
+    SAVE,
+    RIDE,
+    DRIVE,
+    SCORE,
+    BURY,
+    JUMP,
+    KICK,
+    OPEN,
+    VERBOSE,
+    BRIEF,
+    AUXVERB
+};
 
- // notes
-#define	CANTLAUNCH	0
-#define LAUNCHED	1
-#define CANTSEE		2
-#define CANTMOVE	3
-#define JINXED		4
-#define DUG		5
-#define NUMOFNOTES	6
+// injuries
+enum {
+    ARM		= 6,	// broken arm
+    RIBS	= 7,	// broken ribs
+    SPINE	= 9,	// broken back
+    INCISE	= 10,	// deep incisions
+    SKULL	= 11,	// fractured skull
+    NECK	= 12,	// broken NECK
+    NUMOFINJURIES
+};
+
+// notes
+enum {
+    CANTLAUNCH,
+    LAUNCHED,
+    CANTSEE,
+    CANTMOVE,
+    JINXED,
+    DUG,
+    NUMOFNOTES
+};
 
 // Number of times room description shown.
-#define ROOMDESC	3
+enum { ROOMDESC = 3 };
 
- // fundamental constants
-#define NUMOFROOMS	275
-#define NUMOFWORDS	((NUMOFOBJECTS + BITS - 1) / BITS)
-#define LINELENGTH	81
+// Fundamental constants
+enum {
+    NUMOFROOMS	= 275,
+    NUMOFWORDS	= ((NUMOFOBJECTS + BITS - 1) / BITS),
+    LINELENGTH	= 81,
 
-#define TODAY		0
-#define TONIGHT		1
-#define CYCLE		100
+    TODAY	= 0,
+    TONIGHT	= 1,
+    CYCLE	= 100,
 
- // initial variable values
-#define TANKFULL	250
-#define TORPEDOES	10
-#define MAXWEIGHT	60
-#define MAXCUMBER	10
+    // Initial variable values
+    TANKFULL	= 250,
+    TORPEDOES	= 10,
+    MAXWEIGHT	= 60,
+    MAXCUMBER	= 10
+};
 
-//
 // These are flags for objects in the objflags array.  OBJ_PLURAL means
 // that the object short name is plural; OBJ_AN that it begins with a
 // vowel sound so should be preceded by "an" instead of "a"; OBJ_PERSON
 // that it is a living person; OBJ_NONOBJ that it is not an object (to
 // which any game action can be applied) at all (e.g. footsteps, asteroids).
 // Any individual object has at most one of OBJ_PERSON and OBJ_NONOBJ.
-#define OBJ_PLURAL	1
-#define OBJ_AN		2
-#define OBJ_PERSON	4
-#define OBJ_NONOBJ	8
+enum {
+    OBJ_PLURAL	= 1<<0,
+    OBJ_AN	= 1<<1,
+    OBJ_PERSON	= 1<<2,
+    OBJ_NONOBJ	= 1<<3,
+};
 
 struct room {
     const char *name;
@@ -223,12 +239,12 @@ extern struct room nightfile[];
 extern struct room *location;
 
  // object characteristics
-extern const char *const objdes[NUMOFOBJECTS];
-extern const char *const objsht[NUMOFOBJECTS];
-extern const char *const ouch[NUMOFINJURIES];
-extern const int objwt[NUMOFOBJECTS];
-extern const int objcumber[NUMOFOBJECTS];
-extern const int objflags[NUMOFOBJECTS];
+extern const char *const objdes [NUMOFOBJECTS];
+extern const char *const objsht [NUMOFOBJECTS];
+extern const char *const ouch [NUMOFINJURIES];
+extern const int objwt [NUMOFOBJECTS];
+extern const int objcumber [NUMOFOBJECTS];
+extern const int objflags [NUMOFOBJECTS];
 #define is_plural_object(n)	(objflags[(n)] & OBJ_PLURAL)
 //
 // These macros yield words to use with objects (followed but not preceded
@@ -239,8 +255,10 @@ extern const int objflags[NUMOFOBJECTS];
 #define IS_OR_ARE(n)		(is_plural_object((n)) ? "are " : "is ")
 
  // current input line
-#define WORDLEN	15
-#define NWORD	20	       // words per line
+enum {
+    WORDLEN	= 15,
+    NWORD	= 20	       // words per line
+};
 extern char words[NWORD][WORDLEN];
 extern int wordvalue[NWORD];
 extern int wordtype[NWORD];
@@ -291,8 +309,6 @@ struct objs {
 };
 extern const struct objs dayobjs[];
 extern const struct objs nightobjs[];
-
-#define DEFAULT_SAVE_FILE	".Bstar"
 
 void bury(void);
 int card(const char *, int);

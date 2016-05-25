@@ -5,7 +5,6 @@
 #include "extern.h"
 #include "hdr.h"
 #include <sys/file.h>
-#include <err.h>
 #include <signal.h>
 
 int main (void)
@@ -35,7 +34,8 @@ int main (void)
 		    unlink (savename);		// Don't re-use the save
 		    goto l8;			// Get where we're going
 		case 1:				// Couldn't open it
-		    errx(1, "can't open file");	// So give up
+		    perror ("open saved game");	// So give up
+		    return EXIT_FAILURE;
 		case 2:				// Oops -- file was altered
 		    rspeak(202);		// You dissolve
 		    return EXIT_FAILURE;	// File could be non-adventure
