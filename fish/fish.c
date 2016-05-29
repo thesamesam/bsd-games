@@ -3,375 +3,351 @@
 
 #include "../config.h"
 #include <sys/wait.h>
-#include <time.h>
+#include <curses.h>
 
 #define	_PATH_INSTR	_PATH_GAME_DATA "fish.instr"
 
 enum {
-    COMPUTER,
-    USER,
     RANKS	= 13,
-    CARDS	= 4,
+    SUITS	= 4,
     HANDSIZE	= 7,
-    TOTCARDS	= RANKS * CARDS
+    NCARDS	= RANKS * SUITS
 };
-#define OTHER(a)	(1 - (a))
+enum EPlayer {
+    USER,
+    COMPUTER,
+    NPLAYERS
+};
+static enum EPlayer OTHER (enum EPlayer p) { return 1-p; }
 
-static const char *const cards[] = {
-    "A", "2", "3", "4", "5", "6", "7",
-    "8", "9", "10", "J", "Q", "K", NULL,
+enum {
+    PANEL_LINES = 4,
+    PANEL_COLS = 80
+};
+enum {
+    color_None,
+    color_Panel,
+    color_CardBlack,
+    color_CardRed,
 };
 
-#define	PRC(card)	printf(" %s", cards[card])
+//----------------------------------------------------------------------
 
-static int promode;
-static int asked[RANKS], comphand[RANKS], deck[TOTCARDS];
-static int userasked[RANKS], userhand[RANKS];
-static int curcard = TOTCARDS;
+static const char c_CardNames [RANKS][3] =
+    { "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K" };
+static const char c_PlayerName [NPLAYERS][4] = {"You", "I"};
 
-static void chkwinner(int, const int *);
-static int compmove(void);
-static int countbooks(const int *);
-static int countcards(const int *);
-static int drawcard(int, int *);
-static int gofish(int, int, int *);
-static void goodmove(int, int, int *, int *);
-static void init(void);
-static void instructions(void);
-static int nrandom(int);
-static void printhand(const int *);
-static void printplayer(int);
-static int promove(void);
-static void usage(void) ;
-static int usermove(void);
+static uint8_t	_hand [NPLAYERS][RANKS] = {{0},{0}};
+static uint8_t	_deck [NCARDS] = {0};
+static uint8_t	_decksz = NCARDS;
+static bool	_asked [NPLAYERS][RANKS] = {{false},{false}};
 
-int main (int argc, char **argv)
+static WINDOW*	_wmsg = NULL;
+static WINDOW*	_wpanel = NULL;
+
+//----------------------------------------------------------------------
+
+static void shuffle_deck_and_deal (void);
+static void initialize_windows (void);
+static unsigned parse_card_name (char k);
+static unsigned makemove (enum EPlayer player);
+static unsigned usermove (void);
+static unsigned compmove (void);
+static unsigned drawcard (enum EPlayer player);
+static bool gofish (enum EPlayer player, unsigned askedfor);
+static void goodmove (enum EPlayer player, unsigned m);
+static void chkwinner (enum EPlayer player);
+static void printplayer (enum EPlayer player);
+static unsigned countbooks (enum EPlayer player);
+static void instructions (void);
+
+//----------------------------------------------------------------------
+
+int main (void)
 {
-    // Revoke setgid privileges
-    setregid(getgid(), getgid());
-
-    for (int ch; (ch = getopt(argc, argv, "p")) != -1;) {
-	switch (ch) {
-	    case 'p':	promode = 1; break;
-	    case '?':
-	    default:	usage();
-	}
-    }
-
-    srandrand();
+    initialize_curses();
+    initialize_windows();
+    shuffle_deck_and_deal();
     instructions();
-    init();
 
-    if (nrandom(2) == 1) {
-	printplayer(COMPUTER);
-	printf("get to start.\n");
-	goto istart;
-    }
-    printplayer(USER);
-    printf("get to start.\n");
-
+    enum EPlayer player = nrand(NPLAYERS);
+    printplayer (player);
+    waddstr (_wmsg, "get to start.\n");
     for (;;) {
-	int move = usermove();
-	if (!comphand[move]) {
-	    if (gofish(move, USER, userhand))
-		continue;
-	} else {
-	    goodmove(USER, move, userhand, comphand);
-	    continue;
-	}
-
-      istart:for (;;) {
-	    move = compmove();
-	    if (!userhand[move]) {
-		if (!gofish(move, COMPUTER, comphand))
-		    break;
-	    } else
-		goodmove(COMPUTER, move, comphand, userhand);
-	}
+	unsigned m = makemove (player);
+	if (_hand[OTHER(player)][m])
+	    goodmove (player, m);
+	else if (!gofish (player, m))
+	    player = OTHER(player);
     }
     return EXIT_SUCCESS;
 }
 
-static int usermove (void)
+static void initialize_windows (void)
 {
-    int n;
-    const char *const *p;
-    char buf[256];
+    _wmsg = newwin (LINES-PANEL_LINES, PANEL_COLS, 0, 0);
+    scrollok (_wmsg, true);
+    idlok (_wmsg, true);
+    keypad (_wmsg, true);
+    wmove (_wmsg, getmaxy(_wmsg)-1, 0);
+    _wpanel = newwin (PANEL_LINES, PANEL_COLS, LINES-PANEL_LINES, 0);
+    init_pair (color_Panel, COLOR_WHITE, COLOR_BLUE);
+    init_pair (color_CardBlack, COLOR_BLACK, COLOR_WHITE);
+    init_pair (color_CardRed, COLOR_RED, COLOR_WHITE);
+    wbkgdset (_wpanel, COLOR_PAIR(color_Panel));
+}
 
-    printf("\nYour hand is:");
-    printhand(userhand);
+static void shuffle_deck_and_deal (void)
+{
+    // Shuffle deck
+    for (unsigned i = 0; i < NCARDS; ++i)
+	_deck[i] = i % RANKS;
+    for (unsigned i = 0; i < NCARDS-1; ++i) {
+	unsigned j = nrand (NCARDS-i);
+	uint8_t t = _deck[i];
+	_deck[i] = _deck[i+j];
+	_deck[i+j] = t;
+    }
+    // Deal HANDSIZE cards to both players
+    for (unsigned i = 0; i < HANDSIZE; ++i) {
+	++_hand[USER][_deck[--_decksz]];
+	++_hand[COMPUTER][_deck[--_decksz]];
+    }
+}
 
+static unsigned parse_card_name (char k)
+{
+    if (k >= 'a' && k <= 'z')
+	k -= 'a'-'A';
+    for (unsigned i = 0; i < ArraySize(c_CardNames); ++i)
+	if (k == c_CardNames[i][0])
+	    return i;
+    return ArraySize(c_CardNames);
+}
+
+static unsigned makemove (enum EPlayer player)
+{
+    if (player == USER)
+	return usermove();
+    else {
+	unsigned m = compmove();
+	_asked[COMPUTER][m] = true;
+	wattron (_wmsg, A_BOLD);
+	wprintw (_wmsg, "I ask you for %s. ", c_CardNames[m]);
+	wattroff (_wmsg, A_BOLD);
+	return m;
+    }
+}
+
+static void draw_panel (void)
+{
+    werase (_wpanel);
+
+    // Draw player cards and books
+    mvwaddstr (_wpanel, 0, 0, "Cards: ");
+    unsigned cx = strlen("Cards: "), bx = cx, nBooks = 0;
+    for (unsigned i = 0; i < RANKS; ++i) {
+	if (!_hand[USER][i])
+	    continue;
+	if (_hand[USER][i] < SUITS) {
+	    for (unsigned y = 0; y < _hand[USER][i]; ++y) {
+		wattrset (_wpanel, COLOR_PAIR(color_CardBlack+(y%2)));
+		mvwaddstr (_wpanel, y, cx, c_CardNames[i]);
+	    }
+	    cx += strlen(c_CardNames[i])+1;
+	} else {
+	    ++nBooks;
+	    wattrset (_wpanel, COLOR_PAIR(color_CardBlack));
+	    mvwaddstr (_wpanel, 3, bx, c_CardNames[i]);
+	    bx += strlen(c_CardNames[i])+1;
+	}
+    }
+    wattrset (_wpanel, 0);
+    if (nBooks)
+	mvwaddstr (_wpanel, 3, 0, "Books: ");
+
+    // Draw computer cards and books
+    mvwprintw (_wpanel, 0, getmaxx(_wpanel)-18, "%2u cards in deck", _decksz);
+    unsigned compCards = 0, compBooks = 0;
+    for (unsigned i = 0; i < RANKS; ++i) {
+	if (!_hand[COMPUTER][i])		continue;
+	else if (_hand[COMPUTER][i] < SUITS)	++compCards;
+	else					++compBooks;
+    }
+    mvwprintw (_wpanel, 1, getmaxx(_wpanel)-16, "I have %u cards", compCards);
+    if (compBooks)
+	mvwprintw (_wpanel, 2, getmaxx(_wpanel)-16, "I have %u books", compBooks);
+
+    wrefresh (_wpanel);
+}
+
+static unsigned usermove (void)
+{
     for (;;) {
-	printf("You ask me for: ");
-	fflush(stdout);
-	if (fgets(buf, sizeof(buf), stdin) == NULL)
+	draw_panel();
+	int k = wgetch (_wmsg);
+	unsigned n = parse_card_name (k);
+
+	if (k == 'x' || k == KEY_F(10))
 	    exit (EXIT_SUCCESS);
-	if (buf[0] == '\0')
-	    continue;
-	if (buf[0] == '\n') {
-	    printf("%d cards in my hand, %d in the pool.\n", countcards(comphand), curcard);
-	    printf("My books:");
-	    countbooks(comphand);
-	    continue;
-	}
-	buf[strlen(buf) - 1] = '\0';
-	if (!strcasecmp(buf, "p") && !promode) {
-	    promode = 1;
-	    printf("Entering pro mode.\n");
-	    continue;
-	}
-	if (!strcasecmp(buf, "quit"))
-	    exit (EXIT_SUCCESS);
-	for (p = cards; *p; ++p)
-	    if (!strcasecmp(*p, buf))
-		break;
-	if (!*p) {
-	    printf("I don't understand!\n");
-	    continue;
-	}
-	n = p - cards;
-	if (userhand[n]) {
-	    userasked[n] = 1;
+	else if (k == '?' || k == KEY_F(1))
+	    instructions();
+	else if (k == KEY_RESIZE)
+	    initialize_windows();
+	else if (n >= ArraySize(c_CardNames))
+	    waddstr (_wmsg, "I don't understand!\n");
+	else if (_hand[USER][n] < 1)
+	    wprintw (_wmsg, "You don't have any %s's!\n", c_CardNames[n]);
+	else if (_hand[USER][n] >= SUITS)
+	    wprintw (_wmsg, "You have already completed a book of %s's.\n", c_CardNames[n]);
+	else {
+	    wprintw (_wmsg, "\nYou ask me for %s. ", c_CardNames[n]);
 	    return n;
 	}
-	if (nrandom(3) == 1)
-	    printf("You don't have any of those!\n");
-	else
-	    printf("You don't have any %s's!\n", cards[n]);
-	if (nrandom(4) == 1)
-	    printf("No cheating!\n");
-	printf("Guess again.\n");
     }
-    // NOTREACHED
 }
 
-static int compmove (void)
+static unsigned compmove (void)
 {
-    static int lmove;
-
-    if (promode)
-	lmove = promove();
-    else {
-	do {
-	    lmove = (lmove + 1) % RANKS;
-	} while (!comphand[lmove] || comphand[lmove] == CARDS);
-    }
-    asked[lmove] = 1;
-
-    printf("I ask you for: %s.\n", cards[lmove]);
-    return lmove;
-}
-
-static int promove (void)
-{
-    int i, max;
-
-    for (i = 0; i < RANKS; ++i) {
-	if (userasked[i] && comphand[i] > 0 && comphand[i] < CARDS) {
-	    userasked[i] = 0;
+    for (unsigned i = 0; i < RANKS; ++i) {
+	if (_asked[USER][i] && _hand[COMPUTER][i] > 0 && _hand[COMPUTER][i] < SUITS) {
+	    _asked[USER][i] = false;
 	    return i;
 	}
     }
-    if (nrandom(3) == 1) {
+    if (!nrand(3)) {
+	unsigned i, max;
 	for (i = 0;; ++i) {
-	    if (comphand[i] && comphand[i] != CARDS) {
+	    if (_hand[COMPUTER][i] && _hand[COMPUTER][i] != SUITS) {
 		max = i;
 		break;
 	    }
 	}
 	while (++i < RANKS)
-	    if (comphand[i] != CARDS && comphand[i] > comphand[max])
+	    if (_hand[COMPUTER][i] != SUITS && _hand[COMPUTER][i] > _hand[COMPUTER][max])
 		max = i;
 	return max;
     }
-    if (nrandom(1024) == 0723) {
-	for (i = 0; i < RANKS; ++i)
-	    if (userhand[i] && comphand[i])
-		return i;
-    }
     for (;;) {
-	for (i = 0; i < RANKS; ++i)
-	    if (comphand[i] && comphand[i] != CARDS && !asked[i])
+	for (unsigned i = 0; i < RANKS; ++i)
+	    if (_hand[COMPUTER][i] && _hand[COMPUTER][i] != SUITS && !_asked[COMPUTER][i])
 		return i;
-	for (i = 0; i < RANKS; ++i)
-	    asked[i] = 0;
+	for (unsigned i = 0; i < RANKS; ++i)
+	    _asked[COMPUTER][i] = false;
     }
-    // NOTREACHED
 }
 
-static int drawcard (int player, int *hand)
+static unsigned drawcard (enum EPlayer player)
 {
-    int card = deck[--curcard];
-    ++hand[card];
-    if (player == USER || hand[card] == CARDS) {
+    unsigned card = _deck[--_decksz];
+    ++_hand[player][card];
+    if (player == USER || _hand[player][card] == SUITS) {
 	printplayer(player);
-	printf("drew %s", cards[card]);
-	if (hand[card] == CARDS) {
-	    printf(" and made a book of %s's!\n", cards[card]);
-	    chkwinner(player, hand);
+	wprintw (_wmsg, "drew %s", c_CardNames[card]);
+	if (_hand[player][card] == SUITS) {
+	    wprintw (_wmsg, " and made a book of %s's.\n", c_CardNames[card]);
+	    chkwinner (player);
 	} else
-	    printf(".\n");
+	    waddstr (_wmsg, ".\n");
     }
     return card;
 }
 
-static int gofish (int askedfor, int player, int *hand)
+static bool gofish (enum EPlayer player, unsigned askedfor)
 {
-    printplayer(OTHER(player));
-    printf("say \"GO FISH!\"\n");
-    if (askedfor == drawcard(player, hand)) {
-	printplayer(player);
-	printf("drew the guess!\n");
-	printplayer(player);
-	printf("get to ask again!\n");
-	return 1;
+    wattron (_wmsg, A_BOLD);
+    printplayer (OTHER(player));
+    waddstr (_wmsg, "say \"GO FISH!\"\n");
+    wattroff (_wmsg, A_BOLD);
+    if (askedfor == drawcard (player)) {
+	printplayer (player);
+	waddstr (_wmsg, "drew the guess and get to ask again.\n");
+	return true;
     }
-    return 0;
+    return false;
 }
 
-static void goodmove (int player, int move, int *hand, int *opphand)
+static void goodmove (enum EPlayer player, unsigned m)
 {
-    printplayer(OTHER(player));
-    printf("have %d %s%s.\n", opphand[move], cards[move], opphand[move] == 1 ? "" : "'s");
+    printplayer (OTHER(player));
+    wprintw (_wmsg, "have %u %s%s.\n", _hand[OTHER(player)][m], c_CardNames[m], _hand[OTHER(player)][m] == 1 ? "" : "'s");
 
-    hand[move] += opphand[move];
-    opphand[move] = 0;
+    _hand[player][m] += _hand[OTHER(player)][m];
+    _hand[OTHER(player)][m] = 0;
 
-    if (hand[move] == CARDS) {
-	printplayer(player);
-	printf("made a book of %s's!\n", cards[move]);
-	chkwinner(player, hand);
+    if (_hand[player][m] == SUITS) {
+	printplayer (player);
+	wprintw (_wmsg, "made a book of %s's!\n", c_CardNames[m]);
+	chkwinner (player);
     }
+    chkwinner (OTHER(player));
 
-    chkwinner(OTHER(player), opphand);
-
-    printplayer(player);
-    printf("get another guess!\n");
+    printplayer (player);
+    waddstr (_wmsg, "get another guess!\n");
 }
 
-static void chkwinner (int player, const int *hand)
+static void chkwinner (enum EPlayer player)
 {
-    int cb, i, ub;
-
-    for (i = 0; i < RANKS; ++i)
-	if (hand[i] > 0 && hand[i] < CARDS)
+    for (unsigned i = 0; i < RANKS; ++i)
+	if (_hand[player][i] > 0 && _hand[player][i] < SUITS)
 	    return;
-    printplayer(player);
-    printf("don't have any more cards!\n");
-    printf("My books:");
-    cb = countbooks(comphand);
-    printf("Your books:");
-    ub = countbooks(userhand);
-    printf("\nI have %d, you have %d.\n", cb, ub);
+    draw_panel();
+    printplayer (player);
+    waddstr (_wmsg, "don't have any more cards!\n\nMy books:");
+    unsigned cb = countbooks (COMPUTER);
+    waddstr (_wmsg, "Your books:");
+    unsigned ub = countbooks (USER);
+    wprintw (_wmsg, "\nI have %d, you have %d.\n", cb, ub);
     if (ub > cb) {
-	printf("\nYou win!!!\n");
-	if (nrandom(1024) == 0723)
-	    printf("Cheater, cheater, pumpkin eater!\n");
+	waddstr (_wmsg, "\nYou win!!!\n");
+	if (!nrand(1024))
+	    waddstr (_wmsg, "Cheater, cheater, pumpkin eater!\n");
     } else if (cb > ub) {
-	printf("\nI win!!!\n");
-	if (nrandom(1024) == 0723)
-	    printf("Hah!  Stupid peasant!\n");
+	waddstr (_wmsg, "\nI win!!!\n");
+	if (!nrand(1024))
+	    waddstr (_wmsg, "Hah! Stupid peasant!\n");
     } else
-	printf("\nTie!\n");
+	waddstr (_wmsg, "\nTie!\n");
+    wgetch (_wmsg);
     exit (EXIT_SUCCESS);
 }
 
-static void printplayer (int player)
+static void printplayer (enum EPlayer player)
 {
-    switch (player) {
-	case COMPUTER:	printf("I "); break;
-	case USER:	printf("You "); break;
-    }
+    wprintw (_wmsg, "%s ", c_PlayerName[player]);
 }
 
-static void printhand (const int *hand)
+static unsigned countbooks (enum EPlayer player)
 {
-    int book, i, j;
-    for (book = i = 0; i < RANKS; i++)
-	if (hand[i] < CARDS)
-	    for (j = hand[i]; --j >= 0;)
-		PRC(i);
-	else
-	    ++book;
-    if (book) {
-	printf(" + Book%s of", book > 1 ? "s" : "");
-	for (i = 0; i < RANKS; i++)
-	    if (hand[i] == CARDS)
-		PRC(i);
-    }
-    putchar('\n');
-}
-
-static int countcards (const int *hand)
-{
-    int count = 0;
-    for (int i = 0; i < RANKS; ++i)
-	count += *hand++;
-    return count;
-}
-
-static int countbooks (const int *hand)
-{
-    int count = 0;
-    for (int i = 0; i < RANKS; ++i) {
-	if (hand[i] == CARDS) {
+    unsigned count = 0;
+    for (unsigned i = 0; i < RANKS; ++i) {
+	if (_hand[player][i] == SUITS) {
 	    ++count;
-	    PRC(i);
+	    wprintw (_wmsg, " %s", c_CardNames[i]);
 	}
     }
     if (!count)
-	printf(" none");
-    putchar('\n');
+	waddstr (_wmsg, " none");
+    waddch (_wmsg, '\n');
     return count;
-}
-
-static void init (void)
-{
-    for (int i = 0; i < TOTCARDS; ++i)
-	deck[i] = i % RANKS;
-    for (int i = 0; i < TOTCARDS - 1; ++i) {
-	int j = nrandom(TOTCARDS - i);
-	if (j == 0)
-	    continue;
-	int temp = deck[i];
-	deck[i] = deck[i + j];
-	deck[i + j] = temp;
-    }
-    for (int i = 0; i < HANDSIZE; ++i) {
-	++userhand[deck[--curcard]];
-	++comphand[deck[--curcard]];
-    }
-}
-
-static int nrandom (int n)
-{
-    return rand() % n;
 }
 
 static void instructions (void)
 {
-    printf("Would you like instructions (y or n)? ");
-    int input = getchar();
-    while (getchar() != '\n');
-    if (input != 'y')
-	return;
-
-    int status;
-    pid_t pid = fork();
-    switch (pid) {
-	default: waitpid (pid, &status, 0); break;
-	case -1: perror ("fork"); break;
-	case 0:
-	    execlp (_PATH_PAGER, _PATH_PAGER, _PATH_INSTR, NULL);
-	    perror ("execlp");
-	    exit (EXIT_FAILURE);
-    }
-    printf ("Hit return to continue...\n");
-    while ((input = getchar()) != EOF && input != '\n') {}
-}
-
-static void usage (void)
-{
-    fprintf (stderr, "usage: fish [-p]\n");
-    exit (EXIT_FAILURE);
+    waddstr (_wmsg, 
+	"\nThis is the traditional children's card game \"Go Fish\". We each get\n"
+	"seven cards, and the rest of the deck is kept to be drawn from later. The\n"
+	"object of the game is to collect \"books\", or all of the cards of a single\n"
+	"value. For example, getting four 2's would give you a \"book of 2's\".\n"
+	"\n"
+	"We take turns asking each other for cards, but you can only ask me for\n"
+	"a card value you already have. If I have any, I must give them to you,\n"
+	"and you can keep asking. If you ask me for a card value I don't have,\n"
+	"then I'll tell you to \"Go Fish!\", which means that you draw a card from\n"
+	"the deck. If you draw the card you asked me for, you get to keep asking\n"
+	"me for cards. If not, then it's my turn. The game stops when one of us\n"
+	"runs out of cards, and the winner is the one with the most books.\n"
+	"\n"
+	"You ask for a card by typing its name (a234567891jqk), type x to quit,\n\n"
+    );
 }

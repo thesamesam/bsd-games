@@ -5,7 +5,7 @@ fish/EXE	:= $Ofish/${fish/NAME}
 fish/SRCS	:= $(wildcard fish/*.c)
 fish/OBJS	:= $(addprefix $O,$(fish/SRCS:.c=.o))
 fish/DEPS	:= $(fish/OBJS:.o=.d)
-fish/LIBS	:= ${COMLIB}
+fish/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
 
@@ -24,17 +24,13 @@ ${fish/EXE}:	${fish/OBJS} ${COMLIB}
 
 ifdef BINDIR
 fish/EXEI	:= ${BINDIR}/${fish/NAME}
-fish/DATAI	:= ${DATADIR}/fish.instr
 fish/MANI	:= ${MANDIR}/man6/${fish/NAME}.6.gz
 
 install:		fish/install
-fish/install:	${fish/EXEI} ${fish/DATAI} ${fish/MANI}
+fish/install:	${fish/EXEI} ${fish/MANI}
 ${fish/EXEI}:	${fish/EXE}
 	@echo "Installing $@ ..."
 	@${INSTALLEXE} $< $@
-${fish/DATAI}:	fish/fish.instr
-	@echo "Installing $@ ..."
-	@${INSTALLDATA} $< $@
 ${fish/MANI}:	fish/${fish/NAME}.6
 	@echo "Installing $@ ..."
 	@gzip -9 -c $< > $@ && chmod 644 $@
@@ -43,7 +39,7 @@ uninstall:		fish/uninstall
 fish/uninstall:
 	@if [ -f ${fish/EXEI} ]; then\
 	    echo "Removing ${fish/EXEI} ...";\
-	    rm -f ${fish/EXEI} ${fish/DATAI} ${fish/MANI};\
+	    rm -f ${fish/EXEI} ${fish/MANI};\
 	fi
 endif
 
