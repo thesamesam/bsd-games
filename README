@@ -25,7 +25,6 @@ fish:		go fish
 gomoku:		gomoku
 hack:		exploring the Dungeons of Doom
 hangman:	guess the word before it is too late
-mille:		mille borne against the computer
 phantasia:	interterminal fantasy game
 robots:		well... avoid the robots
 sail:		sail your ship into battle
@@ -44,7 +43,8 @@ rogue:		http://coredumpcentral.org/
 
 Some were infringing on copyrights:
 
-boggle:		Exactly like the eponymous game by Parker Brothers.
+boggle:		Exactly like the eponymous game by Parker Brothers (Hasbro).
+mille:		Mille Bornes is copyrighted by Parker Brothers (Hasbro).
 monop:		Uses Hasbro's Monopoly board and other content.
 tetris:		Renamed to drop4 after removing infringing elements.
 trek:		Uses Star Trek universe and characters.
