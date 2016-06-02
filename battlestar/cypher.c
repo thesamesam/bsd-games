@@ -381,16 +381,6 @@ int cypher(void)
 		printf("You have visited %d out of %d rooms this run (%d%%).\n", card(beenthere, NUMOFROOMS), NUMOFROOMS, card(beenthere, NUMOFROOMS) * 100 / NUMOFROOMS);
 		break;
 
-	    case KNIFE:
-	    case KILL:
-		murder();
-		break;
-
-	    case UNDRESS:
-	    case RAVAGE:
-		ravage();
-		break;
-
 	    case SAVE:
 		printf("\nSave file name (default %s): ", DEFAULT_SAVE_FILE);
 		getline(&filename, &filename_len, stdin);

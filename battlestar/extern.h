@@ -130,8 +130,6 @@ enum {
     EVERYTHING,
     AND,
     KILL,
-    RAVAGE,
-    UNDRESS,
     THROW,
     LAUNCH,
     LANDIT,
@@ -316,7 +314,6 @@ void convert(int);
 void crash(void);
 int cypher(void);
 void die(void) NORETURN;
-void diesig(int) NORETURN;
 void dig(void);
 void dooropen(void);
 int draw(void);
@@ -348,7 +345,6 @@ void printobjs(void);
 int put(void);
 int puton(void);
 const char *rate(void);
-void ravage(void);
 void restore(const char *);
 int ride(void);
 void save(const char *);

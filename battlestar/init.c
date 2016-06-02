@@ -37,7 +37,6 @@ void initialize(const char *filename)
 	free(savefile);
     }
     wiz = wizard(username);
-    signal(SIGINT, diesig);
 }
 
 static const char *getutmp(void)

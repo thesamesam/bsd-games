@@ -62,9 +62,9 @@ const char *const objdes[NUMOFOBJECTS] = {
     "A planet is nearby.",
     "The ground is charred here.",
     "There is a thermonuclear warhead here.",
-    "The fragile, beautiful young goddess lies here.  You murdered her horribly.",
-    "The old-timer is lying here.  He is dead.",
-    "The native girl's body is lying here.",
+    NULL,	// Dead goddess (disabled)
+    NULL,	// Dead old-timer (disabled)
+    NULL,	// Dead native girl (disabled)
     "A native girl is sitting here.",
     "A gorgeous white stallion is standing here.",
     "The keys are in the ignition.",

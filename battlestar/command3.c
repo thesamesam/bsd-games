@@ -148,125 +148,58 @@ void drink(void)
 
 int shoot(void)
 {
-    int firstnumber, value;
-
-    firstnumber = wordnumber;
+    int firstnumber = wordnumber;
     if (!testbit(inven, LASER))
 	puts("You aren't holding a blaster.");
     else {
 	wordnumber++;
 	while (wordnumber <= wordcount && wordtype[wordnumber] == OBJECT) {
-	    value = wordvalue[wordnumber];
+	    int value = wordvalue[wordnumber];
 	    printf("%s:\n", objsht[value]);
 	    if (testbit(location[position].objects, value)) {
 		clearbit(location[position].objects, value);
-		ourtime++;
+		++ourtime;
 		printf("The %s explode%s\n", objsht[value], (is_plural_object(value) ? "." : "s."));
 		if (value == BOMB)
 		    die();
 	    } else
 		printf("I don't see any %s around here.\n", objsht[value]);
 	    if (wordnumber < wordcount - 1 && wordvalue[++wordnumber] == AND)
-		wordnumber++;
+		++wordnumber;
 	    else
 		return firstnumber;
 	}
-	// special cases with their own returns
+	// The blaster's only useful purpose is to destroy locked doors.
 	if (wordnumber <= wordcount && wordtype[wordnumber] == NOUNS) {
-	    ourtime++;
-	    switch (wordvalue[wordnumber]) {
-
-		case DOOR:
-		    switch (position) {
-			case 189:
-			case 231:
-			    puts("The door is unhinged.");
-			    location[189].north = 231;
-			    location[231].south = 189;
-			    whichway(location[position]);
-			    break;
-			case 30:
-			    puts("The wooden door splinters.");
-			    location[30].west = 25;
-			    whichway(location[position]);
-			    break;
-			case 31:
-			    puts("The laser blast has no effect on the door.");
-			    break;
-			case 20:
-			    puts("The blast hits the door and it explodes into flame.  The magnesium burns");
-			    puts("so rapidly that we have no chance to escape.");
-			    die();
-			default:
-			    puts("Nothing happens.");
-		    }
-		    break;
-
-		case NORMGOD:
-		    if (testbit(location[position].objects, BATHGOD)) {
-			puts("The goddess is hit in the chest and splashes back against the rocks.");
-			puts("Dark blood oozes from the charred blast hole.  Her naked body floats in the");
-			puts("pools and then off downstream.");
-			clearbit(location[position].objects, BATHGOD);
-			setbit(location[180].objects, DEADGOD);
-			power += 5;
-			ego -= 10;
-			notes[JINXED]++;
-		    } else if (testbit(location[position].objects, NORMGOD)) {
-			puts("The blast catches the goddess in the stomach, knocking her to the ground.");
-			puts("She writhes in the dirt as the agony of death taunts her.");
-			puts("She has stopped moving.");
-			clearbit(location[position].objects, NORMGOD);
-			setbit(location[position].objects, DEADGOD);
-			power += 5;
-			ego -= 10;
-			notes[JINXED]++;
-			if (wintime)
-			    live();
+	    ++ourtime;
+	    if (wordvalue[wordnumber] == DOOR) {
+		switch (position) {
+		    case 189:
+		    case 231:
+			puts("The door is unhinged.");
+			location[189].north = 231;
+			location[231].south = 189;
+			whichway(location[position]);
 			break;
-		    } else
-			puts("I don't see any goddess around here.");
-		    break;
-
-		case TIMER:
-		    if (testbit(location[position].objects, TIMER)) {
-			puts("The old man slumps over the bar.");
-			power++;
-			ego -= 2;
-			notes[JINXED]++;
-			clearbit(location[position].objects, TIMER);
-			setbit(location[position].objects, DEADTIME);
-		    } else
-			puts("What old-timer?");
-		    break;
-		case MAN:
-		    if (testbit(location[position].objects, MAN)) {
-			puts("The man falls to the ground with blood pouring all over his white suit.");
-			puts("Your fantasy is over.");
+		    case 30:
+			puts("The wooden door splinters.");
+			location[30].west = 25;
+			whichway(location[position]);
+			break;
+		    case 31:
+			puts("The laser blast has no effect on the door.");
+			break;
+		    case 20:
+			puts("The blast hits the door and it explodes into flame.  The magnesium burns");
+			puts("so rapidly that we have no chance to escape.");
 			die();
-		    } else
-			puts("What man?");
-		    break;
-		case NATIVE:
-		    if (testbit(location[position].objects, NATIVE)) {
-			puts("The girl is blown backwards several feet and lies in a pool of blood.");
-			clearbit(location[position].objects, NATIVE);
-			setbit(location[position].objects, DEADNATIVE);
-			power += 5;
-			ego -= 2;
-			notes[JINXED]++;
-		    } else
-			puts("There is no girl here.");
-		    break;
-		case -1:
-		    puts("Shoot what?");
-		    break;
-
-		default:
-		    printf("You can't shoot the %s.\n", objsht[wordvalue[wordnumber]]);
-	    }
+		    default:
+			puts("Nothing happens.");
+		}
+	    } else
+		puts("Shoot what?");
 	} else
-	    puts("You must be a looney.");
+	    puts("Shoot what?");
     }
     return firstnumber;
 }

@@ -3,11 +3,11 @@
 
 #include "extern.h"
 
-void kiss(void)
+void kiss (void)
 {
     while (wordtype[++wordnumber] != NOUNS && wordnumber <= wordcount)
 	continue;
-    // The goddess must be "taken" first if bathing.
+    // The goddess must be "taken" first if bathing. This will remove her from the bath and move her into the throne room.
     if (wordtype[wordnumber] == NOUNS && wordvalue[wordnumber] == NORMGOD && testbit(location[position].objects, BATHGOD)) {
 	wordvalue[--wordnumber] = TAKE;
 	cypher();
@@ -84,7 +84,7 @@ void love(void)
 	}
 	if (testbit(location[position].objects, wordvalue[wordnumber])) {
 	    if (wordvalue[wordnumber] == NATIVE) {
-		puts("The girl is easy prey. She peels off her sarong and indulges you.");
+		puts("The girl peels off her sarong and indulges you.");
 		power++;
 		pleasure += 5;
 		printf("Girl:\n");
@@ -250,13 +250,9 @@ int give(void)
 			puts("and restored the goddess to her throne. The entire island celebrates with");
 			puts("dancing and spring feasts. As a measure of her gratitude, the goddess weds you");
 			puts("in the late summer and crowns you Prince Liverwort, Lord of Fungus.");
-			puts("\nBut, as the year wears on and autumn comes along, you become restless and");
-			puts("yearn for adventure. The goddess, too, realizes that the marriage can't last.");
-			puts("She becomes bored and takes several more natives as husbands. One evening,");
-			puts("after having been out drinking with the girls, she kicks the throne particularly");
-			puts("hard and wakes you up. (If you want to win this game, you're going to have to\nshoot her!)");
 			clearbit(location[position].objects, MEDALION);
 			wintime = ourtime;
+			live();
 		    }
 		}
 		break;

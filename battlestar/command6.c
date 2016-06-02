@@ -39,24 +39,19 @@ int land(void)
 
 void die(void)
 {			       // endgame
-    printf("bye.\nYour rating was %s.\n", rate());
-    post(' ');
-    exit(0);
-}
-
-void diesig (int dummy UNUSED)
-{
-    die();
+    printf ("bye.\nYour rating was %s.\n", rate());
+    post (' ');
+    exit (EXIT_SUCCESS);
 }
 
 void live (void)
 {
-    puts("\nYou win!");
-    post('!');
-    exit(0);
+    puts ("\nYou win!");
+    post ('!');
+    exit (EXIT_SUCCESS);
 }
 
-static FILE *score_fp;
+static FILE* score_fp = NULL;
 
 void open_score_file (void)
 {
