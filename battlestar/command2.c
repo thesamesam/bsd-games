@@ -243,7 +243,7 @@ void ravage(void)
 		ego -= 10;
 		wordnumber--;
 		murder();
-		if (rnd(100) < 50) {
+		if (nrand(100) < 50) {
 		    puts("Her screams have attracted attention.  I think we are surrounded.");
 		    setbit(location[ahead].objects, WOODSMAN);
 		    setbit(location[ahead].objects, DEADWOOD);

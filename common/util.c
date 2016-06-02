@@ -32,3 +32,11 @@ unsigned nrand (unsigned r)
 {
     return rand() % r;
 }
+
+// Return current time in milliseconds
+uint64_t time_ms (void)
+{
+    struct timespec now;
+    clock_gettime (CLOCK_REALTIME, &now);
+    return now.tv_sec*1000 + now.tv_nsec/1000000;
+}

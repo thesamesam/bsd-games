@@ -55,13 +55,13 @@ void news(void)
     int n;
     int hurt;
 
-    if (ourtime > 30 && position < 32) {
+    if (ourtime > 64 && position < 32) {
 	puts("An explosion of shuddering magnitude splinters bulkheads and");
 	puts("ruptures the battlestar's hull.  You are sucked out into the");
 	puts("frozen void of space and killed.");
 	die();
     }
-    if (ourtime > 20 && position < 32)
+    if (ourtime > 48 && position < 32)
 	puts("Explosions rock the battlestar.");
     if (ourtime > snooze) {
 	puts("You drop from exhaustion...");
@@ -96,7 +96,7 @@ void news(void)
 	}
     if (testbit(location[position].objects, ELF)) {
 	printf("%s\n", objdes[ELF]);
-	fight(ELF, rnd(30));
+	fight(ELF, nrand(30));
     }
     if (testbit(location[position].objects, DARK)) {
 	printf("%s\n", objdes[DARK]);
@@ -144,7 +144,7 @@ void news(void)
 	fflush(stdout);
 	sleep(1);
 	if (!visual()) {
-	    hurt = rnd(NUMOFINJURIES);
+	    hurt = nrand(NUMOFINJURIES);
 	    injuries[hurt] = 1;
 	    puts("Laser blasts sear the cockpit, and the alien veers off in a victory roll.");
 	    puts("The viper shudders under a terrible explosion.");
@@ -207,11 +207,11 @@ void crash(void)
 	}
 	notes[LAUNCHED] = 0;
 	setbit(location[position].objects, CRASH);
-	ourtime += rnd(CYCLE / 4);
+	ourtime += nrand(CYCLE / 4);
 	puts("The viper explodes into the ground and you lose consciousness...");
 	zzz();
-	hurt1 = rnd(NUMOFINJURIES - 2) + 2;
-	hurt2 = rnd(NUMOFINJURIES - 2) + 2;
+	hurt1 = nrand(NUMOFINJURIES - 2) + 2;
+	hurt2 = nrand(NUMOFINJURIES - 2) + 2;
 	injuries[hurt1] = 1;
 	injuries[hurt2] = 1;
 	injuries[0] = 1;       // abrasions

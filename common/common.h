@@ -47,6 +47,7 @@ extern "C" {
 uint16_t bsdsum (const void* v, size_t n, uint16_t sum);
 unsigned nrand (unsigned r);
 void srandrand (void);
+uint64_t time_ms (void);
 
 // ui.c
 void initialize_curses (void);

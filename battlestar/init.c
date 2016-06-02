@@ -2,6 +2,7 @@
 // This file is free software, distributed under the BSD license.
 
 #include "extern.h"
+#include <curses.h>
 
 static int checkout(const char *);
 static const char *getutmp(void);
@@ -16,7 +17,8 @@ void initialize(const char *filename)
     puts("First Adventure game written by His Lordship, the honorable");
     puts("Admiral D.W. Riggle\n");
     location = dayfile;
-    srandrand();
+    initialize_curses();
+    endwin();
     username = getutmp();
     wordinit();
     if (filename == NULL) {

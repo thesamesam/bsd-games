@@ -9,7 +9,6 @@
 #define BITS (8 * sizeof (int))
 
 #define OUTSIDE		(position > 68 && position < 246 && position != 218)
-#define rnd(x)		(rand() % (x))
 #define max(a,b)	((a) < (b) ? (b) : (a))
 #define testbit(array, index)	(array[index/BITS] & (1 << (index % BITS)))
 #define setbit(array, index)	(array[index/BITS] |= (1 << (index % BITS)))

@@ -123,14 +123,14 @@ int zzz(void)
 	    } else
 		notes[LAUNCHED] = 0;
 	}
-	if (OUTSIDE && rnd(100) < 50) {
+	if (OUTSIDE && nrand(100) < 50) {
 	    puts("You are awakened abruptly by the sound of someone nearby.");
-	    switch (rnd(4)) {
+	    switch (nrand(4)) {
 		case 0:
 		    if (ucard(inven)) {
-			n = rnd(NUMOFOBJECTS);
+			n = nrand(NUMOFOBJECTS);
 			while (!testbit(inven, n))
-			    n = rnd(NUMOFOBJECTS);
+			    n = nrand(NUMOFOBJECTS);
 			clearbit(inven, n);
 			if (n != AMULET && n != MEDALION && n != TALISMAN)
 			    setbit(location[position].objects, n);
