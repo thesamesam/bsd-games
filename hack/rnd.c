@@ -5,28 +5,25 @@
 #include "hack.h"
 #include "extern.h"
 
-#define RND(x)	((rand()>>3) % x)
-
 int rn1(int x, int y)
 {
-    return RND(x) + y;
+    return nrand(x) + y;
 }
 
 int rn2(int x)
 {
-    return RND(x);
+    return nrand(x);
 }
 
 int rnd(int x)
 {
-    return RND(x) + 1;
+    return nrand(x) + 1;
 }
 
 int d(int n, int x)
 {
     int tmp = n;
-
     while (n--)
-	tmp += RND(x);
+	tmp += nrand(x);
     return tmp;
 }

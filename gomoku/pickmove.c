@@ -140,7 +140,7 @@ int better(const struct spotstr *sp, const struct spotstr *sp1, int us)
     if (sp->s_wval != sp1->s_wval)
 	return 0;
 
-    return rand() & 1;
+    return nrand(2);
 }
 
 static int curcolor;	// implicit parameter to makecombo()

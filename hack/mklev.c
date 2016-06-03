@@ -5,8 +5,8 @@
 #include "hack.h"
 #include "extern.h"
 
-#define somex() ((rand()%(croom->hx-croom->lx+1))+croom->lx)
-#define somey() ((rand()%(croom->hy-croom->ly+1))+croom->ly)
+#define somex() (nrand(croom->hx-croom->lx+1)+croom->lx)
+#define somey() (nrand(croom->hy-croom->ly+1)+croom->ly)
 
 #include "mkroom.h"
 enum { XLIM = 4, YLIM = 3 };	// define minimum required space around a room

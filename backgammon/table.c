@@ -125,9 +125,9 @@ int checkmove(int ist)
 	    goto domove;
     }
     if (n == -1 && mvl >= mvlim)
-	return (0);
+	return 0;
     if (n == -1 && mvl < mvlim - 1)
-	return (-4);
+	return -4;
 
     if (n == -6) {
 	if (!tflag) {
@@ -150,7 +150,7 @@ int checkmove(int ist)
 	goto dochar;
     }
     if (n != -5)
-	return (n);
+	return n;
     writec('\007');
     goto dochar;
 }
@@ -238,14 +238,14 @@ int dotable(char c, int i)
 	    }
 
 	    if (!test || a != '\n')
-		return (atmata[i].newst);
+		return atmata[i].newst;
 	    else
-		return (-6);
+		return -6;
 	}
 	i++;
     }
 
-    return (-5);
+    return -5;
 }
 
 int rsetbrd(void)
@@ -258,5 +258,5 @@ int rsetbrd(void)
 	p[i] = g[i] = -1;
     for (j = 0; j < ncin; j++)
 	n = dotable(cin[j], n);
-    return (n);
+    return n;
 }

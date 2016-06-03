@@ -36,7 +36,7 @@ int count(void)
     for (i = 0; i < 6; i++)
 	for (j = 0; j < 6; j++)
 	    total += table[i][j];
-    return (total);
+    return total;
 }
 
 int canhit(int i, int c)
@@ -69,5 +69,5 @@ int canhit(int i, int c)
 	if (j == b && menstuck > 1)
 	    break;
     }
-    return (count());
+    return count();
 }

@@ -22,7 +22,7 @@ extern int nobells;		// -b, don't ring bell before Signal
 extern gid_t gid;
 extern gid_t egid;
 
-#define dieroll()	((rand()) % 6 + 1)
+#define dieroll()	(nrand(6)+1)
 #define sqr(a)		((a) * (a))
 #define min(a,b)	((a) < (b) ? (a) : (b))
 

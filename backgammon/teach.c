@@ -92,7 +92,7 @@ int main(int argc UNUSED, char **argv)
 	}
     tutor();
     // NOTREACHED
-    return (0);
+    return 0;
 }
 
 void leave(void)

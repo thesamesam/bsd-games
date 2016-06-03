@@ -141,7 +141,7 @@ void update(int dummy UNUSED)
     // Check every other update.  Actually, only add on even updates.
     // Otherwise, prop jobs show up *on* entrance.  Remember that
     // we don't update props on odd updates.
-    if ((rand() % sp->newplane_time) == 0)
+    if (nrand (sp->newplane_time) == 0)
 	addplane();
 
 #ifdef SYSV
@@ -229,10 +229,10 @@ int addplane(void)
     memset(&p, 0, sizeof(p));
 
     p.status = S_MARKED;
-    p.plane_type = rand() % 2;
+    p.plane_type = nrand(2);
 
     num_starts = sp->num_exits + sp->num_airports;
-    rnd = rand() % num_starts;
+    rnd = nrand (num_starts);
 
     if (rnd < sp->num_exits) {
 	p.dest_type = T_EXIT;
@@ -245,7 +245,7 @@ int addplane(void)
     // loop until we get a plane not near another
     for (i = 0; i < num_starts; i++) {
 	// loop till we get a different start point
-	while ((rnd2 = rand() % num_starts) == rnd);
+	while ((rnd2 = nrand (num_starts)) == rnd);
 	if (rnd2 < sp->num_exits) {
 	    p.orig_type = T_EXIT;
 	    p.orig_no = rnd2;

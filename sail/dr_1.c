@@ -378,7 +378,7 @@ int next(void)
 	return -1;
     }
     Write(W_TURN, SHIP(0), turn, 0, 0, 0);
-    if (turn % 7 == 0 && (dieroll() >= cc->windchange || !windspeed)) {
+    if (turn % 7 == 0 && (dieroll() >= (unsigned) cc->windchange || !windspeed)) {
 	switch (dieroll()) {
 	    case 1:
 		winddir = 1;

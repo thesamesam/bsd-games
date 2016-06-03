@@ -64,6 +64,7 @@
 // Columns 1 to 10 of rows 1 to 20 are the actual playing area, where
 // shapes appear.
 enum {
+    NSHAPES	= 7,
     S_COLS	= 80,
     S_ROWS	= 24,
     B_COLS	= 12,
@@ -362,7 +363,7 @@ static const struct shape shapes[] = {
 static inline const struct shape* rotateshape (void)
     { return &shapes[_curshape->rot]; }
 static inline const struct shape* randshape (void)
-    { return &shapes[rand() % 7]; }
+    { return &shapes[nrand(NSHAPES)]; }
 
 // Return true iff the given shape fits in the given position,
 // taking the current board into account.

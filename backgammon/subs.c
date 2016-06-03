@@ -39,7 +39,7 @@ int addbuf(int c)
 	buffnum = 0;
     }
     outbuff[buffnum] = c;
-    return (0);
+    return 0;
 }
 
 void buflush(void)
@@ -68,14 +68,14 @@ int readc(void)
 	getout(0);
 #endif
     if (c == '\033' || c == '\015')
-	return ('\n');
+	return '\n';
     if (cflag)
-	return (c);
+	return c;
     if (c == '\014')
-	return ('R');
+	return 'R';
     if (c >= 'a' && c <= 'z')
-	return (c & 0137);
-    return (c);
+	return c & 0137;
+    return c;
 }
 
 void writec(char c)
@@ -200,9 +200,9 @@ int quit(void)
 		save(0);
 	}
 	cturn = 0;
-	return (1);
+	return 1;
     }
-    return (0);
+    return 0;
 }
 
 int yorn(char special)		// special response
@@ -213,7 +213,7 @@ int yorn(char special)		// special response
     i = 1;
     while ((c = readc()) != 'Y' && c != 'N') {
 	if (special && c == special)
-	    return (2);
+	    return 2;
 	if (i) {
 	    if (special) {
 		writel("  (Y, N, or ");
@@ -231,7 +231,7 @@ int yorn(char special)		// special response
 	writel("  No.\n");
     if (tflag)
 	buflush();
-    return (c == 'Y');
+    return c == 'Y';
 }
 
 void wrhit(int i)
@@ -439,7 +439,7 @@ void roll(void)
 	} else
 	    writec('\n');
     }
-    D0 = rnum(6) + 1;
-    D1 = rnum(6) + 1;
+    D0 = nrand(6) + 1;
+    D1 = nrand(6) + 1;
     d0 = 0;
 }

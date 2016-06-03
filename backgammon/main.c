@@ -475,5 +475,5 @@ int main(int argc UNUSED, char **argv)
     // leave peacefully
     getout(0);
     // NOTREACHED
-    return (0);
+    return 0;
 }

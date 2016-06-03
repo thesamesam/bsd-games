@@ -128,8 +128,8 @@ int main (int argc, char **argv)
     }
 
     if (level == HARD) {
-	bat_num += ((rand() % (room_num / 2)) + 1);
-	pit_num += ((rand() % (room_num / 2)) + 1);
+	bat_num += nrand(room_num/2) + 1;
+	pit_num += nrand(room_num/2) + 1;
     }
 
     if (bat_num > room_num / 2) {
@@ -253,7 +253,7 @@ static int move_to (const char* room_number)
 
     if (!tunnel_available) {
 	printf("*Oof!*  (You hit the wall)\n");
-	if (rand() % 6 == 1) {
+	if (!nrand(6)) {
 	    printf("Your colorful comments awaken the wumpus!\n");
 	    move_wump();
 	    if (wumpus_loc == player_loc) {
@@ -266,7 +266,7 @@ static int move_to (const char* room_number)
 
     // now let's move into that room and check it out for dangers
     if (next_room == room_num + 1)
-	jump(next_room = (rand() % room_num) + 1);
+	jump(next_room = nrand(room_num) + 1);
 
     player_loc = next_room;
     for (;;) {
@@ -275,7 +275,7 @@ static int move_to (const char* room_number)
 	    return 1;
 	}
 	if (cave[next_room].has_a_pit) {
-	    if (rand() % 12 < 2) {
+	    if (nrand(12) < 2) {
 		pit_survive();
 		return 0;
 	    } else {
@@ -286,7 +286,7 @@ static int move_to (const char* room_number)
 
 	if (cave[next_room].has_a_bat) {
 	    printf("*flap*  *flap*  *flap*  (humongous bats pick you up and move you%s!)\n", just_moved_by_bats ? " again" : "");
-	    next_room = player_loc = (rand() % room_num) + 1;
+	    next_room = player_loc = nrand(room_num) + 1;
 	    just_moved_by_bats = 1;
 	}
 
@@ -331,11 +331,11 @@ static int shoot (char *room_list)
 	if (ok) {
 	    if (next > room_num) {
 		printf("A faint gleam tells you the arrow has gone through a magic tunnel!\n");
-		arrow_location = (rand() % room_num) + 1;
+		arrow_location = nrand(room_num) + 1;
 	    } else
 		arrow_location = next;
 	} else {
-	    link = (rand() % link_num);
+	    link = nrand (link_num);
 	    if (link == player_loc)
 		printf("*thunk*  The arrow can't find a way from %d to %d and flys back into\nyour room!\n", arrow_location, next);
 	    else if (cave[arrow_location].tunnel[link] > room_num)
@@ -345,7 +345,7 @@ static int shoot (char *room_list)
 	    arrow_location = cave[arrow_location].tunnel[link];
 	    break;
 	}
-	chance = rand() % 10;
+	chance = nrand(10);
 	if (roomcnt == 3 && chance < 2) {
 	    printf("Your bowstring breaks!  *twaaaaaang*\nThe arrow is weakly shot and can go no further!\n");
 	    break;
@@ -371,17 +371,14 @@ static int shoot (char *room_list)
 	no_arrows();
 	return 1;
     }
-
     {
 	// each time you shoot, it's more likely the wumpus moves
 	static int lastchance = 2;
-
-	if (rand() % level == EASY ? 12 : 9 < (lastchance += 2)) {
+	if (nrand(level) == EASY ? 12 : 9 < (lastchance += 2)) {
 	    move_wump();
 	    if (wumpus_loc == player_loc)
 		wump_kill();
-	    lastchance = rand() % 3;
-
+	    lastchance = nrand(3);
 	}
     }
     return 0;
@@ -418,7 +415,7 @@ static void cave_init(void)
     // To keep the cave connected, we need the greatest common divisor
     // of (delta + 1) and room_num to be 1.
     do {
-	delta = (rand() % (room_num - 1)) + 1;
+	delta = nrand(room_num-1) + 1;
     } while (gcd(room_num, delta + 1) != 1);
 
     for (i = 1; i <= room_num; ++i) {
@@ -431,13 +428,13 @@ static void cave_init(void)
 	for (j = 2; j < link_num; j++) {
 	    if (cave[i].tunnel[j] != -1)
 		continue;
-	  try_again:link = (rand() % room_num) + 1;
+	  try_again:link = nrand(room_num) + 1;
 	    // skip duplicates
 	    for (k = 0; k < j; k++)
 		if (cave[i].tunnel[k] == link)
 		    goto try_again;
 	    cave[i].tunnel[j] = link;
-	    if (rand() % 2 == 1)
+	    if (!nrand(2))
 		continue;
 	    for (k = 0; k < link_num; ++k) {
 		// if duplicate, skip it
@@ -484,7 +481,7 @@ static void initialize_things_in_cave(void)
     // place some bats, pits, the wumpus, and the player.
     for (i = 0; i < bat_num; ++i) {
 	do {
-	    loc = (rand() % room_num) + 1;
+	    loc = nrand(room_num) + 1;
 	} while (cave[loc].has_a_bat);
 	cave[loc].has_a_bat = 1;
 #ifndef NDEBUG
@@ -495,7 +492,7 @@ static void initialize_things_in_cave(void)
 
     for (i = 0; i < pit_num; ++i) {
 	do {
-	    loc = (rand() % room_num) + 1;
+	    loc = nrand(room_num) + 1;
 	} while (cave[loc].has_a_pit && cave[loc].has_a_bat);
 	cave[loc].has_a_pit = 1;
 #ifndef NDEBUG
@@ -504,14 +501,14 @@ static void initialize_things_in_cave(void)
 #endif
     }
 
-    wumpus_loc = (rand() % room_num) + 1;
+    wumpus_loc = nrand(room_num) + 1;
 #ifndef NDEBUG
     if (debug)
 	printf("<wumpus in room %d>\n", loc);
 #endif
 
     do {
-	player_loc = (rand() % room_num) + 1;
+	player_loc = nrand(room_num) + 1;
     } while (player_loc == wumpus_loc || (level == HARD ? (link_num / room_num < 0.4 ? wump_nearby() : 0) : 0));
 }
 
@@ -575,7 +572,7 @@ static int wump_nearby(void)
 
 static void move_wump(void)
 {
-    wumpus_loc = cave[wumpus_loc].tunnel[rand() % link_num];
+    wumpus_loc = cave[wumpus_loc].tunnel[nrand(link_num)];
 }
 
 static int int_compare(const void *a, const void *b)

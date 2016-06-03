@@ -93,5 +93,5 @@ int text(const char *const *t)
 	t++;
     }
     fixtty(&bg_raw);
-    return (0);
+    return 0;
 }

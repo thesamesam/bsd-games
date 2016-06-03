@@ -125,9 +125,9 @@ void game(void)
 		msg(quiet ? "Cut for crib? " : "Cut to see whose crib it is -- low card wins? ");
 		cribbage_getline();
 	    }
-	    i = (rand() >> 4) % CARDS;	// random cut
+	    i = nrand(CARDS);	// random cut
 	    do {	       // comp cuts deck
-		j = (rand() >> 4) % CARDS;
+		j = nrand(CARDS);
 	    } while (j == i);
 	    addmsg(quiet ? "You cut " : "You cut the ");
 	    msgcard(deck[i], false);
@@ -272,7 +272,7 @@ int cut (bool mycrib, int pos)
 	    msg(quiet ? "Cut the deck? " : "How many cards down do you wish to cut the deck? ");
 	    cribbage_getline();
 	}
-	i = (rand() >> 4) % (CARDS - pos);
+	i = nrand (CARDS - pos);
 	turnover = deck[i + pos];
 	addmsg(quiet ? "You cut " : "You cut the ");
 	msgcard(turnover, false);
@@ -282,7 +282,7 @@ int cut (bool mycrib, int pos)
 	    win = chkscr(&cscore, 2);
 	}
     } else {
-	i = (rand() >> 4) % (CARDS - pos) + pos;
+	i = nrand (CARDS - pos) + pos;
 	turnover = deck[i];
 	addmsg(quiet ? "I cut " : "I cut the ");
 	msgcard(turnover, false);

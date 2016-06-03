@@ -838,7 +838,7 @@ const char *descrstatus(struct player *playerp)
 double drandom(void)
 {
     // return double 0..1
-    return (double) (rand() & 0x7fff) / 32768.0;
+    return (double) nrand(SHRT_MAX+1) / SHRT_MAX;
 }
 
 void collecttaxes(double gold, double gems)

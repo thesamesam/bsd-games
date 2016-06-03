@@ -661,11 +661,11 @@ int getcaps(const char *s)
     if (ND)
 	lND = strlen(ND);
     if (LI < 24 || CO < 72 || !(CL && UP && ND))
-	return (0);
+	return 0;
     linect = (int *) calloc(LI + 1, sizeof(int));
     if (linect == NULL) {
 	write(2, "\r\nOut of memory!\r\n", 18);
 	getout(0);
     }
-    return (1);
+    return 1;
 }

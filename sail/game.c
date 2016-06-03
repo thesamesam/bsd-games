@@ -47,5 +47,5 @@ int maxmove(struct ship *ship, int dir, int fs)
 	Move -= WET[windspeed][ship->specs->class - 1].A;
     Move -= riggone;
     Move = Move < 0 ? 0 : Move;
-    return (Move);
+    return Move;
 }

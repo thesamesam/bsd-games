@@ -37,7 +37,7 @@ int liqloc(int);
 int bitset(int, int);
 int forced(int);
 int dark(void);
-int pct(int);
+bool pct(unsigned);
 int fdwarf(void);
 int march(void);
 int mback(void);
@@ -57,7 +57,6 @@ int trfeed(void);
 int trfill(void);
 void closing(void);
 void caveclose(void);
-int ran(int);
 
 // vocab.c
 void dstroy(int);

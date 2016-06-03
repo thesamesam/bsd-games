@@ -23,10 +23,10 @@ void makedeck (CARD d[])
 // see Knuth, vol. 2, page 125.
 void shuffle (CARD d[])
 {
-    for (int j = CARDS, k; j > 0; --j) {
-	k = (rand() >> 4) % j;	// random 0 <= k < j
-	CARD c = d[j - 1];	// exchange (j - 1) and k
-	d[j - 1] = d[k];
+    for (unsigned j = CARDS; j; --j) {
+	unsigned k = nrand(j);	// random 0 <= k < j
+	CARD c = d[j-1];	// exchange (j - 1) and k
+	d[j-1] = d[k];
 	d[k] = c;
     }
 }

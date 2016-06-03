@@ -50,5 +50,5 @@ int mensent(struct ship *from, struct ship *to, int *crew, struct ship **capture
 	c3 = *captured == 0 ? crew[2] : *pc;
     } else
 	c1 = c2 = c3 = 0;
-    return (c1 + c2 + c3);
+    return c1 + c2 + c3;
 }

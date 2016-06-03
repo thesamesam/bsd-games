@@ -58,9 +58,9 @@ int dark (void)
     return cond[loc]%2 == 0 && (!prop[lamp] || !here(lamp));
 }
 
-int pct (int n)
+bool pct (unsigned n)
 {
-    return ran(100) < n;
+    return nrand(100) < n;
 }
 
 int fdwarf(void)
@@ -88,7 +88,7 @@ int fdwarf(void)
 	    return 2000;
 	dflag = 2;
 	for (i = 1; i <= 2; i++) {
-	    j = 1 + ran(5);
+	    j = 1 + nrand(5);
 	    if (pct(50) && saved == -1)
 		dloc[j] = 0;   // 6001
 	}
@@ -118,7 +118,7 @@ int fdwarf(void)
 	tk[j] = odloc[i];      // 6016
 	if (j >= 2)
 	    j--;
-	j = 1 + ran(j);
+	j = 1 + nrand(j);
 	odloc[i] = dloc[i];
 	dloc[i] = tk[j];
 	dseen[i] = (dseen[i] && loc >= 15) || (dloc[i] == loc || odloc[i] == loc);
@@ -170,7 +170,7 @@ int fdwarf(void)
 	attack++;
 	if (knfloc >= 0)
 	    knfloc = loc;
-	if (ran(1000) < 95 * (dflag - 2))
+	if (nrand(1000) < 95u * (dflag - 2))
 	    stick++;
     }			       // 6030
     if (dtotal == 0)
@@ -757,7 +757,7 @@ int trtoss(void)
     for (i = 1; i <= 5; i++) {
 	if (dloc[i] == loc) {
 	    spk = 48;	       // 9172
-	    if (ran(3) == 0 || saved != -1)
+	    if (nrand(3) == 0 || saved != -1)
 	  l9175:{
 		rspeak(spk);
 		drop(axe, loc);
@@ -922,9 +922,4 @@ void caveclose(void)
 	    dstroy(i);
     rspeak(132);
     closed = true;
-}
-
-int ran (int range)
-{
-    return rand() % range;
 }

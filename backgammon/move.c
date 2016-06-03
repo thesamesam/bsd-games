@@ -207,7 +207,7 @@ static struct BOARD *bsave(void)
 	now->b_st[i] = p[i];
 	now->b_fn[i] = g[i];
     }
-    return (now);
+    return now;
 }
 
 static void binsert(struct BOARD *new)	// item to insert
@@ -260,9 +260,9 @@ static int bcomp(struct BOARD *a, struct BOARD *b)
     for (i = 0; i < 26; i++) { // compare boards
 	result = cturn * (aloc[i] - bloc[i]);
 	if (result)
-	    return (result);   // found inequality
+	    return result;   // found inequality
     }
-    return (0);		       // same position
+    return 0;		       // same position
 }
 
 static void mvcheck(struct BOARD *incumbent, struct BOARD *candidate)
@@ -307,7 +307,7 @@ static struct BOARD *nextfree(void)
     }
 
     new->b_next = 0;
-    return (new);
+    return new;
 }
 
 void pickmove(void)
@@ -425,80 +425,80 @@ int movegood(void)
     int n;
 
     if (*offptr == 15)
-	return (1);
+	return 1;
     if (menoff == 15)
-	return (0);
+	return 0;
     if (race) {
 #ifndef NDEBUG
 	strcat(tests, "o");
 #endif
 	if (*offptr - menoff)
-	    return (*offptr > menoff);
+	    return *offptr > menoff;
 #ifndef NDEBUG
 	strcat(tests, "e");
 #endif
 	if (endman - em)
-	    return (endman > em);
+	    return endman > em;
 #ifndef NDEBUG
 	strcat(tests, "i");
 #endif
 	if (menin == 15)
-	    return (0);
+	    return 0;
 	if (*inptr == 15)
-	    return (1);
+	    return 1;
 #ifndef NDEBUG
 	strcat(tests, "i");
 #endif
 	if (*inptr - menin)
-	    return (*inptr > menin);
-	return (rnum(2));
+	    return *inptr > menin;
+	return nrand(2);
     } else {
 	n = barmen - abs(board[home]);
 #ifndef NDEBUG
 	strcat(tests, "c");
 #endif
-	if (abs(chance - ch) + 25 * n > rnum(150))
-	    return (n ? (n < 0) : (ch < chance));
+	if (absv(chance - ch) + 25 * n > nrand(150))
+	    return n ? n < 0 : ch < chance;
 #ifndef NDEBUG
 	strcat(tests, "o");
 #endif
 	if (*offptr - menoff)
-	    return (*offptr > menoff);
+	    return *offptr > menoff;
 #ifndef NDEBUG
 	strcat(tests, "o");
 #endif
-	if (abs(openmen - op) > 7 + rnum(12))
-	    return (openmen > op);
+	if (abs(openmen - op) > 7 + nrand(12))
+	    return openmen > op;
 #ifndef NDEBUG
 	strcat(tests, "b");
 #endif
 	if (n)
-	    return (n < 0);
+	    return n < 0;
 #ifndef NDEBUG
 	strcat(tests, "e");
 #endif
-	if (abs(endman - em) > rnum(2))
-	    return (endman > em);
+	if (abs(endman - em) > nrand(2))
+	    return endman > em;
 #ifndef NDEBUG
 	strcat(tests, "f");
 #endif
-	if (abs(frc - oldfrc) > rnum(2))
-	    return (frc < oldfrc);
+	if (abs(frc - oldfrc) > nrand(2))
+	    return frc < oldfrc;
 #ifndef NDEBUG
 	strcat(tests, "p");
 #endif
-	if (abs(n = pt - points) > rnum(4))
-	    return (n > 0);
+	if (abs(n = pt - points) > nrand(4))
+	    return n > 0;
 #ifndef NDEBUG
 	strcat(tests, "i");
 #endif
 	if (*inptr - menin)
-	    return (*inptr > menin);
+	    return *inptr > menin;
 #ifndef NDEBUG
 	strcat(tests, "f");
 #endif
-	if (abs(frp - oldfrp) > rnum(2))
-	    return (frp > oldfrp);
-	return (rnum(2));
+	if (abs(frp - oldfrp) > nrand(2))
+	    return frp > oldfrp;
+	return nrand(2);
     }
 }

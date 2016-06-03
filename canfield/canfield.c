@@ -446,20 +446,15 @@ void initdeck(struct cardtype *deck[])
 // procedure to shuffle the deck
 void shuffle(struct cardtype *deck[])
 {
-    int i, j;
-    struct cardtype *temp;
-
-    for (i = 0; i < decksize; i++) {
+    for (unsigned i = 0; i < decksize; ++i) {
 	deck[i]->visible = false;
 	deck[i]->paid = false;
     }
-    for (i = decksize - 1; i >= 0; i--) {
-	j = rand() % decksize;
-	if (i != j) {
-	    temp = deck[i];
-	    deck[i] = deck[j];
-	    deck[j] = temp;
-	}
+    for (int i = decksize - 1; i >= 0; --i) {
+	unsigned j = nrand (decksize);
+	struct cardtype* t = deck[i];
+	deck[i] = deck[j];
+	deck[j] = t;
     }
 }
 

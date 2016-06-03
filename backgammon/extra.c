@@ -138,9 +138,9 @@ int dblgood(void)
 #endif
 
     // double if 2-3 moves ahead
-    if (n > 10 + rnum(7))
-	return (1);
-    return (0);
+    if ((unsigned) n > nrand(7)+10)
+	return 1;
+    return 0;
 }
 
 int freemen(int b)
@@ -149,15 +149,15 @@ int freemen(int b)
 
     odds(0, 0, 0);
     if (board[b] == 0)
-	return (0);
+	return 0;
     inc = (b == 0 ? 1 : -1);
     lim = (b == 0 ? 7 : 18);
     for (i = b + inc; i != lim; i += inc)
 	if (board[i] * inc < -1)
 	    odds(abs(b - i), 0, abs(board[b]));
     if (abs(board[b]) == 1)
-	return ((36 - count()) / 5);
-    return (count() / 5);
+	return (36 - count()) / 5;
+    return count() / 5;
 }
 
 int trapped(int n, int inc)
@@ -182,7 +182,7 @@ int trapped(int n, int inc)
 	    ct += abs(board[i]) * (36 - count());
 	}
     }
-    return (ct / 5);
+    return ct / 5;
 }
 
 int eval(void)
@@ -201,5 +201,5 @@ int eval(void)
 	j -= 25 * off[0];
     else
 	j -= 25 * (off[0] + 15);
-    return (j);
+    return j;
 }

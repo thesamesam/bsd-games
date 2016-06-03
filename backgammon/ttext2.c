@@ -146,12 +146,12 @@ int text(const char *const *txt)
 	    } else
 		writec('\n');
 	    if (i)
-		return (i);
+		return i;
 	    fixtty(&noech);
 	    if (tflag)
 		curmove(curr, 0);
 	}
     }
     fixtty(&bg_raw);
-    return (0);
+    return 0;
 }

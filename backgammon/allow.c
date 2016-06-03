@@ -71,5 +71,5 @@ int movallow(void)
 	    i++;
     }
     movback(i);
-    return (iold > i ? iold : i);
+    return iold > i ? iold : i;
 }

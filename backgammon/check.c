@@ -72,19 +72,19 @@ int movokay(int mv)
 	    moverr(i);
 	    curmove(20, 0);
 	    writel("Attempt to move to same location.\n");
-	    return (0);
+	    return 0;
 	}
 	if (cturn * (g[i] - p[i]) < 0) {
 	    moverr(i);
 	    curmove(20, 0);
 	    writel("Backwards move.\n");
-	    return (0);
+	    return 0;
 	}
 	if (abs(board[bar]) && p[i] != bar) {
 	    moverr(i);
 	    curmove(20, 0);
 	    writel("Men still on bar.\n");
-	    return (0);
+	    return 0;
 	}
 	int m = makmove(i);
 	if (m) {
@@ -95,8 +95,8 @@ int movokay(int mv)
 		case 3: writel("Destination occupied.\n"); break;
 		case 4: writel("Can't remove men yet.\n"); break;
 	    }
-	    return (0);
+	    return 0;
 	}
     }
-    return (1);
+    return 1;
 }
