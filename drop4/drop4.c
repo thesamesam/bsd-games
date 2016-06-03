@@ -56,7 +56,6 @@
 
 #include "../config.h"
 #include <curses.h>
-#include <time.h>
 
 //----------------------------------------------------------------------
 // Definitions for Drop4.
@@ -172,7 +171,7 @@ struct highscore _scores [MAXHISCORES] = {{"",0,0,0}};
 
 static bool _paused = false;
 static unsigned _movedelay = 500;	// Delay between movements in us
-static struct timespec _nextmove = {0,0};
+static uint64_t _nextmove = 0;
 
 static const struct shape* _curshape = NULL;
 static const struct shape* _nextshape = NULL;
@@ -182,9 +181,6 @@ static WINDOW* _win = NULL;
 //----------------------------------------------------------------------
 // Local prototypes
 
-static unsigned ms_to_next_move_time (void);
-static void set_next_move_time (void);
-static struct timespec get_current_time (void);
 static unsigned get_level (void);
 static void set_level (unsigned l);
 
@@ -237,34 +233,6 @@ int main (int argc, const char* const* argv)
     return EXIT_SUCCESS;
 }
 
-static struct timespec get_current_time (void)
-{
-    struct timespec now;
-    if (0 > clock_gettime (CLOCK_REALTIME, &now)) {
-	perror ("clock_gettime");
-	exit (EXIT_FAILURE);
-    }
-    return now;
-}
-
-static void set_next_move_time (void)
-{
-    _nextmove = get_current_time();
-    _nextmove.tv_nsec += _movedelay * 1000000;
-    if (_nextmove.tv_nsec > 1000000000) {
-	_nextmove.tv_nsec -= 1000000000;
-	++_nextmove.tv_sec;
-    }
-}
-
-static unsigned ms_to_next_move_time (void)
-{
-    const struct timespec now = get_current_time();
-    int dsec = _nextmove.tv_sec - now.tv_sec;
-    int dmsec = dsec*1000 + (_nextmove.tv_nsec - now.tv_nsec)/1000000;
-    return dmsec < 0 ? 0 : dmsec;
-}
-
 static unsigned get_level (void)
 {
     return 1000/_movedelay;
@@ -280,7 +248,6 @@ static void set_level (unsigned l)
 
 static void gameloop (void)
 {
-    set_next_move_time();
     _nextshape = randshape();
     _curshape = randshape();
 
@@ -288,7 +255,8 @@ static void gameloop (void)
 	place (_curshape, y, x, 1);
 	scr_update();
 	place (_curshape, y, x, 0);
-	wtimeout (_win, ms_to_next_move_time());
+	uint64_t now = time_ms();
+	wtimeout (_win, now >= _nextmove ? 0 : _nextmove - now);
 	int c = wgetch (_win);
 	if (c == 'q' || c == KEY_F(10) || c == KEY_END)	// quit
 	    break;
@@ -317,7 +285,7 @@ static void gameloop (void)
 	    _paused = false;
 	}
 	if (c == ERR) {	// Timeout.  Move down if possible.
-	    set_next_move_time();
+	    _nextmove = time_ms() + _movedelay;
 	    if (fits_in (_curshape, y+1, x))
 		++y;
 	    else {		// Current shape has reached the bottom
