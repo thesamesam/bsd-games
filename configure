@@ -25,7 +25,7 @@ HEADERS="ncurses.h"
 LIBS="ncurses m"
 
 # First pair is used if nothing matches
-PROGS="CC=gcc CC=clang CXX=g++ CXX=clang++ AR=ar RANLIB=ranlib RANLIB=touch INSTALL=install PAGER=less PAGER=more"
+PROGS="CC=gcc CC=clang AR=ar RANLIB=ranlib RANLIB=touch INSTALL=install PAGER=less PAGER=more"
 
 # Automatic vars
 [ -d .git ] && PKG_VERSTR=`git describe --always --tags`
@@ -57,7 +57,7 @@ escpath() { echo $1 | sed 's/\//\\\//g'; }
 
 # Find the C compiler
 if [ -z "$CC" ]; then
-    for i in gcc clang cc g++ clang++ c++; do
+    for i in gcc clang cc; do
 	CC=`which $i 2>/dev/null` && break
     done
 fi

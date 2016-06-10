@@ -40,14 +40,6 @@ $O%.o:	%.c
 	@echo "    Compiling $< to assembly ..."
 	@${CC} ${CFLAGS} -S -o $@ -c $<
 
-$O%.o:	%.cc
-	@echo "    Compiling $< ..."
-	@${CXX} ${CXXFLAGS} -MMD -MT "$(<:.cc=.s) $@" -o $@ -c $<
-
-%.s:	%.cc
-	@echo "    Compiling $< to assembly ..."
-	@${CXX} ${CXXFLAGS} -S -o $@ -c $<
-
 ################ Installation ##########################################
 
 ifdef BINDIR

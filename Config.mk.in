@@ -7,7 +7,6 @@ NAME		:= @PKG_NAME@
 ################ Programs ############################################
 
 CC		:= @CC@
-CXX		:= @CXX@
 AR		:= @AR@
 RANLIB		:= @RANLIB@
 INSTALL		:= @INSTALL@
@@ -32,17 +31,13 @@ WORDLIST	:= @wordlist@
 CFLAGS		:= -Wall -Wextra -Wstrict-prototypes -Wpointer-arith \
 		   -Wcast-align -Wmissing-prototypes -Wwrite-strings \
 		   -Wcast-qual -std=c11 @CUSTOMINCDIR@
-CXXFLAGS	:= -Wall -Wextra -Woverloaded-virtual -Wpointer-arith\
-		   -Wshadow -Wredundant-decls -Wcast-qual -std=c++14 @CUSTOMINCDIR@
 LDFLAGS		:= @CUSTOMLIBDIR@
 CURSES_LIBS	:= @libncurses@
 MATH_LIBS	:= @libm@
 ifdef DEBUG
     CFLAGS	+= -O0 -ggdb3
-    CXXFLAGS	+= -O0 -ggdb3
 else
     CFLAGS	+= -Os -g0 -DNDEBUG=1
-    CXXFLAGS	+= -Os -g0 -DNDEBUG=1
     LDFLAGS	+= -s
 endif
 BUILDDIR	:= @builddir@/${NAME}
