@@ -5,190 +5,95 @@
 #include <curses.h>
 
 enum {
-    SCRNW = 80,	// assume 80 chars for the moment
-    SCRNH = 24	// assume 24 lines for the moment
+    color_None,
+    color_Field,
+    color_Human,
+    color_Computer,
+    color_HumanCursor,
+    color_ComputerCursor,
 };
 
-static int lastline;
-static char pcolor[] = "*O.?";
+extern const char* _plyr[2];
 
-extern int interactive;
-extern char *plyr[];
+static WINDOW* _w = NULL;
 
-// Initialize screen display.
-void cursinit (void)
+void initialize_field_window (void)
 {
-    initscr();
-    noecho();
-    cbreak();
-    leaveok (stdscr, true);
-}
-
-// Restore screen display.
-void cursfini (void)
-{
-    leaveok (stdscr, false);
-    move (23, 0);
-    clrtoeol();
-    refresh();
-    endwin();
-}
-
-// Initialize board display.
-void bdisp_init (void)
-{
-    // top border
-    for (int i = 1; i < BSZ1; ++i) {
-	move(0, 2 * i + 1);
-	addch(letters[i]);
-    }
-    // left and right edges
-    for (int j = BSZ1; --j > 0;) {
-	move(20 - j, 0);
-	printw("%2d ", j);
-	move(20 - j, 2 * BSZ1 + 1);
-	printw("%d ", j);
-    }
-    // bottom border
-    for (int i = 1; i < BSZ1; ++i) {
-	move(20, 2 * i + 1);
-	addch(letters[i]);
-    }
-    bdwho(0);
-    move(0, 47);
-    addstr("#  black  white");
-    lastline = 0;
-    bdisp();
-}
-
-// Update who is playing whom.
-void bdwho (int update)
-{
-    move (21, 0);
-    clrtoeol();
-    int i = 6 - strlen(plyr[BLACK]) / 2;
-    move(21, i > 0 ? i : 0);
-    printw ("BLACK/%s", plyr[BLACK]);
-    i = 30 - strlen(plyr[WHITE]) / 2;
-    move (21, i);
-    printw("WHITE/%s", plyr[WHITE]);
-    move (21, 19);
-    addstr (" vs. ");
-    if (update)
-	refresh();
+    if (_w)
+	delwin (_w);
+    _w = newwin (BSZ2, BSZ2*2-1, LINES-BSZ2, (min_u(80,COLS)-BSZ2)/2);
+    keypad (_w, true);
+    init_pair (color_Field,		COLOR_BLACK,	COLOR_BLACK);
+    init_pair (color_Human,		COLOR_CYAN,	COLOR_BLACK);
+    init_pair (color_Computer,		COLOR_MAGENTA,	COLOR_BLACK);
+    init_pair (color_HumanCursor,	COLOR_BLACK,	COLOR_CYAN);
+    init_pair (color_ComputerCursor,	COLOR_BLACK,	COLOR_MAGENTA);
+    wbkgdset (_w, COLOR_PAIR(color_Field));
 }
 
 // Update the board display after a move.
 void bdisp (void)
 {
-    for (int j = BSZ1; --j > 0;) {
-	for (int i = 1; i < BSZ1; ++i) {
-	    move(BSZ1 - j, 2 * i + 1);
-	    struct spotstr* sp = &board[i + j * BSZ1];
-	    int c = pcolor[sp->s_occ];
-	    if (debug > 1 && sp->s_occ == EMPTY) {
-		if (sp->s_flg & IFLAGALL)
-		    c = '+';
-		else if (sp->s_flg & CFLAGALL)
-		    c = '-';
-		else
-		    c = '.';
-	    }
-	    addch(c);
+    werase (_w);
+    wattrset (_w, A_BOLD| COLOR_PAIR(color_Field));
+    box (_w, 0, 0);
+    wattroff (_w, A_BOLD);
+    for (unsigned j = 1; j < BSZ1; ++j) {
+	for (unsigned i = 1; i < BSZ1; ++i) {
+	    unsigned bo = j*BSZ1+i;
+	    unsigned v = _board[bo].s_occ;
+	    int color = A_BOLD| COLOR_PAIR(color_Field);
+	    if (bo == _lastHumanMove)
+		color = COLOR_PAIR(color_HumanCursor);
+	    else if (bo == _lastComputerMove)
+		color = COLOR_PAIR(color_ComputerCursor);
+	    else if (v == _humanPlayer)
+		color = COLOR_PAIR(color_Human);
+	    else if (v == !_humanPlayer)
+		color = COLOR_PAIR(color_Computer);
+	    mvwaddch (_w, j, 2*i, color| "XO."[v]);
 	}
     }
-    refresh();
+    wrefresh (_w);
 }
 
-#ifndef NDEBUG
-// Dump board display to a file.
-void bdump (FILE* fp)
+void display_game_result_message (unsigned i, bool humanPlayer)
 {
-    // top border
-    fprintf (fp, "   A B C D E F G H J K L M N O P Q R S T\n");
-    for (int j = BSZ1; --j > 0;) {
-	// left edge
-	fprintf (fp, "%2d ", j);
-	for (int i = 1; i < BSZ1; ++i) {
-	    struct spotstr *sp = &board[i + j * BSZ1];
-	    int c = pcolor[sp->s_occ];
-	    if (debug > 1 && sp->s_occ == EMPTY) {
-		if (sp->s_flg & IFLAGALL)
-		    c = '+';
-		else if (sp->s_flg & CFLAGALL)
-		    c = '-';
-		else
-		    c = '.';
-	    }
-	    putc (c, fp);
-	    putc (' ', fp);
-	}
-	// right edge
-	fprintf (fp, "%d\n", j);
+    bdisp();
+    wmove(_w, getmaxy(_w)-1, 2);
+    wattrset (_w, A_BOLD| COLOR_PAIR(color_Computer));
+    if (i == WIN)
+	waddstr (_w, humanPlayer ? "Rats! you won" : "Ha ha, I won");
+    else
+	waddstr (_w, "Wow! its a tie");
+    wrefresh (_w);
+    sleep (2);
+    flushinp();
+    wgetch (_w);
+}
+
+int usermove (void)
+{
+    for (;;) {
+	bdisp();
+	wattrset (_w, A_BOLD| COLOR_PAIR(color_Human));
+	mvwaddstr (_w, getmaxy(_w)-1, 2, "Your move");
+	unsigned lhy = _lastHumanMove/BSZ1, lhx = _lastHumanMove%BSZ1;
+	flushinp();
+	int c = wgetch(_w);
+	if (c == 'q' || c == KEY_F(10))
+	    return RESIGN;
+	else if (c == KEY_RESIZE)
+	    initialize_field_window();
+	else if ((c == 'h' || c == KEY_LEFT) && lhx > 1)	// borders are part of the board
+	    --_lastHumanMove;
+	else if ((c == 'l' || c == KEY_RIGHT) && lhx < BSZ1-1)
+	    ++_lastHumanMove;
+	else if ((c == 'k' || c == KEY_UP) && lhy > 1)
+	    _lastHumanMove -= BSZ1;
+	else if ((c == 'j' || c == KEY_DOWN) && lhy < BSZ1-1)
+	    _lastHumanMove += BSZ1;
+	else if ((c == ' ' || c == '\n' || c == KEY_ENTER) && _board[_lastHumanMove].s_occ == EMPTY)
+	    return _lastHumanMove;
     }
-    // bottom border
-    fprintf (fp, "   A B C D E F G H J K L M N O P Q R S T\n");
-}
-#endif				// DEBUG
-
-// Display a transcript entry
-void dislog (const char *str)
-{
-    if (++lastline >= SCRNH - 1) // move 'em up
-	lastline = 1;
-    move (lastline, 46);
-    addnstr (str, SCRNW - 46 - 1);
-    clrtoeol();
-    move (lastline + 1, 46);
-    clrtoeol();
-}
-
-// Display a question.
-void ask (const char *str)
-{
-    mvaddstr (23, 0, str);
-    clrtoeol();
-    move (23, strlen(str));
-    refresh();
-}
-
-int gomoku_getline (char *buf, int size)
-{
-    int c = 0;
-    char* cp = buf;
-    char* end = buf + size - 1;      // save room for the '\0'
-    while (cp < end && (c = getchar()) != EOF && c != '\n' && c != '\r') {
-	*cp++ = c;
-	if (interactive) {
-	    switch (c) {
-		case 0x0c:    // ^L
-		    wrefresh(curscr);
-		    cp--;
-		    continue;
-		case 0x15:    // ^U
-		case 0x18:    // ^X
-		    while (cp > buf) {
-			cp--;
-			addch('\b');
-		    }
-		    clrtoeol();
-		    break;
-		case '\b':
-		case 0x7f:    // DEL
-		    if (cp == buf + 1) {
-			cp--;
-			continue;
-		    }
-		    cp -= 2;
-		    addch('\b');
-		    c = ' ';
-		    // FALLTHROUGH
-		default:
-		    addch(c);
-	    }
-	    refresh();
-	}
-    }
-    *cp = '\0';
-    return c != EOF;
 }

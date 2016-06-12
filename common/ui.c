@@ -5,7 +5,7 @@
 #include <signal.h>
 #include <curses.h>
 
-static void cleanup_curses (void)
+void cleanup_curses (void)
 {
     if (isendwin())
 	return;

@@ -5,16 +5,16 @@
 #include <endian.h>
 
 enum {
-    BSZ=19,	// board dimensions
+    BSZ		= 19,	// board dimensions
     BSZ1,
     BSZ2,
-    BAREA = (BSZ2*BSZ1+1),
+    BAREA	= (BSZ2*BSZ1+1),
 
     FSZ1	= BSZ,	// frame dimentions (based on 5 in a row)
     FSZ2	= (BSZ-4),
     FAREA	= (FSZ1*FSZ2 + FSZ2*FSZ2 + FSZ1*FSZ2 + FSZ2*FSZ2),
 
-    MUP	= (BSZ1),
+    MUP		= (BSZ1),
     MDOWN	= (-BSZ1),
     MLEFT	= (-1),
     MRIGHT	= (1)
@@ -25,7 +25,7 @@ enum {
     BLACK,
     WHITE,
     EMPTY,
-    BORDER
+    BORDER	// borders are used as sentinels
 };
 
 // return values for makemove()
@@ -34,16 +34,8 @@ enum {
     RESIGN,
     ILLEGAL,
     WIN,
-    TIE,
-    SAVE
+    TIE
 };
-
-enum {
-    A=1, B, C, D, E, F, G, H, J,
-    K, L, M, N, O, P, Q, R, S, T
-};
-
-#define PT(x,y)		((x) + BSZ1 * (y))
 
 // A 'frame' is a group of five or six contiguous board locations.
 // An open ended frame is one with spaces on both ends; otherwise, its closed.
@@ -145,31 +137,30 @@ enum {
 // This structure is used for recording the completion points of
 // multi frame combos.
 struct elist {
-    struct elist *e_next;	// list of completion points
-    struct combostr *e_combo;	// the whole combo
-    unsigned char e_off;		// offset in frame of this empty spot
-    unsigned char e_frameindex;	// intersection frame index
-    unsigned char e_framecnt;		// number of frames left to attach
-    unsigned char e_emask;		// real value of the frame's emask
-    union comboval e_fval;	// frame combo value
+    struct elist*	e_next;		// list of completion points
+    struct combostr*	e_combo;	// the whole combo
+    unsigned char	e_off;		// offset in frame of this empty spot
+    unsigned char	e_frameindex;	// intersection frame index
+    unsigned char	e_framecnt;	// number of frames left to attach
+    unsigned char	e_emask;	// real value of the frame's emask
+    union comboval	e_fval;		// frame combo value
 };
 
-//
 // One spot structure for each location on the board.
 // A frame consists of the combination for the current spot plus the five spots
 // 0: right, 1: right & down, 2: down, 3: down & left.
 struct spotstr {
-    short s_occ;		// color of occupant
-    short s_wval;		// weighted value
-    int s_flg;			// flags for graph walks
-    struct combostr *s_frame[4];	// level 1 combo for frame[dir]
-    union comboval s_fval[2][4];	// combo value for [color][frame]
-    union comboval s_combo[2];	// minimum combo value for BLK & WHT
-    unsigned char s_level[2];		// number of frames in the min combo
-    unsigned char s_nforce[2];		// number of <1,x> combos
-    struct elist *s_empty;	// level n combo completion spots
-    struct elist *s_nempty;	// level n+1 combo completion spots
-    int dummy[2];
+    unsigned short	s_occ;		// color of occupant
+    short		s_wval;		// weighted value
+    unsigned		s_flg;		// flags for graph walks
+    struct combostr*	s_frame[4];	// level 1 combo for frame[dir]
+    union comboval	s_fval[2][4];	// combo value for [color][frame]
+    union comboval	s_combo[2];	// minimum combo value for BLK & WHT
+    unsigned char	s_level[2];	// number of frames in the min combo
+    unsigned char	s_nforce[2];	// number of <1,x> combos
+    struct elist*	s_empty;	// level n combo completion spots
+    struct elist*	s_nempty;	// level n+1 combo completion spots
+    unsigned		dummy[2];
 };
 
 // flag values for s_flg
@@ -188,64 +179,33 @@ enum {
 
 // This structure is used to store overlap information between frames.
 struct ovlp_info {
-    int o_intersect;		// intersection spot
-    struct combostr *o_fcombo;	// the connecting combo
-    unsigned char o_link;		// which link to update (0 or 1)
-    unsigned char o_off;		// offset in frame of intersection
-    unsigned char o_frameindex;	// intersection frame index
+    unsigned		o_intersect;	// intersection spot
+    struct combostr*	o_fcombo;	// the connecting combo
+    unsigned char	o_link;		// which link to update (0 or 1)
+    unsigned char	o_off;		// offset in frame of intersection
+    unsigned char	o_frameindex;	// intersection frame index
 };
 
-extern const char *letters;
-extern char fmtbuf[];
-extern const char pdir[];
+//----------------------------------------------------------------------
 
-extern const int dd[4];
-extern struct spotstr board[BAREA];	// info for board
-extern struct combostr frames[FAREA];	// storage for single frames
-extern struct combostr *sortframes[2];	// sorted, non-empty frames
-extern unsigned char overlap[FAREA * FAREA];	// frame [a][b] overlap
-extern short intersect[FAREA * FAREA];	// frame [a][b] intersection
-extern int movelog[BSZ * BSZ];	// history of moves
-extern int movenum;
-extern int debug;
+extern const int	_dd[4];
+extern struct spotstr	_board[BAREA];		// info for board
+extern struct combostr	_frames[FAREA];		// storage for single frames
+extern struct combostr*	_sortframes[2];		// sorted, non-empty frames
+extern unsigned char	_overlap[FAREA*FAREA];	// frame [a][b] overlap
+extern short		_intersect[FAREA*FAREA];// frame [a][b] intersection
+extern unsigned		_movenum;
+extern unsigned		_lastHumanMove;
+extern unsigned		_lastComputerMove;
+extern unsigned		_humanPlayer;		// which player is human
 
-#define ASSERT(x)
+//----------------------------------------------------------------------
 
-void bdinit(struct spotstr *);
-void init_overlap(void);
-int gomoku_getline(char *, int);
-void ask(const char *);
-void dislog(const char *);
-void bdump(FILE *);
+void initialize_field_window (void);
 void bdisp(void);
-void bdisp_init(void);
-void cursfini(void);
-void cursinit(void);
-void bdwho(int);
-void panic(const char *) NORETURN;
-void glog(const char *);
-void dlog(const char *);
-void quit(void) NORETURN;
-void quitsig(int) NORETURN;
-void whatsup(int);
-int readinput(FILE *);
-const char *stoc(int);
-int lton(int);
-int ctos(const char *);
-void update_overlap(struct spotstr *);
-int makemove(int, int);
-int list_eq(struct combostr **, struct combostr **, int);
-void clearcombo(struct combostr *, int);
-void makeempty(struct combostr *);
-void appendcombo(struct combostr *, int);
-void updatecombo(struct combostr *, int);
-void markcombo(struct combostr *);
-void printcombo(struct combostr *, char *);
-void makecombo(struct combostr *, struct spotstr *, int, int);
-void makecombo2(struct combostr *, struct spotstr *, int, int);
-int sortcombo(struct combostr **, struct combostr **, struct combostr *);
-int checkframes(struct combostr *, struct combostr *, struct spotstr *, int, struct ovlp_info *);
-void addframes(int);
-void scanframes(int);
-int better(const struct spotstr *, const struct spotstr *, int);
+void display_game_result_message (unsigned i, bool humanPlayer);
+int usermove (void);
 int pickmove(int);
+int makemove(int, int);
+
+//----------------------------------------------------------------------

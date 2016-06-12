@@ -13,22 +13,22 @@ file "INSTALL".
 This package contains the following games:
 
 adventure:	the original adventure by Crowther and Woods
-atc:		air traffic control
-backgammon:	backgammon
+atc:		air traffic control simulator
+backgammon:	backgammon board game
 battlestar:	adventure game on a battlestar
 caesar:		performs rotated-alphabet cryptography (like rot13)
 canfield:	curses-based solitaire
-cribbage:	cribbage
+cribbage:	cribbage card game
 dab:		dots and boxes
 drop4:		tetromino packing game
-fish:		go fish
-gomoku:		gomoku
+fish:		go fish card game
+gomoku:		connect-5 version of tic-tac-toe
 hack:		exploring the Dungeons of Doom
 hangman:	guess the word before it is too late
 phantasia:	interterminal fantasy game
-robots:		well... avoid the robots
+robots:		avoid the evil robots
 sail:		sail your ship into battle
-snake:		grab the cash and avoid the snake and exit
+snake:		grab the cash, avoid the snake, and exit
 worm:		eat the numbers without running into anything
 wump:		hunt the wumpus
 
@@ -45,9 +45,9 @@ Some were infringing on copyrights:
 
 boggle:		Exactly like the eponymous game by Parker Brothers (Hasbro).
 mille:		Mille Bornes is copyrighted by Parker Brothers (Hasbro).
-monop:		Uses Hasbro's Monopoly board and other content.
+monop:		Used Hasbro's Monopoly board and other content.
 tetris:		Renamed to drop4 after removing infringing elements.
-trek:		Uses Star Trek universe and characters.
+trek:		Used Star Trek universe and characters.
 
 hunt was completely broken, and its premise of playing with other users
 logged on to the same machine is as obsolete as mainframes and dumb

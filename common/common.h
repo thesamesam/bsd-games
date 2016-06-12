@@ -51,6 +51,7 @@ uint64_t time_ms (void);
 
 // ui.c
 void initialize_curses (void);
+void cleanup_curses (void);
 
 // scores.c
 bool read_score_file (const char* filename, const char* magic, void* scores, size_t scoresSize);
@@ -65,6 +66,14 @@ inline static int sign (int n)
     { return n > 0 ? 1 : n < 0 ? -1 : 0; }
 inline static unsigned absv (int n)
     { return n >= 0 ? n : -n; }
+inline static unsigned min_u (unsigned a, unsigned b)
+    { return a < b ? a : b; }
+inline static int min_i (int a, int b)
+    { return a < b ? a : b; }
+inline static unsigned max_u (unsigned a, unsigned b)
+    { return a < b ? b : a; }
+inline static int max_i (int a, int b)
+    { return a < b ? b : a; }
 
 #ifdef __cplusplus
 } // extern "C"
