@@ -17,7 +17,6 @@ atc:		air traffic control simulator
 backgammon:	backgammon board game
 battlestar:	adventure game on a battlestar
 caesar:		performs rotated-alphabet cryptography (like rot13)
-canfield:	curses-based solitaire
 cribbage:	cribbage card game
 dab:		dots and boxes
 drop4:		tetromino packing game
@@ -25,6 +24,7 @@ fish:		go fish card game
 gomoku:		connect-5 version of tic-tac-toe
 hack:		exploring the Dungeons of Doom
 hangman:	guess the word before it is too late
+klondike:	curses-based solitaire
 phantasia:	interterminal fantasy game
 robots:		avoid the evil robots
 sail:		sail your ship into battle

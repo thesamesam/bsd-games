@@ -11,7 +11,6 @@ include atc/Module.mk
 include backgammon/Module.mk
 include battlestar/Module.mk
 include caesar/Module.mk
-include canfield/Module.mk
 include cribbage/Module.mk
 include dab/Module.mk
 include drop4/Module.mk
@@ -19,6 +18,7 @@ include fish/Module.mk
 include gomoku/Module.mk
 include hack/Module.mk
 include hangman/Module.mk
+include klondike/Module.mk
 include phantasia/Module.mk
 include robots/Module.mk
 include sail/Module.mk
