@@ -37,6 +37,8 @@
 
 // Curses transparent color
 enum { COLOR_DEFAULT = -1 };
+// Escape key
+enum { KEY_ESCAPE = '\033' };
 
 // Common utility functions
 #ifdef __cplusplus

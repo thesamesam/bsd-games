@@ -24,30 +24,22 @@ ${cribbage/EXE}:	${cribbage/OBJS} ${COMLIB}
 
 ifdef BINDIR
 cribbage/EXEI	:= ${BINDIR}/${cribbage/NAME}
-cribbage/DATAI	:= ${DATADIR}/cribbage.instr
 cribbage/MANI	:= ${MANDIR}/man6/${cribbage/NAME}.6.gz
-cribbage/SCOREI	:= ${STATEDIR}/cribbage.scores
 
 install:		cribbage/install
-cribbage/install:	${cribbage/EXEI} ${cribbage/DATAI} ${cribbage/MANI} ${cribbage/SCOREI}
+cribbage/install:	${cribbage/EXEI} ${cribbage/MANI}
 ${cribbage/EXEI}:	${cribbage/EXE}
 	@echo "Installing $@ ..."
 	@${INSTALLEXE} $< $@
-${cribbage/DATAI}:	cribbage/cribbage.n
-	@echo "Installing $@ ..."
-	@${INSTALLDATA} $< $@
 ${cribbage/MANI}:	cribbage/${cribbage/NAME}.6
 	@echo "Installing $@ ..."
 	@gzip -9 -c $< > $@ && chmod 644 $@
-${cribbage/SCOREI}:
-	@echo "Creating initial score file $@ ..."
-	@${INSTALLSCORE} /dev/null $@
 
 uninstall:		cribbage/uninstall
 cribbage/uninstall:
 	@if [ -f ${cribbage/EXEI} ]; then\
 	    echo "Removing ${cribbage/EXEI} ...";\
-	    rm -f ${cribbage/EXEI} ${cribbage/DATAI} ${cribbage/MANI} ${cribbage/SCOREI};\
+	    rm -f ${cribbage/EXEI} ${cribbage/MANI};\
 	fi
 endif
 
