@@ -32,9 +32,9 @@ Most games are under the standard BSD terms:
    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
    SUCH DAMAGE.
 
-The files "backgammon/backgammon/backlocal.h" "hack/extern.h",
-"sail/display.h", "sail/restart.h" and the game "dab" have a similar
-licence, but copyright is held by the NetBSD Foundation:
+The files "hack/extern.h", "sail/display.h", "sail/restart.h" and the
+game "dab" have a similar licence, but copyright is held by the NetBSD
+Foundation:
 
    Copyright (c) 1997, 1998, 1999, 2001, 2002, 2003 The NetBSD Foundation, Inc.
    All rights reserved.

@@ -8,7 +8,6 @@ ONAME   := $(notdir $(abspath $O))
 include common/Module.mk
 include adventure/Module.mk
 include atc/Module.mk
-include backgammon/Module.mk
 include battlestar/Module.mk
 include caesar/Module.mk
 include cribbage/Module.mk
