@@ -32,33 +32,8 @@ gomoku:		connect-5 version of tic-tac-toe
 hack:		exploring the Dungeons of Doom
 hangman:	guess the word before it is too late
 klondike:	curses-based solitaire
-phantasia:	interterminal fantasy game
 robots:		avoid the evil robots
 sail:		sail your ship into battle
 snake:		grab the cash, avoid the snake, and exit
 worm:		eat the numbers without running into anything
 wump:		hunt the wumpus
-
-Some games that were in the original 2.17 distribution were removed.
-Some were maintained elsewhere:
-
-backgammon:	http://gnubg.org/
-banner:		https://packages.debian.org/stable/bsdmainutils
-factor:		http://www.gnu.org/software/coreutils/coreutils.html
-fortune:	ftp://ftp.ibiblio.org/pub/linux/games/amusements/fortune
-primes:		http://primesieve.org/
-rogue:		http://coredumpcentral.org/
-
-Some were infringing on copyrights:
-
-boggle:		Exactly like the eponymous game by Hasbro.
-mille:		Mille Bornes is copyrighted by Hasbro.
-monop:		Used Hasbro's Monopoly board and other content.
-trek:		Used Star Trek universe and characters.
-
-hunt was completely broken, and its premise of playing with other users
-logged on to the same machine is as obsolete as mainframes and dumb
-terminals. dm was a game access limiter; a dumb idea. arithmetic, quiz,
-and wtf were flashcard study aids. rain and worms were screensavers,
-and should be implemented as part of a lockscreen program. bcd, morse,
-number, pig, pom, ppt, random, and wargames were utterly pointless.

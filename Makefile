@@ -18,7 +18,6 @@ include gomoku/Module.mk
 include hack/Module.mk
 include hangman/Module.mk
 include klondike/Module.mk
-include phantasia/Module.mk
 include robots/Module.mk
 include sail/Module.mk
 include snake/Module.mk
