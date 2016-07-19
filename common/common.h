@@ -30,10 +30,13 @@
     #define UNUSED		__attribute__((unused))
     #define NORETURN		__attribute__((noreturn))
     #define PRINTFLIKE(f,a)	__attribute__((__format__(__printf__,f,a)))
+    #ifndef __cplusplus
+	#define noexcept	__attribute__((nothrow))
+	#define constexpr	__attribute__((const))
+    #endif
 #endif
 
-// Returns number of elements in array a
-#define ArraySize(a)	(sizeof(a)/sizeof(a[0]))
+#include "vector.h"
 
 // Curses transparent color
 enum { COLOR_DEFAULT = -1 };
@@ -68,6 +71,8 @@ inline static int sign (int n)
     { return n > 0 ? 1 : n < 0 ? -1 : 0; }
 inline static unsigned absv (int n)
     { return n >= 0 ? n : -n; }
+inline static unsigned square (int x)
+    { return x*x; }
 inline static unsigned min_u (unsigned a, unsigned b)
     { return a < b ? a : b; }
 inline static int min_i (int a, int b)

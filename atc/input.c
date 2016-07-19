@@ -1,554 +1,579 @@
 // Copyright (c) 1987 by Ed James <edjames@berkeley.edu>
 // This file is free software, distributed under the BSD license.
 
-#include "include.h"
-#include <paths.h>
+#include "atc.h"
+#include <curses.h>
 
-#define MAXRULES	6
-#define MAXDEPTH	15
+//{{{ Constants and types ----------------------------------------------
 
-#define RETTOKEN	'\n'
-#define REDRAWTOKEN	'\014' // CTRL(L)
-#define	SHELLTOKEN	'!'
-#define HELPTOKEN	'?'
-#define ALPHATOKEN	256
-#define NUMTOKEN	257
-
-typedef struct {
-    int token;
-    int to_state;
-    const char *str;
-    const char *(*func) (char);
-} RULE;
-
-typedef struct {
-    int num_rules;
-    RULE *rule;
-} STATE;
-
-typedef struct {
-    char str[20];
-    int state;
-    int rule;
-    int ch;
-    int pos;
-} STACK;
-
-#define T_RULE		stack[level].rule
-#define T_STATE		stack[level].state
-#define T_STR		stack[level].str
-#define T_POS		stack[level].pos
-#define	T_CH		stack[level].ch
-
-#define NUMELS(a)	(sizeof (a) / sizeof (*(a)))
-
-#define NUMSTATES	NUMELS(st)
-
-RULE
-state0[] = {	{ ALPHATOKEN,	1,	"%c:",		setplane},
-		{ RETTOKEN,	-1,	"",		NULL    },
-		{ HELPTOKEN,	12,	" [a-z]<ret>",	NULL    }},
-state1[] = {	{ 't',		2,	" turn",	turn    },
-		{ 'a',		3,	" altitude:",	NULL    },
-		{ 'c',		4,	" circle",	circle  },
-		{ 'm',		7,	" mark",	mark    },
-		{ 'u',		7,	" unmark",	unmark  },
-		{ 'i',		7,	" ignore",	ignore  },
-		{ HELPTOKEN,	12,	" tacmui",	NULL    }},
-state2[] = {	{ 'l',		6,	" left",	left    },
-		{ 'r',		6,	" right",	right   },
-		{ 'L',		4,	" left 90",	Left    },
-		{ 'R',		4,	" right 90",	Right   },
-		{ 't',		11,	" towards",	NULL    },
-		{ 'w',		4,	" to 0",	to_dir  },
-		{ 'e',		4,	" to 45",	to_dir  },
-		{ 'd',		4,	" to 90",	to_dir  },
-		{ 'c',		4,	" to 135",	to_dir  },
-		{ 'x',		4,	" to 180",	to_dir  },
-		{ 'z',		4,	" to 225",	to_dir  },
-		{ 'a',		4,	" to 270",	to_dir  },
-		{ 'q',		4,	" to 315",	to_dir  },
-		{ HELPTOKEN,	12,	" lrLRt<dir>",	NULL    }},
-state3[] = {	{ '+',		10,	" climb",	climb   },
-		{ 'c',		10,	" climb",	climb   },
-		{ '-',		10,	" descend",	descend },
-		{ 'd',		10,	" descend",	descend },
-		{ NUMTOKEN,	7,	" %c000 feet",	setalt  },
-		{ HELPTOKEN,	12,	" +-cd[0-9]",	NULL    }},
-state4[] = {	{ '@',		9,	" at",		NULL    },
-		{ 'a',		9,	" at",		NULL    },
-		{ RETTOKEN,	-1,	"",		NULL    },
-		{ HELPTOKEN,	12,	" @a<ret>",	NULL    }},
-state5[] = {	{ NUMTOKEN,	7,	"%c",		delayb  },
-		{ HELPTOKEN,	12,	" [0-9]",	NULL    }},
-state6[] = {	{ '@',		9,	" at",		NULL    },
-		{ 'a',		9,	" at",		NULL    },
-		{ 'w',		4,	" 0",		rel_dir },
-		{ 'e',		4,	" 45",		rel_dir },
-		{ 'd',		4,	" 90",		rel_dir },
-		{ 'c',		4,	" 135",		rel_dir },
-		{ 'x',		4,	" 180",		rel_dir },
-		{ 'z',		4,	" 225",		rel_dir },
-		{ 'a',		4,	" 270",		rel_dir },
-		{ 'q',		4,	" 315",		rel_dir },
-		{ RETTOKEN,	-1,	"",		NULL    },
-		{ HELPTOKEN,	12,	" @a<dir><ret>",NULL    }},
-state7[] = {	{ RETTOKEN,	-1,	"",		NULL    },
-		{ HELPTOKEN,	12,	" <ret>",	NULL    }},
-state8[] = {	{ NUMTOKEN,	4,	"%c",		benum   },
-		{ HELPTOKEN,	12,	" [0-9]",	NULL    }},
-state9[] = {	{ 'b',		5,	" beacon #",	NULL    },
-		{ '*',		5,	" beacon #",	NULL    },
-		{ HELPTOKEN,	12,	" b*",		NULL    }},
-state10[] = {	{ NUMTOKEN,	7,	" %c000 ft",	setrelalt},
-		{ HELPTOKEN,	12,	" [0-9]",	NULL    }},
-state11[] = {	{ 'b',		8,	" beacon #",	beacon  },
-		{ '*',		8,	" beacon #",	beacon  },
-		{ 'e',		8,	" exit #",	ex_it   },
-		{ 'a',		8,	" airport #",	airport },
-		{ HELPTOKEN,	12,	" b*ea",	NULL    }},
-state12[] = {	{ -1,		-1,	"",		NULL    }};
-
-#define DEF_STATE(s)	{ NUMELS(s),	(s)	}
-
-STATE st[] = {
-    DEF_STATE(state0), DEF_STATE(state1), DEF_STATE(state2),
-    DEF_STATE(state3), DEF_STATE(state4), DEF_STATE(state5),
-    DEF_STATE(state6), DEF_STATE(state7), DEF_STATE(state8),
-    DEF_STATE(state9), DEF_STATE(state10), DEF_STATE(state11),
-    DEF_STATE(state12)
+enum {
+    MAXRULES	= 6,
+    MAXDEPTH	= 15,
+    HELPTOKEN	= '?',
+    ALPHATOKEN	= 250,
+    NUMTOKEN,
+    BACKTOKEN
 };
 
-PLANE p;
-STACK stack[MAXDEPTH];
-int level;
-int tval;
-int dest_type, dest_no, dir;
+enum ERelDir {
+    D_LEFT,
+    D_RIGHT,
+    D_UP,
+    D_DOWN
+};
 
-int pop(void)
+struct Rule {
+    uint16_t	token;
+    int8_t	to_state;
+    uint8_t	handler;
+    const char	str [12];
+};
+
+struct State {
+    size_t		num_rules;
+    const struct Rule*	rule;
+};
+
+struct Stack {
+    char	str [16];
+    int		state;
+    unsigned	rule;
+    unsigned	ch;
+    unsigned	pos;
+};
+
+enum EFHandler {
+    HF_NONE,
+    HF_SETPLANE,
+    HF_TURN,
+    HF_CIRCLE,
+    HF_LEFT,
+    HF_RIGHT,
+    HF_HARD_LEFT,
+    HF_HARD_RIGHT,
+    HF_DELAYB,
+    HF_BEACON,
+    HF_EXIT,
+    HF_AIRPORT,
+    HF_CLIMB,
+    HF_DESCEND,
+    HF_SETALT,
+    HF_SETRELALT,
+    HF_BENUM,
+    HF_TO_DIR,
+    HF_REL_DIR,
+    HF_MARK,
+    HF_UNMARK,
+    HF_IGNORE,
+    HF_NHANDLERS,
+    HF_QUIT
+};
+
+#define T_RULE		_stack[_level].rule
+#define T_STATE		_stack[_level].state
+#define T_STR		_stack[_level].str
+#define T_POS		_stack[_level].pos
+#define	T_CH		_stack[_level].ch
+
+//}}}-------------------------------------------------------------------
+//{{{ Local variables
+
+static struct Plane _p = {};
+static struct Stack _stack [MAXDEPTH] = {{}};
+static unsigned _level = 0;
+static unsigned _tval = 0;
+static unsigned _dest_type = 0;
+static unsigned _dest_no = 0;
+static enum ERelDir _dir = D_LEFT;
+
+char _cmdtext [64] = "";
+char _errtext [64] = "";
+
+//}}}-------------------------------------------------------------------
+//{{{ Local functions
+
+static void rezero (void);
+static void draw_command_stack (void);
+static void push (unsigned ruleno, unsigned ch);
+static unsigned gettoken (void);
+static unsigned plane_number (char l);
+static unsigned dir_from_dxdy (int dx, int dy);
+static unsigned dir_no (char c);
+static const char* call_handler (enum EFHandler fhi, char c);
+
+static const char* cmd_setplane(char c);
+static const char* cmd_turn(void);
+static const char* cmd_circle(void);
+static const char* cmd_left(void);
+static const char* cmd_right(void);
+static const char* cmd_Left(void);
+static const char* cmd_Right(void);
+static const char* cmd_delayb(char c);
+static const char* cmd_beacon(void);
+static const char* cmd_exit(void);
+static const char* cmd_airport(void);
+static const char* cmd_climb(void);
+static const char* cmd_descend(void);
+static const char* cmd_setalt(char c);
+static const char* cmd_setrelalt(char c);
+static const char* cmd_benum(char c);
+static const char* cmd_to_dir(char c);
+static const char* cmd_rel_dir(char c);
+static const char* cmd_mark(void);
+static const char* cmd_unmark(void);
+static const char* cmd_ignore(void);
+
+//}}}-------------------------------------------------------------------
+//{{{ Rule table
+//
+// This table maps keys to handler functions (see call_handler) for each
+// state. The states are the stages in building a complex command.
+//
+static const struct Rule
+_state0[] = {	{ ALPHATOKEN,	1,	HF_SETPLANE,	"%c:"		},
+		{ 'Q',		0,	HF_QUIT,	"quit"		},
+		{ '\n',		-1,	HF_NONE,	""		},
+		{ HELPTOKEN,	12,	HF_NONE,	" [a-z]Q\\n"	}},
+_state1[] = {	{ 't',		2,	HF_TURN,	" turn"		},
+		{ 'a',		3,	HF_NONE,	" altitude:"	},
+		{ 'c',		4,	HF_CIRCLE,	" circle"	},
+		{ 'm',		7,	HF_MARK,	" mark"		},
+		{ 'u',		7,	HF_UNMARK,	" unmark"	},
+		{ 'i',		7,	HF_IGNORE,	" ignore"	},
+		{ HELPTOKEN,	12,	HF_NONE,	" tacmui"	}},
+_state2[] = {	{ 'l',		6,	HF_LEFT,	" left"		},
+		{ 'r',		6,	HF_RIGHT,	" right"	},
+		{ 'L',		4,	HF_HARD_LEFT,	" left 90"	},
+		{ 'R',		4,	HF_HARD_RIGHT,	" right 90"	},
+		{ 't',		11,	HF_NONE,	" towards"	},
+		{ 'w',		4,	HF_TO_DIR,	" to 0"		},
+		{ 'e',		4,	HF_TO_DIR,	" to 45"	},
+		{ 'd',		4,	HF_TO_DIR,	" to 90"	},
+		{ 'c',		4,	HF_TO_DIR,	" to 135"	},
+		{ 'x',		4,	HF_TO_DIR,	" to 180"	},
+		{ 'z',		4,	HF_TO_DIR,	" to 225"	},
+		{ 'a',		4,	HF_TO_DIR,	" to 270"	},
+		{ 'q',		4,	HF_TO_DIR,	" to 315"	},
+		{ HELPTOKEN,	12,	HF_NONE,	" lrLRt\\n"	}},
+_state3[] = {	{ '+',		10,	HF_CLIMB,	" climb"	},
+		{ 'c',		10,	HF_CLIMB,	" climb"	},
+		{ '-',		10,	HF_DESCEND,	" descend"	},
+		{ 'd',		10,	HF_DESCEND,	" descend"	},
+		{ NUMTOKEN,	7,	HF_SETALT,	" %c000 feet"	},
+		{ HELPTOKEN,	12,	HF_NONE,	" +-cd[0-9]"	}},
+_state4[] = {	{ '@',		9,	HF_NONE,	" at"		},
+		{ 'a',		9,	HF_NONE,	" at"		},
+		{ '\n',		-1,	HF_NONE,	""		},
+		{ HELPTOKEN,	12,	HF_NONE,	" @a\\n"	}},
+_state5[] = {	{ NUMTOKEN,	7,	HF_DELAYB,	"%c"		},
+		{ HELPTOKEN,	12,	HF_NONE,	" [0-9]"	}},
+_state6[] = {	{ '@',		9,	HF_NONE,	" at"		},
+		{ 'a',		9,	HF_NONE,	" at"		},
+		{ 'w',		4,	HF_REL_DIR,	" 0"		},
+		{ 'e',		4,	HF_REL_DIR,	" 45"		},
+		{ 'd',		4,	HF_REL_DIR,	" 90"		},
+		{ 'c',		4,	HF_REL_DIR,	" 135"		},
+		{ 'x',		4,	HF_REL_DIR,	" 180"		},
+		{ 'z',		4,	HF_REL_DIR,	" 225"		},
+		{ 'a',		4,	HF_REL_DIR,	" 270"		},
+		{ 'q',		4,	HF_REL_DIR,	" 315"		},
+		{ '\n',		-1,	HF_NONE,	""		},
+		{ HELPTOKEN,	12,	HF_NONE,	" @a<dir>\\n"	}},
+_state7[] = {	{ '\n',		-1,	HF_NONE,	""		},
+		{ HELPTOKEN,	12,	HF_NONE,	" \\n"		}},
+_state8[] = {	{ NUMTOKEN,	4,	HF_BENUM,	"%c"		},
+		{ HELPTOKEN,	12,	HF_NONE,	" [0-9]"	}},
+_state9[] = {	{ 'b',		5,	HF_NONE,	" beacon #"	},
+		{ '*',		5,	HF_NONE,	" beacon #"	},
+		{ HELPTOKEN,	12,	HF_NONE,	" b*"		}},
+_state10[] = {	{ NUMTOKEN,	7,	HF_SETRELALT,	" %c000 ft"	},
+		{ HELPTOKEN,	12,	HF_NONE,	" [0-9]"	}},
+_state11[] = {	{ 'b',		8,	HF_BEACON,	" beacon #"	},
+		{ '*',		8,	HF_BEACON,	" beacon #"	},
+		{ 'e',		8,	HF_EXIT,	" exit #"	},
+		{ 'a',		8,	HF_AIRPORT,	" airport #"	},
+		{ HELPTOKEN,	12,	HF_NONE,	" b*ea"		}},
+_state12[] = {	{ -1,		-1,	HF_NONE,	""		}};
+
+#define DEF_STATE(s)	{ ArraySize(s),	(s)	}
+static const struct State _st[] = {
+    DEF_STATE(_state0), DEF_STATE(_state1), DEF_STATE(_state2),
+    DEF_STATE(_state3), DEF_STATE(_state4), DEF_STATE(_state5),
+    DEF_STATE(_state6), DEF_STATE(_state7), DEF_STATE(_state8),
+    DEF_STATE(_state9), DEF_STATE(_state10), DEF_STATE(_state11),
+    DEF_STATE(_state12)
+};
+
+//}}}-------------------------------------------------------------------
+
+void getcommand (void)
 {
-    if (level == 0)
-	return -1;
-    level--;
-
-    ioclrtoeol(T_POS);
-
-    strcpy(T_STR, "");
-    T_RULE = -1;
-    T_CH = -1;
-    return 0;
-}
-
-void rezero(void)
-{
-    iomove(0);
-
-    level = 0;
-    T_STATE = 0;
-    T_RULE = -1;
-    T_CH = -1;
-    T_POS = 0;
-    strcpy(T_STR, "");
-}
-
-void push(int ruleno, int ch)
-{
-    int newstate, newpos;
-
-    sprintf(T_STR, st[T_STATE].rule[ruleno].str, tval);
-    T_RULE = ruleno;
-    T_CH = ch;
-    newstate = st[T_STATE].rule[ruleno].to_state;
-    newpos = T_POS + strlen(T_STR);
-
-    ioaddstr(T_POS, T_STR);
-
-    if (level == 0)
-	ioclrtobot();
-    level++;
-    T_STATE = newstate;
-    T_POS = newpos;
-    T_RULE = -1;
-    strcpy(T_STR, "");
-}
-
-int getcommand(void)
-{
-    int c, i, done;
-    const char *s, *(*func) (char);
-    PLANE *pp;
-
     rezero();
-
     do {
-	c = gettoken();
-	if (c == tty_new.c_cc[VERASE]) {
-	    if (pop() < 0)
-		noise();
-	} else if (c == tty_new.c_cc[VKILL]) {
-	    while (pop() >= 0) {}
-	} else {
-	    done = 0;
-	    for (i = 0; i < st[T_STATE].num_rules; i++) {
-		if (st[T_STATE].rule[i].token == c || st[T_STATE].rule[i].token == tval) {
-		    push(i, (c >= ALPHATOKEN) ? tval : c);
-		    done = 1;
+	draw_command_stack();
+	unsigned c = gettoken();
+	if (c == BACKTOKEN && _level)
+	    --_level;
+	else {
+	    for (size_t i = 0; i < _st[T_STATE].num_rules; ++i) {
+		if (_st[T_STATE].rule[i].token == c || _st[T_STATE].rule[i].token == _tval) {
+		    push (i, c >= ALPHATOKEN ? _tval : c);
 		    break;
 		}
 	    }
-	    if (!done)
-		noise();
 	}
     } while (T_STATE != -1);
 
-    if (level == 1)
-	return 1;	       // forced update
+    if (_level == 1)
+	return;
 
-    dest_type = T_NODEST;
-
-    for (i = 0; i < level; i++) {
-	func = st[stack[i].state].rule[stack[i].rule].func;
-	if (func != NULL) {
-	    if ((s = (*func) (stack[i].ch)) != NULL) {
-		ioerror(stack[i].pos, strlen(stack[i].str), s);
-		return -1;
+    _dest_type = T_NODEST;
+    for (unsigned i = 0; i < _level; ++i) {
+	enum EFHandler fhi = _st[_stack[i].state].rule[_stack[i].rule].handler;
+	if (fhi != HF_NONE) {
+	    const char* errmsg = call_handler (fhi, _stack[i].ch);
+	    if (errmsg) {
+		snprintf (ArrayBlock(_errtext), "%s", errmsg);
+		return;
 	    }
 	}
     }
 
-    pp = findplane(p.plane_no);
-    if (pp->new_altitude != p.new_altitude)
-	pp->new_altitude = p.new_altitude;
-    else if (pp->status != p.status)
-	pp->status = p.status;
+    struct Plane* pp = findplane(_p.plane_no);
+    if (pp->new_altitude != _p.new_altitude)
+	pp->new_altitude = _p.new_altitude;
+    else if (pp->status != _p.status)
+	pp->status = _p.status;
     else {
-	pp->new_dir = p.new_dir;
-	pp->delayd = p.delayd;
-	pp->delayd_no = p.delayd_no;
+	pp->new_dir = _p.new_dir;
+	pp->delayd = _p.delayd;
+	pp->delayd_no = _p.delayd_no;
     }
-    return 0;
 }
 
-void noise(void)
+static unsigned gettoken(void)
 {
-    putchar('\07');
-    fflush(stdout);
-}
-
-int gettoken(void)
-{
-    while ((tval = getAChar()) == REDRAWTOKEN || tval == SHELLTOKEN) {
-	if (tval == SHELLTOKEN) {
-#ifdef BSD
-	    struct itimerval itv;
-	    itv.it_value.tv_sec = 0;
-	    itv.it_value.tv_usec = 0;
-	    setitimer(ITIMER_REAL, &itv, NULL);
-#endif
-#ifdef SYSV
-	    int aval;
-	    aval = alarm(0);
-#endif
-	    if (fork() == 0)   // child
-	    {
-		char *shell, *base;
-
-		done_screen();
-
-		// run user's favorite shell
-		if ((shell = getenv("SHELL")) != NULL) {
-		    base = strrchr(shell, '/');
-		    if (base == NULL)
-			base = shell;
-		    else
-			base++;
-		    execl(shell, base, (char *) 0);
-		} else
-		    execl(_PATH_BSHELL, "sh", (char *) 0);
-
-		exit(0);       // oops
-	    }
-
-	    wait(0);
-	    tcsetattr(fileno(stdin), TCSADRAIN, &tty_new);
-#ifdef BSD
-	    itv.it_value.tv_sec = 0;
-	    itv.it_value.tv_usec = 1;
-	    itv.it_interval.tv_sec = sp->update_secs;
-	    itv.it_interval.tv_usec = 0;
-	    setitimer(ITIMER_REAL, &itv, NULL);
-#endif
-#ifdef SYSV
-	    alarm(aval);
-#endif
-	}
-	redraw();
-    }
-
-    if (isdigit(tval))
+    _tval = getAChar();
+    if (_tval >= '0' && _tval <= '9')
 	return NUMTOKEN;
-    else if (isalpha(tval))
+    else if (_tval >= 'a' && _tval <= 'a'+MAXPLANES)
 	return ALPHATOKEN;
+    else if (_tval == KEY_ESCAPE || _tval == KEY_BACKSPACE)
+	return BACKTOKEN;
     else
-	return tval;
+	return _tval;
 }
 
-const char *setplane(char c)
+static void rezero(void)
 {
-    PLANE *pp;
+    _level = 0;
+    memset (_stack, 0, sizeof(_stack));
+    T_RULE = -1;
+    T_CH = -1;
+}
 
-    pp = findplane(number(c));
-    if (pp == NULL)
-	return "Unknown Plane";
-    memcpy(&p, pp, sizeof(p));
-    p.delayd = 0;
+static void draw_command_stack (void)
+{
+    memset (_cmdtext, 0, sizeof(_cmdtext));
+    char* cmdb = _cmdtext;
+    int cmdbsz = ArraySize(_cmdtext);
+    for (unsigned i = 0; i < _level && cmdbsz > 1; ++i) {
+	ssize_t ncp = snprintf (cmdb, cmdbsz, "%s", _stack[i].str);
+	if (ncp <= 0)
+	    break;
+	cmdb += ncp;
+	cmdbsz -= ncp;
+    }
+}
+
+static void push (unsigned ruleno, unsigned ch)
+{
+    snprintf (T_STR, sizeof(T_STR), _st[T_STATE].rule[ruleno].str, _tval);
+    T_RULE = ruleno;
+    T_CH = ch;
+    int newstate = _st[T_STATE].rule[ruleno].to_state;
+    unsigned newpos = T_POS + strlen(T_STR);
+    ++_level;	// this changes T_ macro address
+    T_STATE = newstate;
+    T_POS = newpos;
+    T_RULE = -1;
+    strncpy (T_STR, "", sizeof(T_STR));
+    memset (_errtext, 0, sizeof(_errtext));
+}
+
+static unsigned plane_number (char l)
+{
+    if (l < 'a' && l > 'z' && l < 'A' && l > 'Z')
+	return MAXPLANES;
+    else if (l >= 'a' && l <= 'z')
+	return l - 'a';
+    else
+	return l - 'A';
+}
+
+static unsigned dir_from_dxdy (int dx, int dy)
+{
+    unsigned mind = UINT_MAX, mdir = DIR_NORTH;
+    for (unsigned i = 0; i < MAXDIR; ++i) {
+	unsigned d = square(dx - _displacement[i].dx) + square(dy - _displacement[i].dy);
+	if (mind > d) {
+	    mind = d;
+	    mdir = i;
+	}
+    }
+    return mdir;
+}
+
+static unsigned dir_no (char c)
+{
+    static const char c_DirChars [MAXDIR+1] = "wedcxzaq";
+    const char* f = strchr (c_DirChars, c);
+    return f ? f - c_DirChars : MAXDIR;
+}
+
+//{{{ State handlers ---------------------------------------------------
+
+static const char* call_handler (enum EFHandler fhi, char c)
+{
+    switch (fhi) {
+	default:		return NULL;
+	case HF_SETPLANE:	return cmd_setplane (c);
+	case HF_TURN:		return cmd_turn();
+	case HF_CIRCLE:		return cmd_circle();
+	case HF_LEFT:		return cmd_left();
+	case HF_RIGHT:		return cmd_right();
+	case HF_HARD_LEFT:	return cmd_Left();
+	case HF_HARD_RIGHT:	return cmd_Right();
+	case HF_DELAYB:		return cmd_delayb (c);
+	case HF_BEACON:		return cmd_beacon();
+	case HF_EXIT:		return cmd_exit();
+	case HF_AIRPORT:	return cmd_airport();
+	case HF_CLIMB:		return cmd_climb();
+	case HF_DESCEND:	return cmd_descend();
+	case HF_SETALT:		return cmd_setalt (c);
+	case HF_SETRELALT:	return cmd_setrelalt (c);
+	case HF_BENUM:		return cmd_benum (c);
+	case HF_TO_DIR:		return cmd_to_dir (c);
+	case HF_REL_DIR:	return cmd_rel_dir (c);
+	case HF_MARK:		return cmd_mark();
+	case HF_UNMARK:		return cmd_unmark();
+	case HF_IGNORE:		return cmd_ignore();
+	case HF_QUIT:		quitter();
+    };
+}
+
+static const char* cmd_setplane (char c)
+{
+    const struct Plane* pp = findplane (plane_number(c));
+    if (!pp)
+	return "Unknown plane";
+    memcpy (&_p, pp, sizeof(_p));
+    _p.delayd = false;
     return NULL;
 }
 
-const char *turn(char c UNUSED)
+static const char* cmd_turn (void)
 {
-    if (p.altitude == 0)
+    if (_p.altitude == 0)
 	return "Planes at airports may not change direction";
     return NULL;
 }
 
-const char *circle(char c UNUSED)
+static const char* cmd_circle (void)
 {
-    if (p.altitude == 0)
+    if (_p.altitude == 0)
 	return "Planes cannot circle on the ground";
-    p.new_dir = MAXDIR;
+    _p.new_dir = MAXDIR;
     return NULL;
 }
 
-const char *left(char c UNUSED)
+static const char* cmd_left (void)
 {
-    dir = D_LEFT;
-    p.new_dir = p.dir - 1;
-    if (p.new_dir < 0)
-	p.new_dir += MAXDIR;
+    _dir = D_LEFT;
+    _p.new_dir = (_p.dir-1) % MAXDIR;
     return NULL;
 }
 
-const char *right(char c UNUSED)
+static const char* cmd_right (void)
 {
-    dir = D_RIGHT;
-    p.new_dir = p.dir + 1;
-    if (p.new_dir >= MAXDIR)
-	p.new_dir -= MAXDIR;
+    _dir = D_RIGHT;
+    _p.new_dir = (_p.dir+1) % MAXDIR;
     return NULL;
 }
 
-const char *Left(char c UNUSED)
+static const char* cmd_Left (void)
 {
-    p.new_dir = p.dir - 2;
-    if (p.new_dir < 0)
-	p.new_dir += MAXDIR;
+    _p.new_dir = (_p.dir-2) % MAXDIR;
     return NULL;
 }
 
-const char *Right(char c UNUSED)
+static const char* cmd_Right (void)
 {
-    p.new_dir = p.dir + 2;
-    if (p.new_dir >= MAXDIR)
-	p.new_dir -= MAXDIR;
+    _p.new_dir = (_p.dir+2) % MAXDIR;
     return NULL;
 }
 
-const char *delayb(char c)
+static const char* cmd_delayb (char c)
 {
-    int xdiff, ydiff;
-
-    c -= '0';
-
-    if (c >= sp->num_beacons)
+    unsigned bi = c-'0';
+    if (bi >= _sp->num_beacons)
 	return "Unknown beacon";
-    xdiff = sp->beacon[(int) c].x - p.xpos;
-    xdiff = SGN(xdiff);
-    ydiff = sp->beacon[(int) c].y - p.ypos;
-    ydiff = SGN(ydiff);
-    if (xdiff != displacement[p.dir].dx || ydiff != displacement[p.dir].dy)
+    if (sign(_sp->beacon[bi].x-_p.xpos) != _displacement[_p.dir].dx
+	    || sign(_sp->beacon[bi].y-_p.ypos) != _displacement[_p.dir].dy)
 	return "Beacon is not in flight path";
-    p.delayd = 1;
-    p.delayd_no = c;
+    _p.delayd = true;
+    _p.delayd_no = bi;
 
-    if (dest_type != T_NODEST) {
-	switch (dest_type) {
-	    case T_BEACON:
-		xdiff = sp->beacon[dest_no].x - sp->beacon[(int) c].x;
-		ydiff = sp->beacon[dest_no].y - sp->beacon[(int) c].y;
-		break;
-	    case T_EXIT:
-		xdiff = sp->exit[dest_no].x - sp->beacon[(int) c].x;
-		ydiff = sp->exit[dest_no].y - sp->beacon[(int) c].y;
-		break;
-	    case T_AIRPORT:
-		xdiff = sp->airport[dest_no].x - sp->beacon[(int) c].x;
-		ydiff = sp->airport[dest_no].y - sp->beacon[(int) c].y;
-		break;
-	    default:
-		return "Bad case in delayb!  Get help!";
-		break;
+    if (_dest_type != T_NODEST) {
+	struct ScreenPos destpt = _sp->beacon[bi];
+	switch (_dest_type) {
+	    case T_BEACON:	destpt = _sp->beacon[_dest_no];	break;
+	    case T_EXIT:	destpt = _sp->exit[_dest_no];	break;
+	    case T_AIRPORT:	destpt = _sp->airport[_dest_no];break;
 	}
-	if (xdiff == 0 && ydiff == 0)
+	int xdiff = destpt.x - _sp->beacon[bi].x;
+	int ydiff = destpt.y - _sp->beacon[bi].y;
+	if (!xdiff && !ydiff)
 	    return "Would already be there";
-	p.new_dir = DIR_FROM_DXDY(xdiff, ydiff);
-	if (p.new_dir == p.dir)
+	_p.new_dir = dir_from_dxdy (xdiff, ydiff);
+	if (_p.new_dir == _p.dir)
 	    return "Already going in that direction";
     }
     return NULL;
 }
 
-const char *beacon(char c UNUSED)
+static const char* cmd_beacon (void)
 {
-    dest_type = T_BEACON;
+    _dest_type = T_BEACON;
     return NULL;
 }
 
-const char *ex_it(char c UNUSED)
+static const char* cmd_exit (void)
 {
-    dest_type = T_EXIT;
+    _dest_type = T_EXIT;
     return NULL;
 }
 
-const char *airport(char c UNUSED)
+static const char* cmd_airport (void)
 {
-    dest_type = T_AIRPORT;
+    _dest_type = T_AIRPORT;
     return NULL;
 }
 
-const char *climb(char c UNUSED)
+static const char* cmd_climb (void)
 {
-    dir = D_UP;
+    _dir = D_UP;
     return NULL;
 }
 
-const char *descend(char c UNUSED)
+static const char* cmd_descend (void)
 {
-    dir = D_DOWN;
+    _dir = D_DOWN;
     return NULL;
 }
 
-const char *setalt(char c)
+static const char* cmd_setalt (char c)
 {
-    if ((p.altitude == c - '0') && (p.new_altitude == p.altitude))
-	return "Already at that altitude";
-    p.new_altitude = c - '0';
-    return NULL;
-}
-
-const char *setrelalt(char c)
-{
-    if (c == 0)
-	return "altitude not changed";
-
-    switch (dir) {
-	case D_UP:
-	    p.new_altitude = p.altitude + c - '0';
-	    break;
-	case D_DOWN:
-	    p.new_altitude = p.altitude - (c - '0');
-	    break;
-	default:
-	    return "Unknown case in setrelalt!  Get help!";
-	    break;
-    }
-    if (p.new_altitude < 0)
-	return "Altitude would be too low";
-    else if (p.new_altitude > 9)
+    unsigned newalt = c-'0';
+    if (newalt > 9)
 	return "Altitude would be too high";
+    if (_p.altitude == newalt && _p.new_altitude == _p.altitude)
+	return "Already at that altitude";
+    _p.new_altitude = newalt;
     return NULL;
 }
 
-const char *benum(char c)
+static const char* cmd_setrelalt (char c)
 {
-    dest_no = c -= '0';
+    unsigned newalt = c-'0';
+    if (_dir == D_UP)
+	newalt += _p.altitude;
+    else
+	newalt -= _p.altitude;
+    if (newalt > 9)
+	return "Altitude would be too high";
+    _p.new_altitude = newalt;
+    return NULL;
+}
 
-    switch (dest_type) {
+static const char* cmd_benum (char c)
+{
+    unsigned bi = c - '0';
+    struct ScreenPos destpt;
+    switch (_dest_type) {
 	case T_BEACON:
-	    if (c >= sp->num_beacons)
+	    if (bi >= _sp->num_beacons)
 		return "Unknown beacon";
-	    p.new_dir = DIR_FROM_DXDY(sp->beacon[(int) c].x - p.xpos, sp->beacon[(int) c].y - p.ypos);
+	    destpt = _sp->beacon[bi];
 	    break;
 	case T_EXIT:
-	    if (c >= sp->num_exits)
+	    if (bi >= _sp->num_exits)
 		return "Unknown exit";
-	    p.new_dir = DIR_FROM_DXDY(sp->exit[(int) c].x - p.xpos, sp->exit[(int) c].y - p.ypos);
+	    destpt = _sp->exit[bi];
 	    break;
 	case T_AIRPORT:
-	    if (c >= sp->num_airports)
+	    if (bi >= _sp->num_airports)
 		return "Unknown airport";
-	    p.new_dir = DIR_FROM_DXDY(sp->airport[(int) c].x - p.xpos, sp->airport[(int) c].y - p.ypos);
+	    destpt = _sp->airport[bi];
 	    break;
 	default:
-	    return "Unknown case in benum!  Get help!";
-	    break;
+	    return "Unknown destination";
     }
+    _p.new_dir = dir_from_dxdy (destpt.x - _p.xpos, destpt.y - _p.ypos);
+    _dest_no = bi;
     return NULL;
 }
 
-const char *to_dir(char c)
+static const char* cmd_to_dir (char c)
 {
-    p.new_dir = dir_no(c);
+    _p.new_dir = dir_no(c);
     return NULL;
 }
 
-const char *rel_dir(char c)
+static const char* cmd_rel_dir (char c)
 {
-    int angle;
-
-    angle = dir_no(c);
-    switch (dir) {
+    unsigned angle = dir_no(c);
+    switch (_dir) {
 	case D_LEFT:
-	    p.new_dir = p.dir - angle;
-	    if (p.new_dir < 0)
-		p.new_dir += MAXDIR;
+	    _p.new_dir = (_p.dir-angle) % MAXDIR;
 	    break;
 	case D_RIGHT:
-	    p.new_dir = p.dir + angle;
-	    if (p.new_dir >= MAXDIR)
-		p.new_dir -= MAXDIR;
+	    _p.new_dir = (_p.dir+angle) % MAXDIR;
 	    break;
 	default:
-	    return "Bizarre direction in rel_dir!  Get help!";
-	    break;
+	    return "Bizarre direction in rel_dir!";
     }
     return NULL;
 }
 
-const char *mark(char c UNUSED)
+static const char* cmd_mark (void)
 {
-    if (p.altitude == 0)
+    if (!_p.altitude)
 	return "Cannot mark planes on the ground";
-    if (p.status == S_MARKED)
+    if (_p.status == S_MARKED)
 	return "Already marked";
-    p.status = S_MARKED;
+    _p.status = S_MARKED;
     return NULL;
 }
 
-const char *unmark(char c UNUSED)
+static const char* cmd_unmark (void)
 {
-    if (p.altitude == 0)
+    if (!_p.altitude)
 	return "Cannot unmark planes on the ground";
-    if (p.status == S_UNMARKED)
+    if (_p.status == S_UNMARKED)
 	return "Already unmarked";
-    p.status = S_UNMARKED;
+    _p.status = S_UNMARKED;
     return NULL;
 }
 
-const char *ignore(char c UNUSED)
+static const char* cmd_ignore (void)
 {
-    if (p.altitude == 0)
+    if (!_p.altitude)
 	return "Cannot ignore planes on the ground";
-    if (p.status == S_IGNORED)
+    if (_p.status == S_IGNORED)
 	return "Already ignored";
-    p.status = S_IGNORED;
+    _p.status = S_IGNORED;
     return NULL;
 }
 
-int dir_no (char c)
-{
-    static const char c_DirChars [MAXDIR+1] = "wedcxzaq";
-    const char* f = strchr (c_DirChars, c);
-    assert (f && "bad character in dir_no");
-    return f ? f - c_DirChars : -1;
-}
+//}}}-------------------------------------------------------------------

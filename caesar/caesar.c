@@ -2,7 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "../config.h"
-#include <math.h>
 
 enum { ALPHABETSZ = 'Z'-'A'+1 };
 

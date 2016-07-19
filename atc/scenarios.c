@@ -1,5 +1,7 @@
-#include "struct.h"
-#include "extern.h"
+// Copyright (c) 1987 by Ed James <edjames@berkeley.edu>
+// This file is free software, distributed under the BSD license.
+
+#include "atc.h"
 
 //{{{ Helper macros ----------------------------------------------------
 
@@ -13,18 +15,18 @@
 // a	DIR_WEST
 // q	DIR_NW
 
-#define ArrayCName(game,aname)	c_##game##Game_##aname##s
-#define StaticGameArray(game,aname)\
-    .num_##aname##s = ArraySize(ArrayCName(game,aname)),\
-    .aname = ArrayCName(game,aname)
+#define ArrayCName(scenario,aname)	c_##scenario##Scenario_##aname##s
+#define StaticScenarioArray(scenario,aname)\
+    .num_##aname##s = ArraySize(ArrayCName(scenario,aname)),\
+    .aname = ArrayCName(scenario,aname)
 
 #define LineDef(x1,y1,x2,y2)	\
     {{x1,y1,DIR_NORTH}, {x2,y2,DIR_NORTH}}
 
 //}}}-------------------------------------------------------------------
-//{{{ Default game
+//{{{ Default scenario
 
-static const EXIT c_DefaultGame_exits[] = {
+static const EXIT c_DefaultScenario_exits[] = {
     { 12,  0, DIR_SOUTH	},
     { 29,  0, DIR_SW	},
     { 29,  7, DIR_WEST	},
@@ -34,7 +36,7 @@ static const EXIT c_DefaultGame_exits[] = {
     {  0,  7, DIR_EAST	},
     {  0,  0, DIR_SE	}
 };
-static const LINE c_DefaultGame_lines[] = {
+static const AIRWAY c_DefaultScenario_lines[] = {
     LineDef (1,1,	6,6),
     LineDef (12,1,	12,6),
     LineDef (13,7,	28,7),
@@ -45,36 +47,36 @@ static const LINE c_DefaultGame_lines[] = {
     LineDef (13,17,	28,17),
     LineDef (1,7,	11,7)
 };
-static const BEACON c_DefaultGame_beacons[] = {
+static const BEACON c_DefaultScenario_beacons[] = {
     { 12,  7, DIR_NORTH	},
     { 12, 17, DIR_NORTH	}
 };
-static const AIRPORT c_DefaultGame_airports[] = {
+static const AIRPORT c_DefaultScenario_airports[] = {
     { 20, 15, DIR_NORTH	},
     { 20, 18, DIR_EAST	}
 };
-static const C_SCREEN c_DefaultGame = {
+static const struct Scenario c_DefaultScenario = {
     .name		= "Default",
     .width		= 30,
     .height		= 21,
     .update_secs	= 5,
     .newplane_time	= 10,
-    StaticGameArray (Default, exit),
-    StaticGameArray (Default, line),
-    StaticGameArray (Default, beacon),
-    StaticGameArray (Default, airport)
+    StaticScenarioArray (Default, exit),
+    StaticScenarioArray (Default, line),
+    StaticScenarioArray (Default, beacon),
+    StaticScenarioArray (Default, airport)
 };
 
 //}}}-------------------------------------------------------------------
 //{{{ Atlantis
 
-static const EXIT c_AtlantisGame_exits[] = {
+static const EXIT c_AtlantisScenario_exits[] = {
     { 10,  0, DIR_SOUTH	},
     { 29,  6, DIR_WEST	},
     { 27, 20, DIR_NW	},
     {  0, 16, DIR_EAST	}
 };
-static const BEACON c_AtlantisGame_beacons[] = {
+static const BEACON c_AtlantisScenario_beacons[] = {
     { 10,  6, DIR_NORTH	},
     { 23,  6, DIR_NORTH	},
     { 23, 16, DIR_NORTH	},
@@ -83,7 +85,7 @@ static const BEACON c_AtlantisGame_beacons[] = {
     {  7,  9, DIR_NORTH	},
     { 15,  6, DIR_NORTH	}
 };
-static const LINE c_AtlantisGame_lines[] = {
+static const AIRWAY c_AtlantisScenario_lines[] = {
     LineDef (10,1, 10,5),
     LineDef (11,6, 14,6),
     LineDef (16,6, 22,6),
@@ -100,41 +102,41 @@ static const LINE c_AtlantisGame_lines[] = {
     LineDef (6,10, 1,15),
     LineDef (24,17, 26,19)
 };
-static const AIRPORT c_AtlantisGame_airports[] = {
+static const AIRPORT c_AtlantisScenario_airports[] = {
     { 23,  8, DIR_SOUTH	},
     { 15, 12, DIR_NORTH	}
 };
-static const C_SCREEN c_AtlantisGame = {
+static const struct Scenario c_AtlantisScenario = {
     .name		= "Atlantis",
     .width		= 30,
     .height		= 21,
     .update_secs	= 5,
     .newplane_time	= 5,
-    StaticGameArray (Atlantis, exit),
-    StaticGameArray (Atlantis, line),
-    StaticGameArray (Atlantis, beacon),
-    StaticGameArray (Atlantis, airport)
+    StaticScenarioArray (Atlantis, exit),
+    StaticScenarioArray (Atlantis, line),
+    StaticScenarioArray (Atlantis, beacon),
+    StaticScenarioArray (Atlantis, airport)
 };
 
 //}}}-------------------------------------------------------------------
 //{{{ Killer
 
-static const EXIT c_KillerGame_exits[] = {
+static const EXIT c_KillerScenario_exits[] = {
     { 29,  7, DIR_WEST	},
     { 29, 17, DIR_WEST	},
     {  0,  7, DIR_EAST	},
     {  0,  0, DIR_SE	},
 };
-static const BEACON c_KillerGame_beacons[] = {
+static const BEACON c_KillerScenario_beacons[] = {
     { 12,  7, DIR_NORTH	},
     { 12, 17, DIR_NORTH	},
     { 14, 10, DIR_NORTH	},
     { 20, 15, DIR_NORTH	}
 };
-static const AIRPORT c_KillerGame_airports[] = {
+static const AIRPORT c_KillerScenario_airports[] = {
     { 20, 18, DIR_EAST	},
 };
-static const LINE c_KillerGame_lines[] = {
+static const AIRWAY c_KillerScenario_lines[] = {
     LineDef (1,1, 6,6),
     LineDef (12,1, 12,6),
     LineDef (13,7, 28,7),
@@ -145,22 +147,22 @@ static const LINE c_KillerGame_lines[] = {
     LineDef (13,17, 28,17),
     LineDef (1,7, 11,7)
 };
-static const C_SCREEN c_KillerGame = {
+static const struct Scenario c_KillerScenario = {
     .name		= "Killer",
     .width		= 30,
     .height		= 21,
     .update_secs	= 1,
     .newplane_time	= 4,
-    StaticGameArray (Killer, exit),
-    StaticGameArray (Killer, line),
-    StaticGameArray (Killer, beacon),
-    StaticGameArray (Killer, airport)
+    StaticScenarioArray (Killer, exit),
+    StaticScenarioArray (Killer, line),
+    StaticScenarioArray (Killer, beacon),
+    StaticScenarioArray (Killer, airport)
 };
 
 //}}}-------------------------------------------------------------------
 //{{{ OHare
 
-static const EXIT c_OHareGame_exits[] = {
+static const EXIT c_OHareScenario_exits[] = {
     {  6,  0, DIR_SOUTH	},
     { 18,  0, DIR_SOUTH	},
     { 29,  5, DIR_WEST	},
@@ -168,15 +170,15 @@ static const EXIT c_OHareGame_exits[] = {
     { 14, 20, DIR_NE	},
     {  6, 20, DIR_NORTH	},
 };
-static const BEACON c_OHareGame_beacons[] = {
+static const BEACON c_OHareScenario_beacons[] = {
     {  6,  5, DIR_NORTH	},
     { 18,  5, DIR_NORTH	},
     {  6, 13, DIR_NORTH	}
 };
-static const AIRPORT c_OHareGame_airports[] = {
+static const AIRPORT c_OHareScenario_airports[] = {
     {  8,  8, DIR_EAST	},
 };
-static const LINE c_OHareGame_lines[] = {
+static const AIRWAY c_OHareScenario_lines[] = {
     LineDef (6,1, 6,4),
     LineDef (18,1, 18,4),
     LineDef (6,6, 6,12),
@@ -187,22 +189,22 @@ static const LINE c_OHareGame_lines[] = {
     LineDef (7,5, 17,5),
     LineDef (19,5, 28,5)
 };
-static const C_SCREEN c_OHareGame = {
+static const struct Scenario c_OHareScenario = {
     .name		= "OHare",
     .width		= 30,
     .height		= 21,
     .update_secs	= 5,
     .newplane_time	= 5,
-    StaticGameArray (OHare, exit),
-    StaticGameArray (OHare, line),
-    StaticGameArray (OHare, beacon),
-    StaticGameArray (OHare, airport)
+    StaticScenarioArray (OHare, exit),
+    StaticScenarioArray (OHare, line),
+    StaticScenarioArray (OHare, beacon),
+    StaticScenarioArray (OHare, airport)
 };
 
 //}}}-------------------------------------------------------------------
 //{{{ TicTacToe
 
-static const EXIT c_TicTacToeGame_exits[] = {
+static const EXIT c_TicTacToeScenario_exits[] = {
     { 10,  0, DIR_SOUTH	},
     { 19,  0, DIR_SOUTH	},
     { 29,  7, DIR_WEST	},
@@ -212,13 +214,13 @@ static const EXIT c_TicTacToeGame_exits[] = {
     {  0, 13, DIR_EAST	},
     {  0,  7, DIR_EAST	},
 };
-static const BEACON c_TicTacToeGame_beacons[] = {
+static const BEACON c_TicTacToeScenario_beacons[] = {
     { 10,  7, DIR_NORTH	},
     { 19,  7, DIR_NORTH	},
     { 19, 13, DIR_NORTH	},
     { 10, 13, DIR_NORTH	}
 };
-static const LINE c_TicTacToeGame_lines[] = {
+static const AIRWAY c_TicTacToeScenario_lines[] = {
     LineDef (10,1, 10,6),
     LineDef (19,1, 19,6),
     LineDef (1,7, 9,7),
@@ -232,26 +234,26 @@ static const LINE c_TicTacToeGame_lines[] = {
     LineDef (10,14, 10,19),
     LineDef (19,14, 19,19)
 };
-static const C_SCREEN c_TicTacToeGame = {
+static const struct Scenario c_TicTacToeScenario = {
     .name		= "TicTacToe",
     .width		= 30,
     .height		= 21,
     .update_secs	= 5,
     .newplane_time	= 5,
-    StaticGameArray (TicTacToe, exit),
-    StaticGameArray (TicTacToe, line),
-    StaticGameArray (TicTacToe, beacon),
+    StaticScenarioArray (TicTacToe, exit),
+    StaticScenarioArray (TicTacToe, line),
+    StaticScenarioArray (TicTacToe, beacon),
     NULL
 };
 
 //}}}-------------------------------------------------------------------
 //{{{ Airports
 
-static const EXIT c_AirportsGame_exits[] = {
+static const EXIT c_AirportsScenario_exits[] = {
     { 13,  0, DIR_SOUTH	},
     {  0, 10, DIR_EAST	},
 };
-static const BEACON c_AirportsGame_beacons[] = {
+static const BEACON c_AirportsScenario_beacons[] = {
     {  6,  3, DIR_NORTH	},
     { 19,  4, DIR_NORTH	},
     { 27,  4, DIR_NORTH	},
@@ -262,7 +264,7 @@ static const BEACON c_AirportsGame_beacons[] = {
     { 13, 10, DIR_NORTH	},
     { 19, 10, DIR_NORTH	}
 };
-static const AIRPORT c_AirportsGame_airports[] = {
+static const AIRPORT c_AirportsScenario_airports[] = {
     {  6,  5, DIR_NORTH	},
     { 23,  4, DIR_WEST	},
     { 19,  7, DIR_NORTH	},
@@ -271,7 +273,7 @@ static const AIRPORT c_AirportsGame_airports[] = {
     { 13, 13, DIR_SOUTH	},
     {  6, 13, DIR_NORTH	},
 };
-static const LINE c_AirportsGame_lines[] = {
+static const AIRWAY c_AirportsScenario_lines[] = {
     LineDef (13,1, 13,9),
     LineDef (13,11, 13,12),
     LineDef (13,14, 13,15),
@@ -284,22 +286,22 @@ static const LINE c_AirportsGame_lines[] = {
     LineDef (27,5, 27,9),
     LineDef (27,11, 27,15)
 };
-static const C_SCREEN c_AirportsGame = {
+static const struct Scenario c_AirportsScenario = {
     .name		= "Airports",
     .width		= 30,
     .height		= 21,
     .update_secs	= 6,
     .newplane_time	= 6,
-    StaticGameArray (Airports, exit),
-    StaticGameArray (Airports, line),
-    StaticGameArray (Airports, beacon),
-    StaticGameArray (Airports, airport)
+    StaticScenarioArray (Airports, exit),
+    StaticScenarioArray (Airports, line),
+    StaticScenarioArray (Airports, beacon),
+    StaticScenarioArray (Airports, airport)
 };
 
 //}}}-------------------------------------------------------------------
 //{{{ Box
 
-static const EXIT c_BoxGame_exits[] = {
+static const EXIT c_BoxScenario_exits[] = {
     {  0,  0, DIR_SE	},
     { 14,  0, DIR_SOUTH	},
     { 28,  0, DIR_SW	},
@@ -309,7 +311,7 @@ static const EXIT c_BoxGame_exits[] = {
     {  0, 20, DIR_NE	},
     {  0, 10, DIR_EAST	},
 };
-static const BEACON c_BoxGame_beacons[] = {
+static const BEACON c_BoxScenario_beacons[] = {
     {  4,  4, DIR_NORTH	},
     { 14,  4, DIR_NORTH	},
     { 24,  4, DIR_NORTH	},
@@ -321,13 +323,13 @@ static const BEACON c_BoxGame_beacons[] = {
     { 14, 13, DIR_NORTH	},
     { 14,  7, DIR_NORTH	}
 };
-static const AIRPORT c_BoxGame_airports[] = {
+static const AIRPORT c_BoxScenario_airports[] = {
     {  9,  7, DIR_WEST	},
     { 19,  7, DIR_EAST	},
     { 19, 13, DIR_EAST	},
     {  9, 13, DIR_WEST	},
 };
-static const LINE c_BoxGame_lines[] = {
+static const AIRWAY c_BoxScenario_lines[] = {
     LineDef (1,1, 3,3),
     LineDef (14,1, 14,3),
     LineDef (27,1, 25,3),
@@ -354,22 +356,22 @@ static const LINE c_BoxGame_lines[] = {
     LineDef (14,17, 14,19),
     LineDef (25,17, 27,19)
 };
-static const C_SCREEN c_BoxGame = {
+static const struct Scenario c_BoxScenario = {
     .name		= "Box",
     .width		= 29,
     .height		= 21,
     .update_secs	= 5,
     .newplane_time	= 6,
-    StaticGameArray (Box, exit),
-    StaticGameArray (Box, line),
-    StaticGameArray (Box, beacon),
-    StaticGameArray (Box, airport)
+    StaticScenarioArray (Box, exit),
+    StaticScenarioArray (Box, line),
+    StaticScenarioArray (Box, beacon),
+    StaticScenarioArray (Box, airport)
 };
 
 //}}}-------------------------------------------------------------------
 //{{{ Crosshatch
 
-static const EXIT c_CrosshatchGame_exits[] = {
+static const EXIT c_CrosshatchScenario_exits[] = {
     {  0, 10, DIR_EAST	},
     {  6,  0, DIR_SOUTH	},
     { 12,  0, DIR_SOUTH	},
@@ -381,7 +383,7 @@ static const EXIT c_CrosshatchGame_exits[] = {
     { 12, 20, DIR_NORTH	},
     {  6, 20, DIR_NORTH	}
 };
-static const BEACON c_CrosshatchGame_beacons[] = {
+static const BEACON c_CrosshatchScenario_beacons[] = {
     {  6, 10, DIR_NORTH	},
     { 12, 10, DIR_NORTH	},
     { 18, 10, DIR_NORTH	},
@@ -393,12 +395,12 @@ static const BEACON c_CrosshatchGame_beacons[] = {
     { 12, 15, DIR_NORTH	},
     { 18, 15, DIR_NORTH	}
 };
-static const AIRPORT c_CrosshatchGame_airports[] = {
+static const AIRPORT c_CrosshatchScenario_airports[] = {
     {  9, 15, DIR_WEST	},
     { 21, 15, DIR_EAST	},
     { 15,  5, DIR_EAST	}
 };
-static const LINE c_CrosshatchGame_lines[] = {
+static const AIRWAY c_CrosshatchScenario_lines[] = {
     LineDef (6,1, 6,4),
     LineDef (12,1, 12,4),
     LineDef (18,1, 18,4),
@@ -422,22 +424,22 @@ static const LINE c_CrosshatchGame_lines[] = {
     LineDef (19,10, 23,10),
     LineDef (25,10, 29,10)
 };
-static const C_SCREEN c_CrosshatchGame = {
+static const struct Scenario c_CrosshatchScenario = {
     .name		= "Crosshatch",
     .width		= 30,
     .height		= 21,
     .update_secs	= 5,
     .newplane_time	= 5,
-    StaticGameArray (Crosshatch, exit),
-    StaticGameArray (Crosshatch, line),
-    StaticGameArray (Crosshatch, beacon),
-    StaticGameArray (Crosshatch, airport)
+    StaticScenarioArray (Crosshatch, exit),
+    StaticScenarioArray (Crosshatch, line),
+    StaticScenarioArray (Crosshatch, beacon),
+    StaticScenarioArray (Crosshatch, airport)
 };
 
 //}}}-------------------------------------------------------------------
 //{{{ Crossover
 
-static const EXIT c_CrossoverGame_exits[] = {
+static const EXIT c_CrossoverScenario_exits[] = {
     {  0,  0, DIR_SE	},
     {  8,  0, DIR_SE	},
     { 20,  0, DIR_SW	},
@@ -447,68 +449,68 @@ static const EXIT c_CrossoverGame_exits[] = {
     {  8, 20, DIR_NE	},
     {  0, 20, DIR_NE	}
 };
-static const BEACON c_CrossoverGame_beacons[] = {
+static const BEACON c_CrossoverScenario_beacons[] = {
     { 14,  6, DIR_NORTH	},
     { 18, 10, DIR_NORTH	},
     { 14, 14, DIR_NORTH	},
     { 10, 10, DIR_NORTH	}
 };
 
-static const LINE c_CrossoverGame_lines[] = {
+static const AIRWAY c_CrossoverScenario_lines[] = {
     LineDef (0,0, 20,20),
     LineDef (8,0, 28,20),
     LineDef (20,0, 0,20),
     LineDef (28,0, 8,20)
 };
-static const C_SCREEN c_CrossoverGame = {
+static const struct Scenario c_CrossoverScenario = {
     .name		= "Crossover",
     .width		= 29,
     .height		= 21,
     .update_secs	= 5,
     .newplane_time	= 5,
-    StaticGameArray (Crossover, exit),
-    StaticGameArray (Crossover, line),
-    StaticGameArray (Crossover, beacon),
+    StaticScenarioArray (Crossover, exit),
+    StaticScenarioArray (Crossover, line),
+    StaticScenarioArray (Crossover, beacon),
     NULL
 };
 
 //}}}-------------------------------------------------------------------
 //{{{ Easy
 
-static const EXIT c_EasyGame_exits[] = {
+static const EXIT c_EasyScenario_exits[] = {
     {  7,  0, DIR_SOUTH	},
     { 14,  0, DIR_SW	},
     { 12, 14, DIR_NW	},
     {  0, 14, DIR_NE	}
 };
-static const BEACON c_EasyGame_beacons[] = {
+static const BEACON c_EasyScenario_beacons[] = {
     { 12,  7, DIR_NORTH	}
 };
-static const AIRPORT c_EasyGame_airports[] = {
+static const AIRPORT c_EasyScenario_airports[] = {
     {  7,  8, DIR_NORTH	}
 };
-static const LINE c_EasyGame_lines[] = {
+static const AIRWAY c_EasyScenario_lines[] = {
     LineDef (1,1, 6,6),
     LineDef (7,9, 12,14),
     LineDef (7,0, 7,14),
     LineDef (1,7, 11,7)
 };
-static const C_SCREEN c_EasyGame = {
+static const struct Scenario c_EasyScenario = {
     .name		= "Easy",
     .width		= 15,
     .height		= 15,
     .update_secs	= 7,
     .newplane_time	= 12,
-    StaticGameArray (Easy, exit),
-    StaticGameArray (Easy, line),
-    StaticGameArray (Easy, beacon),
-    StaticGameArray (Easy, airport)
+    StaticScenarioArray (Easy, exit),
+    StaticScenarioArray (Easy, line),
+    StaticScenarioArray (Easy, beacon),
+    StaticScenarioArray (Easy, airport)
 };
 
 //}}}-------------------------------------------------------------------
-//{{{ Game2
+//{{{ Scenario2
 
-static const EXIT c_Game2Game_exits[] = {
+static const EXIT c_Scenario2Scenario_exits[] = {
     { 12,  0, DIR_SOUTH	},
     { 29,  0, DIR_SW	},
     { 29,  6, DIR_WEST	},
@@ -518,7 +520,7 @@ static const EXIT c_Game2Game_exits[] = {
     {  0,  6, DIR_EAST	},
     {  0,  0, DIR_SE	}
 };
-static const BEACON c_Game2Game_beacons[] = {
+static const BEACON c_Scenario2Scenario_beacons[] = {
     { 12, 17, DIR_NORTH	},
     { 23,  6, DIR_NORTH	},
     { 23, 13, DIR_NORTH	},
@@ -527,10 +529,10 @@ static const BEACON c_Game2Game_beacons[] = {
     { 12, 13, DIR_NORTH	},
     {  6,  6, DIR_NORTH	}
 };
-static const AIRPORT c_Game2Game_airports[] = {
+static const AIRPORT c_Scenario2Scenario_airports[] = {
     { 18, 17, DIR_EAST	}
 };
-static const LINE c_Game2Game_lines[] = {
+static const AIRWAY c_Scenario2Scenario_lines[] = {
     LineDef (1,1, 16,16),
     LineDef (1,6, 28,6),
     LineDef (12,1, 12,17),
@@ -541,56 +543,56 @@ static const LINE c_Game2Game_lines[] = {
     LineDef (19,17, 22,14),
     LineDef (26,16, 28,14)
 };
-static const C_SCREEN c_Game2Game = {
-    .name		= "Game2",
+static const struct Scenario c_Scenario2Scenario = {
+    .name		= "Scenario2",
     .width		= 30,
     .height		= 21,
     .update_secs	= 5,
     .newplane_time	= 8,
-    StaticGameArray (Game2, exit),
-    StaticGameArray (Game2, line),
-    StaticGameArray (Game2, beacon),
-    StaticGameArray (Game2, airport)
+    StaticScenarioArray (Scenario2, exit),
+    StaticScenarioArray (Scenario2, line),
+    StaticScenarioArray (Scenario2, beacon),
+    StaticScenarioArray (Scenario2, airport)
 };
 
 //}}}-------------------------------------------------------------------
-//{{{ Game3
+//{{{ Scenario3
 
-static const EXIT c_Game3Game_exits[] = {
+static const EXIT c_Scenario3Scenario_exits[] = {
     { 12,  0, DIR_SOUTH	},
     {  0,  6, DIR_EAST	},
     { 29, 12, DIR_WEST	},
     { 26, 20, DIR_NW	}
 };
-static const BEACON c_Game3Game_beacons[] = {
+static const BEACON c_Scenario3Scenario_beacons[] = {
     { 12,  6, DIR_NORTH	}
 };
-static const AIRPORT c_Game3Game_airports[] = {
+static const AIRPORT c_Scenario3Scenario_airports[] = {
     {  8, 11, DIR_SOUTH	}
 };
-static const LINE c_Game3Game_lines[] = {
+static const AIRWAY c_Scenario3Scenario_lines[] = {
     LineDef (12,1, 12,5),
     LineDef (1,6, 11,6),
     LineDef (8,7, 8,10),
     LineDef (28,12, 19,12),
     LineDef (13,7, 25,19)
 };
-static const C_SCREEN c_Game3Game = {
-    .name		= "Game3",
+static const struct Scenario c_Scenario3Scenario = {
+    .name		= "Scenario3",
     .width		= 30,
     .height		= 21,
     .update_secs	= 5,
     .newplane_time	= 5,
-    StaticGameArray (Game3, exit),
-    StaticGameArray (Game3, line),
-    StaticGameArray (Game3, beacon),
-    StaticGameArray (Game3, airport)
+    StaticScenarioArray (Scenario3, exit),
+    StaticScenarioArray (Scenario3, line),
+    StaticScenarioArray (Scenario3, beacon),
+    StaticScenarioArray (Scenario3, airport)
 };
 
 //}}}-------------------------------------------------------------------
-//{{{ Game4
+//{{{ Scenario4
 
-static const EXIT c_Game4Game_exits[] = {
+static const EXIT c_Scenario4Scenario_exits[] = {
     {  9,  0, DIR_SE	},
     { 29,  0, DIR_SW	},
     { 29, 20, DIR_NW	},
@@ -599,7 +601,7 @@ static const EXIT c_Game4Game_exits[] = {
     {  0, 10, DIR_EAST	},
     {  0,  0, DIR_SE	}
 };
-static const BEACON c_Game4Game_beacons[] = {
+static const BEACON c_Scenario4Scenario_beacons[] = {
     {  5,  5, DIR_NORTH	},
     { 14,  5, DIR_NORTH	},
     { 24,  5, DIR_NORTH	},
@@ -611,11 +613,11 @@ static const BEACON c_Game4Game_beacons[] = {
     {  5, 10, DIR_NORTH	},
     { 14, 10, DIR_NORTH	}
 };
-static const AIRPORT c_Game4Game_airports[] = {
+static const AIRPORT c_Scenario4Scenario_airports[] = {
     { 19,  9, DIR_WEST	},
     { 19, 11, DIR_WEST	}
 };
-static const LINE c_Game4Game_lines[] = {
+static const AIRWAY c_Scenario4Scenario_lines[] = {
     LineDef (1,1, 4,4),
     LineDef (10,1, 13,4),
     LineDef (28,1, 25,4),
@@ -640,54 +642,54 @@ static const LINE c_Game4Game_lines[] = {
     LineDef (24,10, 24,10),
     LineDef (24,12, 24,14)
 };
-static const C_SCREEN c_Game4Game = {
-    .name		= "Game4",
+static const struct Scenario c_Scenario4Scenario = {
+    .name		= "Scenario4",
     .width		= 30,
     .height		= 21,
     .update_secs	= 5,
     .newplane_time	= 5,
-    StaticGameArray (Game4, exit),
-    StaticGameArray (Game4, line),
-    StaticGameArray (Game4, beacon),
-    StaticGameArray (Game4, airport)
+    StaticScenarioArray (Scenario4, exit),
+    StaticScenarioArray (Scenario4, line),
+    StaticScenarioArray (Scenario4, beacon),
+    StaticScenarioArray (Scenario4, airport)
 };
 
 //}}}-------------------------------------------------------------------
 //{{{ Novice
 
-static const EXIT c_NoviceGame_exits[] = {
+static const EXIT c_NoviceScenario_exits[] = {
     {  0,  2, DIR_SE	},
     { 29,  2, DIR_SW	},
     { 29, 18, DIR_NW	},
     {  0, 18, DIR_NE	}
 };
-static const BEACON c_NoviceGame_beacons[] = {
+static const BEACON c_NoviceScenario_beacons[] = {
     {  8, 10, DIR_NORTH	},
     { 21, 10, DIR_NORTH	}
 };
-static const LINE c_NoviceGame_lines[] = {
+static const AIRWAY c_NoviceScenario_lines[] = {
     LineDef (1,3, 7,9),
     LineDef (7,11, 1,17),
     LineDef (28,3, 22,9),
     LineDef (22,11, 28,17),
     LineDef (9,10, 20,10)
 };
-static const C_SCREEN c_NoviceGame = {
+static const struct Scenario c_NoviceScenario = {
     .name		= "Novice",
     .width		= 30,
     .height		= 21,
     .update_secs	= 6,
     .newplane_time	= 6,
-    StaticGameArray (Novice, exit),
-    StaticGameArray (Novice, line),
-    StaticGameArray (Novice, beacon),
+    StaticScenarioArray (Novice, exit),
+    StaticScenarioArray (Novice, line),
+    StaticScenarioArray (Novice, beacon),
     NULL
 };
 
 //}}}-------------------------------------------------------------------
 //{{{ TwoCorners
 
-static const EXIT c_TwoCornersGame_exits[] = {
+static const EXIT c_TwoCornersScenario_exits[] = {
     {  0,  0, DIR_SE	},
     { 10,  0, DIR_SOUTH	},
     { 29, 10, DIR_WEST	},
@@ -695,14 +697,14 @@ static const EXIT c_TwoCornersGame_exits[] = {
     { 19, 20, DIR_NORTH	},
     {  0, 10, DIR_EAST	}
 };
-static const BEACON c_TwoCornersGame_beacons[] = {
+static const BEACON c_TwoCornersScenario_beacons[] = {
     { 10, 10, DIR_NORTH	},
     { 19, 10, DIR_NORTH	}
 };
-static const AIRPORT c_TwoCornersGame_airports[] = {
+static const AIRPORT c_TwoCornersScenario_airports[] = {
     { 15, 15, DIR_SOUTH	}
 };
-static const LINE c_TwoCornersGame_lines[] = {
+static const AIRWAY c_TwoCornersScenario_lines[] = {
     LineDef (1,1, 9,9),
     LineDef (10,1, 10,9),
     LineDef (1,10, 9,10),
@@ -712,70 +714,70 @@ static const LINE c_TwoCornersGame_lines[] = {
     LineDef (19,11, 19,19),
     LineDef (20,11, 28,19)
 };
-static const C_SCREEN c_TwoCornersGame = {
+static const struct Scenario c_TwoCornersScenario = {
     .name		= "TwoCorners",
     .width		= 30,
     .height		= 21,
     .update_secs	= 5,
     .newplane_time	= 5,
-    StaticGameArray (TwoCorners, exit),
-    StaticGameArray (TwoCorners, line),
-    StaticGameArray (TwoCorners, beacon),
-    StaticGameArray (TwoCorners, airport)
+    StaticScenarioArray (TwoCorners, exit),
+    StaticScenarioArray (TwoCorners, line),
+    StaticScenarioArray (TwoCorners, beacon),
+    StaticScenarioArray (TwoCorners, airport)
 };
 
 //}}}-------------------------------------------------------------------
 
-static const C_SCREEN* c_Games[] = {
-    &c_DefaultGame,
-    &c_AtlantisGame,
-    &c_KillerGame,
-    &c_OHareGame,
-    &c_TicTacToeGame,
-    &c_AirportsGame,
-    &c_BoxGame,
-    &c_CrosshatchGame,
-    &c_CrossoverGame,
-    &c_EasyGame,
-    &c_Game2Game,
-    &c_Game3Game,
-    &c_Game4Game,
-    &c_NoviceGame,
-    &c_TwoCornersGame
+static const struct Scenario* c_Scenarios[] = {
+    &c_DefaultScenario,
+    &c_AtlantisScenario,
+    &c_KillerScenario,
+    &c_OHareScenario,
+    &c_TicTacToeScenario,
+    &c_AirportsScenario,
+    &c_BoxScenario,
+    &c_CrosshatchScenario,
+    &c_CrossoverScenario,
+    &c_EasyScenario,
+    &c_Scenario2Scenario,
+    &c_Scenario3Scenario,
+    &c_Scenario4Scenario,
+    &c_NoviceScenario,
+    &c_TwoCornersScenario
 };
 
-static unsigned game_by_name (const char* name)
+static unsigned scenario_by_name (const char* name)
 {
-    for (unsigned i = 0; i < ArraySize(c_Games); ++i)
-	if (0 == strcmp (name, c_Games[i]->name))
+    for (unsigned i = 0; i < ArraySize(c_Scenarios); ++i)
+	if (0 == strcmp (name, c_Scenarios[i]->name))
 	    return i;
     return UINT_MAX;
 }
 
-int load_game (const char *s)
+int load_scenario (const char *s)
 {
-    unsigned gamei = game_by_name (s);
-    if (gamei >= ArraySize(c_Games))
+    unsigned scenarioi = scenario_by_name (s);
+    if (scenarioi >= ArraySize(c_Scenarios))
 	return -1;
-    sp = c_Games[gamei];
+    _sp = c_Scenarios[scenarioi];
     return 0;
 }
 
-const char* default_game (void)
+const char* default_scenario (void)
 {
-    assert (ArraySize(c_Games) && "no games included with project?");
-    return c_Games[0]->name;
+    assert (ArraySize(c_Scenarios) && "no scenarios included with project?");
+    return c_Scenarios[0]->name;
 }
 
-const char* okay_game (const char *s)
+const char* okay_scenario (const char *s)
 {
-    return game_by_name(s) < ArraySize(c_Games) ? s : NULL;
+    return scenario_by_name(s) < ArraySize(c_Scenarios) ? s : NULL;
 }
 
-void list_games (void)
+void list_scenarios (void)
 {
-    assert (ArraySize(c_Games) && "no games included with project?");
-    puts ("Available games:");
-    for (unsigned i = 0; i < ArraySize(c_Games); ++i)
-	printf ("\t%s\n", c_Games[i]->name);
+    assert (ArraySize(c_Scenarios) && "no scenarios included with project?");
+    puts ("Available scenarios:");
+    for (unsigned i = 0; i < ArraySize(c_Scenarios); ++i)
+	printf ("\t%s\n", c_Scenarios[i]->name);
 }
