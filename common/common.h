@@ -81,6 +81,12 @@ inline static unsigned max_u (unsigned a, unsigned b)
     { return a < b ? b : a; }
 inline static int max_i (int a, int b)
     { return a < b ? b : a; }
+static inline size_t DivRU (size_t n, size_t d)
+    { return (n+(d-1))/d; }
+static inline size_t Floor (size_t n, size_t grain)
+    { return n - n % grain; }
+static inline size_t Align (size_t n, size_t grain)
+    { return Floor (n+grain-1, grain); }
 
 #ifdef __cplusplus
 } // extern "C"
