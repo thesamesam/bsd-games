@@ -33,8 +33,6 @@ ${drop4/EXEI}:	${drop4/EXE}
 	@echo "Installing $@ ..."
 	@${INSTALLEXE} $< $@
 ${drop4/MANI}:	drop4/${drop4/NAME}.6
-	@echo "Installing $@ ..."
-	@gzip -9 -c $< > $@ && chmod 644 $@
 ${drop4/SCOREI}:
 	@echo "Creating initial score file $@ ..."
 	@${INSTALLSCORE} /dev/null $@

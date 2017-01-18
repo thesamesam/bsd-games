@@ -38,6 +38,11 @@ $O%.o:	%.c
 	@echo "    Compiling $< to assembly ..."
 	@${CC} ${CFLAGS} -S -o $@ -c $<
 
+${MANDIR}/man6/%.6.gz:
+	@echo "Installing $@ ..."
+	@${INSTALLDATA} $< ${@:.gz=}
+	@gzip -9 ${@:.gz=}
+
 ################ Installation ##########################################
 
 ifdef BINDIR

@@ -32,8 +32,6 @@ ${adventure/EXEI}:	${adventure/EXE}
 	@echo "Installing $@ ..."
 	@${INSTALLEXE} $< $@
 ${adventure/MANI}:	adventure/${adventure/NAME}.6
-	@echo "Installing $@ ..."
-	@gzip -9 -c $< > $@ && chmod 644 $@
 
 uninstall:		adventure/uninstall
 adventure/uninstall:

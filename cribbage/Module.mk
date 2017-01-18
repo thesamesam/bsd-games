@@ -32,8 +32,6 @@ ${cribbage/EXEI}:	${cribbage/EXE}
 	@echo "Installing $@ ..."
 	@${INSTALLEXE} $< $@
 ${cribbage/MANI}:	cribbage/${cribbage/NAME}.6
-	@echo "Installing $@ ..."
-	@gzip -9 -c $< > $@ && chmod 644 $@
 
 uninstall:		cribbage/uninstall
 cribbage/uninstall:
