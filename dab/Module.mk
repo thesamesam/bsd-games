@@ -32,8 +32,6 @@ ${dab/EXEI}:	${dab/EXE}
 	@echo "Installing $@ ..."
 	@${INSTALLEXE} $< $@
 ${dab/MANI}:	dab/${dab/NAME}.6
-	@echo "Installing $@ ..."
-	@gzip -9 -c $< > $@ && chmod 644 $@
 
 uninstall:		dab/uninstall
 dab/uninstall:

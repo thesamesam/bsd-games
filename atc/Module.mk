@@ -33,8 +33,6 @@ ${atc/EXEI}:	${atc/EXE}
 	@echo "Installing $@ ..."
 	@${INSTALLEXE} $< $@
 ${atc/MANI}:	atc/${atc/NAME}.6
-	@echo "Installing $@ ..."
-	@gzip -9 -c $< > $@ && chmod 644 $@
 ${atc/SCOREI}:
 	@echo "Creating initial score file $@ ..."
 	@${INSTALLSCORE} /dev/null $@

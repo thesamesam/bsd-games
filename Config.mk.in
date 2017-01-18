@@ -32,8 +32,8 @@ CFLAGS		:= -Wall -Wextra -Wstrict-prototypes -Wpointer-arith \
 		   -Wcast-align -Wmissing-prototypes -Wwrite-strings \
 		   -Wcast-qual -std=c11 @CUSTOMINCDIR@
 LDFLAGS		:= @CUSTOMLIBDIR@
-CURSES_LIBS	:= @libncurses@
-MATH_LIBS	:= @libm@
+CURSES_LIBS	:= -lncurses
+MATH_LIBS	:= -lm
 ifdef DEBUG
     CFLAGS	+= -O0 -ggdb3
 else

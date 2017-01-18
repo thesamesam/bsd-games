@@ -5,25 +5,6 @@
 CONFS	:= Config.mk config.h
 ONAME   := $(notdir $(abspath $O))
 
-include common/Module.mk
-include adventure/Module.mk
-include atc/Module.mk
-include battlestar/Module.mk
-include caesar/Module.mk
-include cribbage/Module.mk
-include dab/Module.mk
-include drop4/Module.mk
-include fish/Module.mk
-include gomoku/Module.mk
-include hack/Module.mk
-include hangman/Module.mk
-include klondike/Module.mk
-include robots/Module.mk
-include sail/Module.mk
-include snake/Module.mk
-include worm/Module.mk
-include wump/Module.mk
-
 ################ Compilation ###########################################
 
 .PHONY: all clean distclean maintainer-clean install uninstall
@@ -37,6 +18,11 @@ $O%.o:	%.c
 %.s:	%.c
 	@echo "    Compiling $< to assembly ..."
 	@${CC} ${CFLAGS} -S -o $@ -c $<
+
+${MANDIR}/man6/%.6.gz:
+	@echo "Installing $@ ..."
+	@${INSTALLDATA} $< ${@:.gz=}
+	@gzip -9 ${@:.gz=}
 
 ################ Installation ##########################################
 
@@ -73,3 +59,22 @@ ${CONFS}:	configure
 	else echo "Running configure ...";\
 	    ./configure;\
 	fi
+
+include common/Module.mk
+include adventure/Module.mk
+include atc/Module.mk
+include battlestar/Module.mk
+include caesar/Module.mk
+include cribbage/Module.mk
+include dab/Module.mk
+include drop4/Module.mk
+include fish/Module.mk
+include gomoku/Module.mk
+include hack/Module.mk
+include hangman/Module.mk
+include klondike/Module.mk
+include robots/Module.mk
+include sail/Module.mk
+include snake/Module.mk
+include worm/Module.mk
+include wump/Module.mk

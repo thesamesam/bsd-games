@@ -33,8 +33,6 @@ ${battlestar/EXEI}:	${battlestar/EXE}
 	@echo "Installing $@ ..."
 	@${INSTALLEXE} $< $@
 ${battlestar/MANI}:	battlestar/${battlestar/NAME}.6
-	@echo "Installing $@ ..."
-	@gzip -9 -c $< > $@ && chmod 644 $@
 ${battlestar/SCOREI}:
 	@echo "Creating initial score file $@ ..."
 	@${INSTALLSCORE} /dev/null $@

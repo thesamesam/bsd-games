@@ -36,8 +36,6 @@ ${caesar/EXE2I}:	${caesar/EXEI}
 	@echo "Installing $@ ..."
 	@(cd ${BINDIR}; rm -f rot13; ln ${caesar/NAME} rot13)
 ${caesar/MANI}:	caesar/${caesar/NAME}.6
-	@echo "Installing $@ ..."
-	@gzip -9 -c $< > $@ && chmod 644 $@
 
 uninstall:		caesar/uninstall
 caesar/uninstall:
