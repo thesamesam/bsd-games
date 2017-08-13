@@ -271,7 +271,7 @@ static unsigned score_runs (const struct Hand* hand)
 	    mult *= counts[i];
 	    ++runl;
 	} else {
-	    if (runl > 1)
+	    if (runl >= 3)
 		score += runl*mult;
 	    runl = 0;
 	    mult = 1;
@@ -353,7 +353,7 @@ static unsigned score_play (card_t lastCard, bool printMessage)
     // Score pairs.
     unsigned pairlen = 1;
     for (unsigned i = 0; i < p.sz-1u; ++i)
-        pairlen += card_rank(p.c[i]) == card_rank(lastCard);
+        pairlen += (card_rank(p.c[i]) == card_rank(lastCard));
     if (pairlen >= 2) {
 	static const uint8_t c_PairScore[] = { 2, 6, 12 };
 	score += c_PairScore[pairlen-2];
@@ -371,7 +371,7 @@ static unsigned score_play (card_t lastCard, bool printMessage)
 	    --runf;
 	while (runl < NRANKS && rnkc[runl-1] == 1 && rnkc[runl] >= 1)
 	    ++runl;
-	if (runl-runf > 1) {
+	if (runl-runf >= 3) {
 	    score += runl-runf;
 	    if (printMessage)
 		print_msg (" with a run of %u\n", runl-runf);
