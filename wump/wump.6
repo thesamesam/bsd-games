@@ -40,7 +40,6 @@
 .Nd hunt the wumpus in an underground cave
 .Sh SYNOPSIS
 .Nm
-.Op Fl h
 .Op Fl a Ar arrows
 .Op Fl b Ar bats
 .Op Fl p Ar pits
@@ -66,20 +65,16 @@ The default is five.
 .It Fl b
 Specifies the number of rooms in the cave which contain bats.
 The default is three.
-.It Fl h
-Play the hard version -- more pits, more bats, and a generally more
-dangerous cave.
 .It Fl p
 Specifies the number of rooms in the cave which contain bottomless pits.
 The default is three.
 .It Fl r
 Specifies the number of rooms in the cave.
-The default cave size is twenty-five rooms.
+The default cave size is twenty rooms.
 .It Fl t
 Specifies the number of tunnels connecting each room in the cave to
-another room.
-Beware, too many tunnels in a small cave can easily cause it to collapse!
-The default cave room has three tunnels to other rooms.
+another room. Beware, too many tunnels in a small cave can easily cause
+it to collapse! The default cave room has three tunnels to other rooms.
 .El
 .Pp
 While wandering through the cave you'll notice that, while there are tunnels
@@ -103,8 +98,7 @@ Fortunately, you don't have to be in the same room as the creature, and can
 instead shoot the arrow from as far as three or four rooms away!
 .Pp
 When you shoot an arrow, you do so by typing in a list of rooms that you'd
-like it to travel to.
-If at any point in its travels it cannot find a tunnel to the room you
-specify from the room it's in, it will instead randomly fly down one of the
-tunnels, possibly, if you're real unlucky, even flying back into the room
-you're in and hitting you!
+like it to travel to. If at any point in its travels it cannot find a
+tunnel to the room you specify from the room it's in, it will instead
+randomly fly down one of the tunnels, possibly, if you're real unlucky,
+even flying back into the room you're in and hitting you!

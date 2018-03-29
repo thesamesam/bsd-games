@@ -24,17 +24,13 @@ ${wump/EXE}:	${wump/OBJS} ${COMLIB}
 
 ifdef BINDIR
 wump/EXEI	:= ${BINDIR}/${wump/NAME}
-wump/DATAI	:= ${DATADIR}/wump.info
 wump/MANI	:= ${MANDIR}/man6/${wump/NAME}.6.gz
 
 install:		wump/install
-wump/install:	${wump/EXEI} ${wump/DATAI} ${wump/MANI}
+wump/install:	${wump/EXEI} ${wump/MANI}
 ${wump/EXEI}:	${wump/EXE}
 	@echo "Installing $@ ..."
 	@${INSTALLEXE} $< $@
-${wump/DATAI}:	wump/wump.info
-	@echo "Installing $@ ..."
-	@${INSTALLDATA} $< $@
 ${wump/MANI}:	wump/${wump/NAME}.6
 	@echo "Installing $@ ..."
 	@gzip -9 -c $< > $@ && chmod 644 $@
@@ -43,7 +39,7 @@ uninstall:		wump/uninstall
 wump/uninstall:
 	@if [ -f ${wump/EXEI} ]; then\
 	    echo "Removing ${wump/EXEI} ...";\
-	    rm -f ${wump/EXEI} ${wump/DATAI} ${wump/MANI};\
+	    rm -f ${wump/EXEI} ${wump/MANI};\
 	fi
 endif
 
