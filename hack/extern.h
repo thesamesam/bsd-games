@@ -130,7 +130,7 @@ void done1(int);
 void done_intr(int);
 void done_hangup(int);
 void done_in_by(struct monst *);
-void done(const char *);
+void done(const char *) __attribute__((noreturn));
 void topten(void);
 void outheader(void);
 struct toptenentry;

@@ -547,10 +547,12 @@ int askchain(struct obj *objchn, char *olets, int allflag, int (*fn) (struct obj
 	switch (sym) {
 	    case 'a':
 		allflag = 1;
+		// fallthrough
 	    case 'y':
 		cnt += (*fn) (otmp);
 		if (--max == 0)
 		    goto ret;
+		// fallthrough
 	    case 'n':
 	    default:
 		break;

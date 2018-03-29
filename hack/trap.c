@@ -256,7 +256,7 @@ void float_down(void)
 	    case TRAPDOOR:
 		if (!xdnstair || u.ustuck)
 		    break;
-		// fall into next case
+		// fallthrough
 	    default:
 		dotrap(trap);
 	}

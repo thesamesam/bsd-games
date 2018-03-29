@@ -28,26 +28,19 @@ void swallowed(void)
     u.udisy = u.uy;
 }
 
-static bool panicking = false;
-
-void panic(const char *fmt, ...)
+void panic (const char *fmt, ...)
 {
     va_list ap;
-
     va_start(ap, fmt);
-    if (panicking++)
-	exit(1);	       // avoid loops - this should never happen
+    static bool s_Panicking = false;
+    if (s_Panicking)
+	exit (EXIT_FAILURE);
+    s_Panicking = true;
     home();
     puts(" Suddenly, the dungeon collapses.");
-    fputs(" ERROR:  ", stdout);
+    puts(" ERROR:  ");
     vprintf(fmt, ap);
     va_end(ap);
-#ifndef NDEBUG
-#ifdef UNIX
-    if (!fork())
-	abort();	       // generate core dump
-#endif				// UNIX
-#endif				// DEBUG
     more();		       // contains a fflush()
     done("panicked");
 }

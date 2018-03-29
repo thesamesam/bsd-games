@@ -757,6 +757,7 @@ static int getprice(struct obj *obj)
 	    break;
 	case CHAIN_SYM:
 	    pline("Strange ..., carrying a chain?");
+	    // fallthrough
 	case BALL_SYM:
 	    tmp = 10;
 	    break;

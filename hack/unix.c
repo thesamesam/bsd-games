@@ -38,9 +38,9 @@ int getyear(void)
 
 const char* getdatestr (void)
 {
-    static char datestr[7];
+    static char datestr[12];
     struct tm *lt = getlt();
-    sprintf(datestr, "%02d%02d%02d", lt->tm_year % 100, lt->tm_mon + 1, lt->tm_mday);
+    snprintf(ArrayBlock(datestr), "%02hhd%02hhd%02hhd", lt->tm_year % 100, lt->tm_mon + 1, lt->tm_mday);
     return datestr;
 }
 

@@ -527,20 +527,20 @@ static void move_ship (struct Ship* ship, const char *p, unsigned char *dir, sho
 static void try(struct Ship *f, struct Ship *t, char *command, char *temp, int ma, int ta, int af, int vma, int dir, int *high, int rakeme)
 {
     int new, n;
-    char st[4];
-
-    if ((n = str_end(temp)) < '1' || n > '9')
+    if ((n = str_end(temp)) < '1' || n > '9') {
 	for (n = 1; vma - n >= 0; ++n) {
-	    sprintf(st, "%d", n);
-	    strcat(temp, st);
-	    new = score(f, t, temp, rakeme);
+	    char st[4];
+	    snprintf (ArrayBlock(st), "%hhd", n);
+	    strcat (temp, st);
+	    new = score (f, t, temp, rakeme);
 	    if (new > *high && (!rakeme || (gunsbear(f, t) && !gunsbear(t, f)))) {
 		*high = new;
 		strcpy(command, temp);
 	    }
-	    try(f, t, command, temp, ma - n, ta, af, vma - n, dir, high, rakeme);
+	    try (f, t, command, temp, ma - n, ta, af, vma - n, dir, high, rakeme);
 	    rmend(temp);
 	}
+    }
     if ((ma > 0 && ta > 0 && (n = str_end(temp)) != 'l' && n != 'r') || !strlen(temp)) {
 	strcat(temp, "r");
 	new = score(f, t, temp, rakeme);

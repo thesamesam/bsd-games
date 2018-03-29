@@ -23,7 +23,7 @@ int main (void)
     const char* homedir = getenv("HOME");
     if (homedir) {
 	char savename [PATH_MAX];
-	snprintf (savename, sizeof(savename), ADVENTURE_SAVE_NAME, homedir);
+	snprintf (ArrayBlock(savename), ADVENTURE_SAVE_NAME, homedir);
 	if (0 == access (savename, R_OK)) {
 	    printf ("Restoring previous game\n");
 	    i = restore (savename);		// See what we've got

@@ -89,12 +89,10 @@ void bury(void)
 			value = DEADNATIVE;
 		    break;
 
-		case NATIVE:
-		case NORMGOD:
-		    puts("She screams as you wrestle her into the hole.");
 		case TIMER:
 		    power += 7;
 		    ego -= 10;
+		    // fallthrough
 		case AMULET:
 		case MEDALION:
 		case TALISMAN:

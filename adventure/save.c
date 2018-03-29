@@ -145,14 +145,14 @@ void ciao (void)
 	return;
     }
     char savename [PATH_MAX];
-    snprintf (savename, sizeof(savename), ADVENTURE_SAVE_DIR, homedir);
+    snprintf (ArrayBlock(savename), ADVENTURE_SAVE_DIR, homedir);
     if (0 != access (savename, R_OK))
 	mkpath (savename, 0700);
     if (0 != access (savename, W_OK)) {
 	printf ("You are not allowed to write to %s\n", savename);
 	return;
     }
-    snprintf (savename, sizeof(savename), ADVENTURE_SAVE_NAME, homedir);
+    snprintf (ArrayBlock(savename), ADVENTURE_SAVE_NAME, homedir);
     if (0 != save (savename))
 	return;
     printf ("Game saved. Goodbye!\n");

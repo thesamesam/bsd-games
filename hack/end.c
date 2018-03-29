@@ -70,25 +70,9 @@ void done_in_by(struct monst *mtmp)
 // Be careful not to call panic from here!
 void done(const char *st1)
 {
-#ifdef WIZARD
-    if (wizard && *st1 == 'd') {
-	u.uswldtim = 0;
-	if (u.uhpmax < 0)
-	    u.uhpmax = 100;    // arbitrary
-	u.uhp = u.uhpmax;
-	pline("For some reason you are still alive.");
-	flags.move = 0;
-	if (multi > 0)
-	    multi = 0;
-	else
-	    multi = -1;
-	flags.botl = 1;
-	return;
-    }
-#endif				// WIZARD
-    (void) signal(SIGINT, done_intr);
-    (void) signal(SIGQUIT, done_intr);
-    (void) signal(SIGHUP, done_hangup);
+    signal(SIGINT, done_intr);
+    signal(SIGQUIT, done_intr);
+    signal(SIGHUP, done_hangup);
     if (*st1 == 'q' && u.uhp < 1) {
 	st1 = "died";
 	killer = "quit while already on Charon's boat";
@@ -200,7 +184,7 @@ void done(const char *st1)
 	topten();
     if (done_stopprint)
 	printf("\n\n");
-    exit(0);
+    exit (EXIT_SUCCESS);
 }
 
 #define newttentry() (struct toptenentry *) alloc(sizeof(struct toptenentry))

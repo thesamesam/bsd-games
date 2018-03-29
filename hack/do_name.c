@@ -208,10 +208,10 @@ char *xmonnam(struct monst *mtmp, int vb)
 	    break;
 	case '@':
 	    if (mtmp->isshk) {
-		(void) strcpy(buf, shkname(mtmp));
+		strcpy(buf, shkname(mtmp));
 		break;
 	    }
-	    // fall into next case
+	    // fallthrough
 	default:
 	    (void) sprintf(buf, "the %s%s", mtmp->minvis ? "invisible " : "", mtmp->data->mname);
     }

@@ -374,7 +374,7 @@ static int shoot (char *room_list)
     {
 	// each time you shoot, it's more likely the wumpus moves
 	static int lastchance = 2;
-	if (nrand(level) == EASY ? 12 : 9 < (lastchance += 2)) {
+	if (nrand(level) == EASY ? true : 9 < (lastchance += 2)) {
 	    move_wump();
 	    if (wumpus_loc == player_loc)
 		wump_kill();

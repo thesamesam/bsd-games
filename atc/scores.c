@@ -35,15 +35,15 @@ static unsigned SEC (unsigned s)	{ return s % SECAMIN; }
 
 static const char* timestr(int t)
 {
-    static char s [64];
+    static char s [32];
     if (DAY(t) > 0)
-	snprintf(s, sizeof(s), "%dd+%02dhrs", DAY(t), HOUR(t));
+	snprintf(ArrayBlock(s), "%dd+%02dhrs", DAY(t), HOUR(t));
     else if (HOUR(t) > 0)
-	snprintf(s, sizeof(s), "%d:%02d:%02d", HOUR(t), MIN(t), SEC(t));
+	snprintf(ArrayBlock(s), "%d:%02d:%02d", HOUR(t), MIN(t), SEC(t));
     else if (MIN(t) > 0)
-	snprintf(s, sizeof(s), "%d:%02d", MIN(t), SEC(t));
+	snprintf(ArrayBlock(s), "%d:%02d", MIN(t), SEC(t));
     else if (SEC(t) > 0)
-	snprintf(s, sizeof(s), ":%02d", SEC(t));
+	snprintf(ArrayBlock(s), ":%02d", SEC(t));
     else
 	*s = '\0';
     return s;

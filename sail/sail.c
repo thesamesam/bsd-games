@@ -463,6 +463,7 @@ static void acceptmove(void)
 	switch (*p) {
 	    case 'l':
 		dir -= 2;
+		// fallthrough
 	    case 'r':
 		if (++dir == 0)
 		    dir = 8;

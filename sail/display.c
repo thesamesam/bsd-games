@@ -174,7 +174,7 @@ void makesignal (const struct Ship* from, const char* fmt, const struct Ship* sh
     va_list ap;
     va_start (ap, ship);
     char message [128];
-    vsnprintf (message, sizeof(message), format, ap);
+    vsnprintf (ArrayBlock(message), format, ap);
     va_end (ap);
     Signal ("$$: %s", from, message);
 }
@@ -184,7 +184,7 @@ void makemsg (const struct Ship* from, const char* fmt, ...)
     va_list ap;
     va_start (ap, fmt);
     char message [128];
-    vsnprintf (message, sizeof(message), fmt, ap);
+    vsnprintf (ArrayBlock(message), fmt, ap);
     va_end (ap);
     Signal ("$$: %s", from, message);
 }
@@ -207,7 +207,7 @@ void Msg (const char* fmt, ...)
     va_list ap;
     va_start (ap, fmt);
     char message [128];
-    vsnprintf (message, sizeof(message), fmt, ap);
+    vsnprintf (ArrayBlock(message), fmt, ap);
     va_end (ap);
     Signal ("%s", _ms, message);
 }

@@ -42,7 +42,7 @@ int doapply(void)
 		use_magic_whistle(obj);
 		break;
 	    }
-	    // fall into next case
+	    // fallthrough
 	case WHISTLE:
 	    use_whistle(obj);
 	    break;
