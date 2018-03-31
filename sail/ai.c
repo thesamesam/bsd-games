@@ -208,7 +208,7 @@ static void resolve(void)
     foreachship(sp) {
 	if (sp->status.dir == 0)
 	    continue;
-	for (struct Ship *sq = sp + 1, *sqend = vector_end(_ships); sq < sqend; ++sq)
+	for (struct Ship *sq = sp + 1, *sqend = vector_end(&_ships); sq < sqend; ++sq)
 	    if (sq->status.dir && meleeing(sp, sq) && meleeing(sq, sp))
 		fightitout(sp, sq, 0);
 	int thwart = 2;
