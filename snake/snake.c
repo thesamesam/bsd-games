@@ -118,11 +118,14 @@ int main (int argc, const char* const* argv)
     }
 
     initialize_curses();
-    init_pair (color_Field,	COLOR_YELLOW, COLOR_BLACK);
-    init_pair (color_Snake,	COLOR_GREEN, COLOR_BLACK);
-    init_pair (color_Me,	COLOR_RED, COLOR_BLACK);
-    init_pair (color_Money,	COLOR_YELLOW, COLOR_BLACK);
-    init_pair (color_Goal,	COLOR_CYAN, COLOR_BLACK);
+    static const struct color_pair c_Pairs[] = {
+	{ COLOR_YELLOW,	COLOR_BLACK	},	// color_Field
+	{ COLOR_GREEN,	COLOR_BLACK	},	// color_Snake
+	{ COLOR_RED,	COLOR_BLACK	},	// color_Me
+	{ COLOR_YELLOW,	COLOR_BLACK	},	// color_Money
+	{ COLOR_CYAN,	COLOR_BLACK	}	// color_Goal
+    };
+    init_pairs (ArrayBlock (c_Pairs));
     calculate_screen_size (rcols, rlines);
 
     box (_wgame, 0, 0);

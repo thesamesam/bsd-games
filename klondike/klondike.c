@@ -85,13 +85,16 @@ static void initialize_window (void)
 	refresh();
 	return;
     }
+    static const struct color_pair c_Pairs[] = {
+	{ COLOR_WHITE,	COLOR_BLUE	},	// color_HiddenCard
+	{ COLOR_BLACK,	COLOR_WHITE	},	// color_BlackSuit
+	{ COLOR_RED,	COLOR_WHITE	},	// color_RedSuit
+	{ COLOR_BLACK,	COLOR_CYAN	},	// color_SelectedBlackSuit
+	{ COLOR_RED,	COLOR_CYAN	}	// color_SelectedRedSuit
+    };
+    init_pairs (ArrayBlock (c_Pairs));
     _w = newwin (WLINES, WCOLS, LINES-WLINES, (COLS-WCOLS)/2);
     keypad (_w, true);
-    init_pair (color_HiddenCard,	COLOR_WHITE,	COLOR_BLUE);
-    init_pair (color_BlackSuit,		COLOR_BLACK,	COLOR_WHITE);
-    init_pair (color_RedSuit,		COLOR_RED,	COLOR_WHITE);
-    init_pair (color_SelectedBlackSuit,	COLOR_BLACK,	COLOR_CYAN);
-    init_pair (color_SelectedRedSuit,	COLOR_RED,	COLOR_CYAN);
 }
 
 // Move cards from pile f starting from card c to pile t
@@ -124,14 +127,8 @@ static void deal_cards (void)
     // Fill and shuffle the deck
     struct Pile* p = &_pile[PDECK];
     p->sz = p->nHidden = NCARDS;
-    for (unsigned i = 0; i < NCARDS; ++i)
-	p->c[i] = i;
-    for (unsigned i = 0; i < NCARDS; ++i) {
-	unsigned r = nrand(NCARDS-i);
-	card_t t = p->c[i];
-	p->c[i] = p->c[r];
-	p->c[r] = t;
-    }
+    iota_u8 (p->c, NCARDS);
+    random_shuffle_u8 (p->c, NCARDS);
 
     // Deal sorting piles
     for (unsigned i = 0; i < NSORTING; ++i) {

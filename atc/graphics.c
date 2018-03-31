@@ -51,12 +51,15 @@ void init_gr (void)
     _winput = newwin (INPUT_LINES, radarw, scry+radarh, scrx);
     _wcredit = newwin (INPUT_LINES, PLANE_COLS, scry+radarh, scrx+radarw+1);
     keypad (_winput, true);
-    init_pair (color_RadarBackground,	COLOR_BLACK,	COLOR_BLACK);
-    init_pair (color_Lines,		COLOR_BLUE,	COLOR_BLACK);
-    init_pair (color_Planes,		COLOR_WHITE,	COLOR_BLACK);
-    init_pair (color_Airports,		COLOR_YELLOW,	COLOR_BLACK);
-    init_pair (color_Beacons,		COLOR_RED,	COLOR_BLACK);
-    init_pair (color_Exits,		COLOR_GREEN,	COLOR_BLACK);
+    static const struct color_pair c_Pairs[] = {
+	{ COLOR_BLACK,	COLOR_BLACK	},	// color_RadarBackground
+	{ COLOR_BLUE,	COLOR_BLACK	},	// color_Lines
+	{ COLOR_WHITE,	COLOR_BLACK	},	// color_Planes
+	{ COLOR_YELLOW,	COLOR_BLACK	},	// color_Airports
+	{ COLOR_RED,	COLOR_BLACK	},	// color_Beacons
+	{ COLOR_GREEN,	COLOR_BLACK	}	// color_Exits
+    };
+    init_pairs (ArrayBlock (c_Pairs));
     wbkgdset (_wradar, A_BOLD| COLOR_PAIR(color_RadarBackground));
 }
 

@@ -36,12 +36,24 @@
     #endif
 #endif
 
+// Various clang quirks
+#if __clang__
+    #define atomic_exchange(o,v)	__c11_atomic_exchange(o,v,__ATOMIC_SEQ_CST)
+#else
+    #include <stdatomic.h>
+#endif
+
 #include "vector.h"
 
 // Curses transparent color
 enum { COLOR_DEFAULT = -1 };
 // Escape key
 enum { KEY_ESCAPE = '\033' };
+// Color pair definitions array
+struct color_pair {
+    int8_t	fg:4;
+    int8_t	bg:4;
+};
 
 // Common utility functions
 #ifdef __cplusplus
@@ -57,6 +69,7 @@ uint64_t time_ms (void);
 // ui.c
 void initialize_curses (void);
 void cleanup_curses (void);
+void init_pairs (const struct color_pair* cps, size_t ncps);
 
 // scores.c
 bool read_score_file (const char* filename, const char* magic, void* scores, size_t scoresSize);
@@ -87,6 +100,16 @@ static inline size_t Floor (size_t n, size_t grain)
     { return n - n % grain; }
 static inline size_t Align (size_t n, size_t grain)
     { return Floor (n+grain-1, grain); }
+static inline void swap_u8 (uint8_t* a, uint8_t* b)
+    { uint8_t t = *a; *a = *b; *b = t; }
+static inline void swap_u16 (uint16_t* a, uint16_t* b)
+    { uint16_t t = *a; *a = *b; *b = t; }
+static inline void swap_u32 (uint32_t* a, uint32_t* b)
+    { uint32_t t = *a; *a = *b; *b = t; }
+static inline void iota_u8 (uint8_t* v, size_t n)
+    { for (size_t i = 0; i < n; ++i) v[i] = i; }
+static inline void random_shuffle_u8 (uint8_t* v, size_t n)
+    { for (; n; --n,++v) swap_u8 (v, v+nrand(n)); }
 
 #ifdef __cplusplus
 } // extern "C"

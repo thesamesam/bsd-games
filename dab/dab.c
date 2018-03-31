@@ -92,8 +92,11 @@ int main (int argc, const char* const* argv)
 	return EXIT_SUCCESS;
     }
     initialize_curses();
-    init_pair (color_Human, COLOR_WHITE, COLOR_BLUE);
-    init_pair (color_Computer, COLOR_YELLOW, COLOR_RED);
+    static const struct color_pair c_Pairs[] = {
+	{ COLOR_WHITE,	COLOR_BLUE	},	// color_Human
+	{ COLOR_YELLOW,	COLOR_RED	}	// color_Computer
+    };
+    init_pairs (ArrayBlock (c_Pairs));
     init_level();
 
     unsigned player = HUMAN;

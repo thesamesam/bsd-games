@@ -123,12 +123,8 @@ static unsigned card_value (card_t c)
 static unsigned n_permutations (unsigned handsz)
     { return handsz <= 1 ? 1 : handsz*n_permutations(handsz-1); }
 
-static void swap_cards (card_t* c1, card_t* c2)
-{
-    card_t t = *c1;
-    *c1 = *c2;
-    *c2 = t;
-}
+static inline void swap_cards (card_t* c1, card_t* c2)
+    { swap_u8 (c1, c2); }
 
 static int compare_cards (const void* v1, const void* v2)
 {
@@ -151,13 +147,11 @@ static void move_card (struct Hand* from, unsigned ic, struct Hand* to)
 static void deal_cards (void)
 {
     card_t deck [NCARDS] = {0};
-    uint8_t decksz = 0;
     // Fill and shuffle the deck
-    for (decksz = 0; decksz < NCARDS; ++decksz)
-	deck[decksz] = decksz;
-    for (unsigned i = NCARDS; i; --i)
-	swap_cards (&deck[i-1], &deck[nrand(i)]);
+    iota_u8 (ArrayBlock (deck));
+    random_shuffle_u8 (ArrayBlock (deck));
     // Deal six to each player
+    uint8_t decksz = NCARDS;
     for (unsigned i = 0; i < NPLAYERS; ++i) {
 	_p[i].hand.sz = 0;
 	_p[i].table.sz = 0;
@@ -507,12 +501,15 @@ static void draw_screen (void)
 static void create_windows (void)
 {
     initialize_curses();
-    init_pair (color_Board,		COLOR_YELLOW,	COLOR_BLUE);
-    init_pair (color_HiddenCard,	COLOR_WHITE,	COLOR_BLUE);
-    init_pair (color_BlackSuit,		COLOR_BLACK,	COLOR_WHITE);
-    init_pair (color_RedSuit,		COLOR_RED,	COLOR_WHITE);
-    init_pair (color_SelectedBlackSuit,	COLOR_BLACK,	COLOR_CYAN);
-    init_pair (color_SelectedRedSuit,	COLOR_RED,	COLOR_CYAN);
+    static const struct color_pair c_Pairs[] = {
+	{ COLOR_YELLOW,	COLOR_BLUE	},	// color_Board
+	{ COLOR_WHITE,	COLOR_BLUE	},	// color_HiddenCard
+	{ COLOR_BLACK,	COLOR_WHITE	},	// color_BlackSuit
+	{ COLOR_RED,	COLOR_WHITE	},	// color_RedSuit
+	{ COLOR_BLACK,	COLOR_CYAN	},	// color_SelectedBlackSuit
+	{ COLOR_RED,	COLOR_CYAN	}	// color_SelectedRedSuit
+    };
+    init_pairs (ArrayBlock (c_Pairs));
     _wboard = newwin (WBOARD_LINES, WBOARD_COLS, LINES-WBOARD_LINES, (COLS-WBOARD_COLS)/2);
     wbkgdset (_wboard, A_BOLD| COLOR_PAIR(color_Board));
     _wtable = newwin (WTABLE_LINES, WTABLE_COLS, getbegy(_wboard)-WTABLE_LINES, (COLS-WTABLE_COLS)/2);

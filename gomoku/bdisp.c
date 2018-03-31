@@ -10,7 +10,7 @@ enum {
     color_Human,
     color_Computer,
     color_HumanCursor,
-    color_ComputerCursor,
+    color_ComputerCursor
 };
 
 extern const char* _plyr[2];
@@ -21,13 +21,18 @@ void initialize_field_window (void)
 {
     if (_w)
 	delwin (_w);
+    else {
+	static const struct color_pair c_Pairs[] = {
+	    { COLOR_BLACK,	COLOR_BLACK	},	// color_Field
+	    { COLOR_CYAN,	COLOR_BLACK	},	// color_Human
+	    { COLOR_MAGENTA,	COLOR_BLACK	},	// color_Computer
+	    { COLOR_BLACK,	COLOR_CYAN	},	// color_HumanCursor
+	    { COLOR_BLACK,	COLOR_MAGENTA	}	// color_ComputerCursor
+	};
+	init_pairs (ArrayBlock(c_Pairs));
+    }
     _w = newwin (BSZ2, BSZ2*2-1, LINES-BSZ2, (min_u(80,COLS)-BSZ2)/2);
     keypad (_w, true);
-    init_pair (color_Field,		COLOR_BLACK,	COLOR_BLACK);
-    init_pair (color_Human,		COLOR_CYAN,	COLOR_BLACK);
-    init_pair (color_Computer,		COLOR_MAGENTA,	COLOR_BLACK);
-    init_pair (color_HumanCursor,	COLOR_BLACK,	COLOR_CYAN);
-    init_pair (color_ComputerCursor,	COLOR_BLACK,	COLOR_MAGENTA);
     wbkgdset (_w, COLOR_PAIR(color_Field));
 }
 

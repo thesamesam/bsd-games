@@ -408,14 +408,8 @@ static void cave_init (void)
     // Create connected set by shuffling all room numbers
     // and back-connecting to the connected set.
     uint8_t connected [cave.rooms];
-    for (unsigned i = 0; i < cave.rooms; ++i)
-	connected[i] = i;
-    for (unsigned i = 0; i < cave.rooms; ++i) {
-	unsigned shuf = i+nrand(cave.rooms-i);
-	uint8_t t = connected[i];
-	connected[i] = connected[shuf];
-	connected[shuf] = t;
-    }
+    iota_u8 (connected, cave.rooms);
+    random_shuffle_u8 (connected, cave.rooms);
     for (unsigned i = 1; i < cave.rooms; ++i) {
 	uint8_t from = connected[i];
 	uint8_t to;
@@ -448,7 +442,7 @@ static void cave_init (void)
 		cave.room[from].tunnel[j] = to;
 		cave.room[to].tunnel[tods] = from;
 	    } else // last room may end up with two free slots; make them one-way
-		cave.room[from].tunnel[j] = nrand(cave.rooms);
+		cave.room[from].tunnel[j] = connected[nrand(from)];
 	}
     }
 

@@ -218,13 +218,16 @@ int main (int argc, const char* const* argv)
     }
 
     initialize_curses();
+    static const struct color_pair c_Pairs[] = {
+	{ COLOR_DEFAULT,COLOR_DEFAULT	},	// color_Default
+	{ COLOR_DEFAULT,COLOR_DEFAULT	},	// color_Background
+	{ COLOR_CYAN,	COLOR_BLACK	},	// color_Text
+	{ COLOR_BLACK,	COLOR_DEFAULT	},	// color_HelpText
+	{ COLOR_MAGENTA,COLOR_BLACK	},	// color_Borders
+	{ COLOR_CYAN,	COLOR_BLACK	}	// color_Shapes
+    };
+    init_pairs (ArrayBlock (c_Pairs));
     scr_create_window();
-    init_pair (color_Default, COLOR_DEFAULT, COLOR_DEFAULT);
-    init_pair (color_Background, COLOR_DEFAULT, COLOR_DEFAULT);
-    init_pair (color_Text, COLOR_CYAN, COLOR_BLACK);
-    init_pair (color_HelpText, COLOR_BLACK, COLOR_DEFAULT);
-    init_pair (color_Borders, COLOR_MAGENTA, COLOR_BLACK);
-    init_pair (color_Shapes, COLOR_CYAN, COLOR_BLACK);
     nodelay (_win, true);
     keypad (_win, true);
 

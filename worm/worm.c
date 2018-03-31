@@ -58,10 +58,13 @@ int main (int argc, char **argv)
 	start_len = LENGTH;
 
     initialize_curses();
-    init_pair (color_Text, COLOR_DEFAULT, COLOR_DEFAULT);
-    init_pair (color_Field, COLOR_YELLOW, COLOR_BLACK);
-    init_pair (color_Grass, COLOR_BLUE, COLOR_BLACK);
-    init_pair (color_Worm, COLOR_GREEN, COLOR_BLACK);
+    static const struct color_pair c_Pairs[] = {
+	{ COLOR_DEFAULT,COLOR_DEFAULT	},	// color_Text
+	{ COLOR_YELLOW,	COLOR_BLACK	},	// color_Field
+	{ COLOR_BLUE,	COLOR_BLACK	},	// color_Grass
+	{ COLOR_GREEN,	COLOR_BLACK	}	// color_Worm
+    };
+    init_pairs (ArrayBlock (c_Pairs));
     stw = newwin (1, COLS - 1, 0, 0);
     wbkgdset (stw, COLOR_PAIR(color_Text));
     tv = newwin (LINES - 1, COLS - 1, 1, 0);

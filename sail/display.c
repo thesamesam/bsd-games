@@ -84,10 +84,13 @@ struct Ship* _ms = NULL;	// memorial structure, &cc->ship[player]
 void initscreen(void)
 {
     initialize_curses();
-    init_pair (color_Sea,	COLOR_WHITE,	COLOR_BLUE);
-    init_pair (color_Player,	COLOR_YELLOW,	COLOR_BLUE);
-    init_pair (color_Friend,	COLOR_GREEN,	COLOR_BLUE);
-    init_pair (color_Enemy,	COLOR_MAGENTA,	COLOR_BLUE);
+    static const struct color_pair c_Pairs[] = {
+	{ COLOR_WHITE,		COLOR_BLUE	},	// color_Sea
+	{ COLOR_YELLOW,		COLOR_BLUE	},	// color_Player
+	{ COLOR_GREEN,		COLOR_BLUE	},	// color_Friend
+	{ COLOR_MAGENTA,	COLOR_BLUE	}	// color_Enemy
+    };
+    init_pairs (ArrayBlock (c_Pairs));
 
     unsigned scrw = min_u (COLS, MAX_COLS);
     unsigned scrx = (COLS-scrw)/2;
@@ -548,7 +551,6 @@ struct ScenarioSelector select_scenario (void)
     WINDOW* wlload = newwin (3, (ww-getmaxx(wscen))/2, LINES-3, getbegx(wscen)+getmaxx(wscen));
     WINDOW* wrload = newwin (getmaxy(wlload), getmaxx(wlload), getbegy(wlload), getbegx(wlload)+getmaxx(wlload));
     WINDOW* wship = newwin (getmaxy(wscen)-getmaxy(wlload), ww-getmaxx(wscen), getbegy(wscen), getbegx(wlload));
-    init_pair (1, COLOR_WHITE, COLOR_BLUE);
     wbkgdset (wtitle, COLOR_PAIR(1));
     wbkgdset (wscen, COLOR_PAIR(1));
     wbkgdset (wship, COLOR_PAIR(1));

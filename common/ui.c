@@ -13,13 +13,27 @@ void cleanup_curses (void)
     endwin();
 }
 
-static void on_fatal_signal (int sig)
+#define S(s)	(1<<(s))
+enum {
+    sigset_Quit = S(SIGINT)|S(SIGQUIT)|S(SIGTERM),
+    exitcode_SignalBase = 128
+};
+
+static __attribute__((noreturn)) void on_fatal_signal (int sig)
 {
-    cleanup_curses();
-    if (sig != SIGINT && sig != SIGQUIT && sig != SIGTERM)
-	psignal (sig, "Fatal error");
-    exit (EXIT_FAILURE);
+    static volatile _Atomic(bool) s_bOnce = false;
+    int exitcode = exitcode_SignalBase+sig;
+    if (false == atomic_exchange (&s_bOnce, true)) {
+	cleanup_curses();
+	if (S(sig) & sigset_Quit)
+	    exitcode = EXIT_SUCCESS;	// terminated by user
+	else
+	    psignal (sig, "Fatal error");
+	exit (exitcode);
+    }
+    _Exit (exitcode);
 }
+#undef S
 
 void initialize_curses (void)
 {
@@ -43,4 +57,10 @@ void initialize_curses (void)
 
     signal (SIGTSTP, SIG_IGN);	// Disable Ctrl+z
     srandrand();
+}
+
+void init_pairs (const struct color_pair* cps, size_t ncps)
+{
+    for (unsigned i = 0; i < ncps; ++i)
+	init_pair (i+1, cps[i].fg, cps[i].bg);
 }

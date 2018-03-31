@@ -140,11 +140,14 @@ static void initialize_windows (void)
     _wgame = newwin (FIELD_HEIGHT, FIELD_WIDTH, LINES-FIELD_HEIGHT, 0);
     scrollok (_wgame, false);
     keypad (_wgame, true);
-    init_pair (color_Field,	COLOR_YELLOW,	COLOR_BLACK);
-    init_pair (color_Player,	COLOR_YELLOW,	COLOR_BLACK);
-    init_pair (color_Teleport,	COLOR_CYAN,	COLOR_BLACK);
-    init_pair (color_Robots,	COLOR_RED,	COLOR_BLACK);
-    init_pair (color_Heaps,	COLOR_BLACK,	COLOR_BLACK);
+    static const struct color_pair c_Pairs[] = {
+	{ COLOR_YELLOW,	COLOR_BLACK	},	// color_Field
+	{ COLOR_YELLOW,	COLOR_BLACK	},	// color_Player
+	{ COLOR_CYAN,	COLOR_BLACK	},	// color_Teleport
+	{ COLOR_RED,	COLOR_BLACK	},	// color_Robots
+	{ COLOR_BLACK,	COLOR_BLACK	},	// color_Heaps
+    };
+    init_pairs (ArrayBlock (c_Pairs));
     wbkgdset (_wgame, COLOR_PAIR(color_Field));
 }
 

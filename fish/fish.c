@@ -85,15 +85,24 @@ int main (void)
 
 static void initialize_windows (void)
 {
+    if (_wmsg)
+	delwin (_wmsg);
+    else {
+	static const struct color_pair c_Pairs[] = {
+	    { COLOR_WHITE,	COLOR_BLUE	},	// color_Panel
+	    { COLOR_BLACK,	COLOR_WHITE	},	// color_CardBlack
+	    { COLOR_RED,	COLOR_WHITE	}	// color_CardRed
+	};
+	init_pairs (ArrayBlock (c_Pairs));
+    }
     _wmsg = newwin (LINES-PANEL_LINES, PANEL_COLS, 0, 0);
     scrollok (_wmsg, true);
     idlok (_wmsg, true);
     keypad (_wmsg, true);
     wmove (_wmsg, getmaxy(_wmsg)-1, 0);
+    if (_wpanel)
+	delwin (_wpanel);
     _wpanel = newwin (PANEL_LINES, PANEL_COLS, LINES-PANEL_LINES, 0);
-    init_pair (color_Panel, COLOR_WHITE, COLOR_BLUE);
-    init_pair (color_CardBlack, COLOR_BLACK, COLOR_WHITE);
-    init_pair (color_CardRed, COLOR_RED, COLOR_WHITE);
     wbkgdset (_wpanel, COLOR_PAIR(color_Panel));
 }
 
@@ -102,12 +111,7 @@ static void shuffle_deck_and_deal (void)
     // Shuffle deck
     for (unsigned i = 0; i < NCARDS; ++i)
 	_deck[i] = i % RANKS;
-    for (unsigned i = 0; i < NCARDS-1; ++i) {
-	unsigned j = nrand (NCARDS-i);
-	uint8_t t = _deck[i];
-	_deck[i] = _deck[i+j];
-	_deck[i+j] = t;
-    }
+    random_shuffle_u8 (_deck, NCARDS);
     // Deal HANDSIZE cards to both players
     for (unsigned i = 0; i < HANDSIZE; ++i) {
 	++_hand[USER][_deck[--_decksz]];
@@ -300,11 +304,11 @@ static void chkwinner (enum EPlayer player)
     wprintw (_wmsg, "\nI have %d, you have %d.\n", cb, ub);
     if (ub > cb) {
 	waddstr (_wmsg, "\nYou win!!!\n");
-	if (!nrand(1024))
+	if (!nrand(64))
 	    waddstr (_wmsg, "Cheater, cheater, pumpkin eater!\n");
     } else if (cb > ub) {
 	waddstr (_wmsg, "\nI win!!!\n");
-	if (!nrand(1024))
+	if (!nrand(64))
 	    waddstr (_wmsg, "Hah! Stupid peasant!\n");
     } else
 	waddstr (_wmsg, "\nTie!\n");
