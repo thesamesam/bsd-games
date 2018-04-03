@@ -57,7 +57,7 @@ const struct objs nightobjs[] = {
     {228, SHIELD},
     {228, HALBERD},
     {228, ELF},
-    {68, CYLON},
+    {68, DRENIAN},
     {144, SHOVEL},
     {249, FOOT},
     {250, FOOT},

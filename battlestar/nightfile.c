@@ -8,10 +8,10 @@ struct room nightfile[] = {
     // 1
     {"You are in the main hangar.",
      {5, 2, 9, 3, 3, 1, 0, 0},
-     "This is a huge bay where many fighters and cargo craft lie.  Alarms are \n\
-sounding and fighter pilots are running to their ships.  Above is a gallery\n\
-overlooking the bay. The scream of turbo engines is coming from +. The rest\n\
-of the hangar is +. There is an exit +.*\n", {0}},
+	"This is a huge bay where many fighters and cargo craft lie. Alarms are \n"
+	"sounding and fighter pilots are running to their ships. Above is a gallery\n"
+	"overlooking the bay. The scream of turbo engines is coming from +. The rest\n"
+	"of the hangar is +. There is an exit +.*\n", {0}},
     // 2
     {"This is the landing bay.",
      {1, 0, 10, 0, 0, 0, 0, 0},
@@ -28,7 +28,7 @@ lick at the shadows. The control room is +. ***\n", {0}},
     {"You are in the control room.",
      {0, 3, 0, 0, 0, 0, 5, 0},
      "Several frantic technicians are flipping switches wildly but otherwise\n\
-this room seems fairly deserted.  A weapons locker has been left open.\n\
+this room seems fairly deserted. A weapons locker has been left open.\n\
 A staircase leads down. * There is a way -. **        \n", {0}},
     // 5
     {"This is the launch room.",
@@ -36,23 +36,23 @@ A staircase leads down. * There is a way -. **        \n", {0}},
      "From the launch tubes here fighters blast off into space. Only one is left,\n\
 and it is guarded by two fierce men. A staircase leads up from here.\n\
 There is a cluttered workbench +. From the main hangar come sounds of great\n\
-explosions.  The main hangar is +. The viper launch tubes are -.*\n", {0}},
+explosions. The main hangar is +. The starfighter launch tubes are -.*\n", {0}},
     // 6
     {"You are at the workbench.",
      {0, 5, 7, 0, 0, 0, 0, 0},
      "Strange and unwieldy tools are arranged here including a lunch box \n\
 and pneumatic wrenches and turbo sprocket rockets.*\n\
-The launch room is +. The remaining viper is +.*\n", {0}},
+The launch room is +. The remaining starfighter is +.*\n", {0}},
     // 7
-    {"You are in the viper launch tube.",
+    {"You are in the starfighter launch tube.",
      {0, 5, 0, 5, 32, 0, 0, 0},
      "The two guards are eyeing you warily! ****\n", {0}},
     // 8
     {"This is a walk in closet.",
      {22, 0, 0, 0, 0, 0, 0, 0},
-     "A wardrobe of immense magnitude greets the eye.  Furs and robes of kings\n\
-hang on rack after rack.  Silken gowns, capes woven with spun gold, and \n\
-delicate synthetic fabrics are stowed here.  The bedroom is +.***\n", {0}},
+     "A wardrobe of immense magnitude greets the eye. Furs and robes of kings\n\
+hang on rack after rack. Silken gowns, capes woven with spun gold, and \n\
+delicate synthetic fabrics are stowed here. The bedroom is +.***\n", {0}},
     // 9
     {"You are in a wide hallway leading to the main hangar.",
      {0, 0, 11, 1, 0, 0, 0, 0},
@@ -86,7 +86,7 @@ The wide hallway goes *-.\n", {0}},
      "Whoever lived in this stateroom, he and his female companion\n\
 were mercilessly slain in their sleep. Clothes, trinkets and personal\n\
 belongings are scattered all across the floor. Through a hole in the\n\
-collapsed floor I can see a hallway below.  A door is +.***\n", {0}},
+collapsed floor I can see a hallway below. A door is +.***\n", {0}},
     // 14
     {"You're at the entrance to the sick bay.",
      {17, 12, 18, 0, 0, 0, 0, 0},
@@ -116,11 +116,11 @@ entrance to the sickbay is +. The walkway turns sharply -.*\n", {0}},
      "Sinister nurses with long needles and pitiful aim probe the depths of suffering\n\
 here. Only the mortally wounded receive medical attention on a battlestar,\n\
 but afterwards they are thrown into the incinerators along with the rest.**\n\
-Nothing but death and suffering +.  The walkway is +.\n", {0}},
+Nothing but death and suffering +. The walkway is +.\n", {0}},
     // 19
     {"You're in the armory.",
      {15, 26, 0, 0, 0, 0, 0, 0},
-     "An armed guard is stationed here 365 sectars a yarn to protect the magazine.\n\
+     "An armed guard is stationed here to protect the magazine.\n\
 The walkway is +. The magazine is +.**\n", {0}},
     // 20
     {"The hallway ends here at the presidential suite.",
@@ -138,10 +138,10 @@ The hallway is +.\n", {0}},
     {"This is a luxurious stateroom.",
      {0, 8, 16, 0, 0, 0, 0, 0},
      "The floor is carpeted with a soft animal fur and the great wooden furniture\n\
-is inlaid with strips of platinum and gold.  Electronic equipment built\n\
-into the walls and ceiling is flashing wildly.  The floor shudders and\n\
-the sounds of dull explosions rumble though the room.  From a window in\n\
-the wall + comes a view of darkest space.  There is a small adjoining\n\
+is inlaid with strips of platinum and gold. Electronic equipment built\n\
+into the walls and ceiling is flashing wildly. The floor shudders and\n\
+the sounds of dull explosions rumble though the room. From a window in\n\
+the wall + comes a view of darkest space. There is a small adjoining\n\
 room +, and a doorway +.*\n", {0}},
     // 23
     {"You are at the entrance to the dining hall.",
@@ -158,7 +158,7 @@ It seems a little clearer +.*\n", {0}},
     // 25
     {"You are in a narrow stairwell.",
      {0, 17, 0, 0, 30, 1, 0, 0},
-     "These dusty and decrepit stairs lead up.  There is no way -.  The\n\
+     "These dusty and decrepit stairs lead up. There is no way -. The\n\
 hallway turns sharply -.**\n", {0}},
     // 26
     {"You are in the magazine.",
@@ -176,7 +176,7 @@ The hallway leads -.**\n", {0}},
      {0, 30, 31, 23, 0, 0, 0, 0},
      "This was the scene of a mass suicide. Hundreds of ambassadors and assorted\n\
 dignitaries sit slumped over their breakfast cereal. I suppose the news\n\
-of the cylon attack killed them. There is a strange chill in this room.  I\n\
+of the drenian attack killed them. There is a strange chill in this room. I\n\
 would not linger here. * The kitchen is +. Entrances + and +.\n", {0}},
     // 29
     {"The debris is very thick here.",
@@ -355,18 +355,18 @@ feels as if a trap is closing around us. I have lost all sense of direction.\n\
     {"You are approaching an island.",
      {71, 72, 73, 74, 68, 1, 0, 1},
      "Feather palms outlined by mellow moonlight and a silvery black ocean line\n\
-the perimeter of the island.  Mighty mountains of emerald and amethyst rise\n\
-like jagged teeth from black gums.  The land rises sharply +.  The shore\n\
+the perimeter of the island. Mighty mountains of emerald and amethyst rise\n\
+like jagged teeth from black gums. The land rises sharply +. The shore\n\
 line stretches on *+.*\n", {0}},
     // 71
     {"You are flying over a mountainous region.",
      {75, 73, 76, 77, 68, 1, 0, 1},
      "Below is a shadow=filled canyon with looming spires and pinnacles and\n\
-luminous waterfalls plummeting down beyond sight.  **The ocean is +.*\n", {0}},
+luminous waterfalls plummeting down beyond sight. **The ocean is +.*\n", {0}},
     // 72
     {"You are flying over the ocean.",
      {74, 78, 78, 78, 68, 1, 0, 1},
-     "You bank over the water and your wingtips dip low to the green waves.  The\n\
+     "You bank over the water and your wingtips dip low to the green waves. The\n\
 sea is very shallow here and the white coral beds beneath us teem with \n\
 shadowy fish.****\n", {0}},
     // 73
@@ -377,7 +377,7 @@ sharply +.* The beach is lost in low cliffs +.*\n", {0}},
     // 74
     {"You are flying over a large lagoon.",
      {81, 72, 73, 82, 68, 1, 0, 1},
-     "The water's brink winds tortuously inland.  There are some lights +.***\n", {0}},
+     "The water's brink winds tortuously inland. There are some lights +.***\n", {0}},
     // 75
     {"You are flying over a gently sloping plane.",
      {83, 71, 84, 85, 68, 1, 0, 1},
@@ -386,8 +386,8 @@ rugged +.**\n", {0}},
     // 76
     {"You are flying through a gorge.",
      {0, 0, 86, 71, 68, 1, 102, 1},
-     "This is a narrow, steep sided canyon lined with plants.  The stars above\n\
-glisten through the over hanging trees.  The gorge leads to the\n\
+     "This is a narrow, steep sided canyon lined with plants. The stars above\n\
+glisten through the over hanging trees. The gorge leads to the\n\
 sea** +, and to a tumultuous origin +.\n", {0}},
     // 77
     {"You are flying over a plantation.",
@@ -443,13 +443,13 @@ around +** and +.\n", {0}},
     {"You are flying along the coastline.",
      {99, 82, 88, 100, 68, 1, 101, 1},
      "This is a narrow strip of sand lined with very few trees. The stars above\n\
-flicker through wisps of clouds.  The beach continues on -.* There\n\
+flicker through wisps of clouds. The beach continues on -.* There\n\
 are some lights +.*\n", {0}},
     // 88
     {"You are flying over several cottages and buildings",
      {99, 82, 77, 87, 68, 1, 103, 1},
      "Directly below is small ornate house lit up with spot lights and decorative\n\
-bulbs.  A bell tower and a spurting fountain are nearby.  Small dirt roads go\n\
+bulbs. A bell tower and a spurting fountain are nearby. Small dirt roads go\n\
 + and +.**\n", {0}},
     // 89
     {"You are in a field of sugar cane.",
@@ -463,26 +463,26 @@ There are some large trees ***+.\n", {0}},
     // 91
     {"You are on the coast road.",
      {113, 114, 115, 116, 79, 0, 0, 0},
-     "The road winds close to the shore here.  The trees on either side press close\n\
+     "The road winds close to the shore here. The trees on either side press close\n\
 in the darkness and seem to be watching us.**  The road continues -\n\
 and -.\n", {0}},
     // 92
     {"You are on the main street of the village.",
      {117, 118, 119, 120, 81, 0, 0, 0},
-     "The natives are having a festive luau here.  Beautiful dancers gyrate in the\n\
-torchlight to the rhythm of wooden drums.  A suckling pig is sizzling in a\n\
-bed of coals and ti leaves are spread with poi and tropical fruits.  Several\n\
+     "The natives are having a festive luau here. Beautiful dancers gyrate in the\n\
+torchlight to the rhythm of wooden drums. A suckling pig is sizzling in a\n\
+bed of coals and ti leaves are spread with poi and tropical fruits. Several\n\
 natives have come over to you and want you to join in the festivities.\n\
 There is a light burning in a bungalow +.***\n", {0}},
     // 93
     {"You are at the sea plane dock.",
      {121, 122, 123, 124, 82, 0, 0, 0},
-     "The clearing is deserted.  The grass is wet with the evening dew +.*\n\
+     "The clearing is deserted. The grass is wet with the evening dew +.*\n\
 There is something set up +.*\n", {0}},
     // 94
     {"You are flying over the ocean.",
      {94, 83, 95, 96, 68, 1, 0, 1},
-     "The black waves surge off shore here.  The ocean becomes much calmer +.***\n", {0}},
+     "The black waves surge off shore here. The ocean becomes much calmer +.***\n", {0}},
     // 95
     {"You are flying along the coast.",
      {94, 84, 86, 83, 68, 1, 0, 1},
@@ -501,13 +501,13 @@ I can't see a thing! ****\n", {0}},
     // 98
     {"You are on a gravel wash.",
      {125, 126, 127, 128, 84, 0, 0, 0},
-     "It is very dark here.  A cool breeze is blowing from +.  No moonlight can\n\
-reach below a thick canopy of fog above.  The sound of cascading water is\n\
+     "It is very dark here. A cool breeze is blowing from +. No moonlight can\n\
+reach below a thick canopy of fog above. The sound of cascading water is\n\
 coming from +.**\n", {0}},
     // 99
     {"You are flying over a wide beach.",
      {96, 88, 85, 87, 68, 1, 105, 1},
-     "There are some lighted buildings *+.  Some trees are growing +.*\n", {0}},
+     "There are some lighted buildings *+. Some trees are growing +.*\n", {0}},
     // 100
     {"You are flying over the ocean.",
      {100, 100, 87, 100, 68, 1, 0, 1},
@@ -521,14 +521,14 @@ A fresh ocean breeze is rustling the ferns **+.*\n", {0}},
     {"This is Fern Canyon.",
      {0, 0, 132, 133, 76, 0, 0, 0},
      "Delicate waving ferns flourish here, suckled by warm water dripping from \n\
-every fissure and crevice in the solid rock walls.  The stars above sparkle\n\
-through a thin mist.  The canyon winds **-, and -.\n", {0}},
+every fissure and crevice in the solid rock walls. The stars above sparkle\n\
+through a thin mist. The canyon winds **-, and -.\n", {0}},
     // 103
     {"This is the front lawn.",
      {134, 135, 136, 137, 88, 0, 0, 0},
      "There is a small fountain lighted with green and yellow bulbs here where\n\
-the driveway meets the lawn.  Across the driveway, +, is an ornate white\n\
-house lit with gas lamps.  A bell tower here is awash in pale blue.*  There\n\
+the driveway meets the lawn. Across the driveway, +, is an ornate white\n\
+house lit with gas lamps. A bell tower here is awash in pale blue.*  There\n\
 is a road + which turns into the driveway.*\n", {0}},
     // 104
     {"You have just crossed the crest of a mountain.",
@@ -545,19 +545,19 @@ appeal.**  Stone steps lead to a lighted path in the gardens +.*\n", {0}},
      {141, 80, 142, 143, 73, 0, 0, 0},
      "Arching coconut palms laden with fruit provide a canopy for the glistening\n\
 white sand and sparse, dew covered grasses growing here. The forest grows\n\
-denser +.  Crickets are chirping loudly here.  The ocean is +.**\n", {0}},
+denser +. Crickets are chirping loudly here. The ocean is +.**\n", {0}},
     // 107
     {"You are walking along the beach.",
      {144, 0, 145, 80, 73, 0, 0, 0},
      "The warm tropical waters nuzzle your ankles as you walk. Above is a gorgeous\n\
-starscape.  The battlestar must be up there somewhere.  The slope of the sand\n\
+starscape. The battlestar must be up there somewhere. The slope of the sand\n\
 is so gentle that the surf only slides up the sand.** There are some rocks\n\
 +.*\n", {0}},
     // 108
     {"You are walking along the beach.",
      {146, 0, 80, 147, 73, 0, 0, 0},
      "The tide is out very far tonight, and it is possible to explore hidden rocks\n\
-and caves not ordinarily accessible.  Rich beds of seaweed have been exposed\n\
+and caves not ordinarily accessible. Rich beds of seaweed have been exposed\n\
 to the cool night air.****\n", {0}},
     // 109
     {"You are in a papaya grove.",
@@ -578,7 +578,7 @@ and +. The field ends in a road +.*\n", {0}},
     {"You are in a large grove of coconuts.",
      {150, 153, 89, 156, 77, 0, 0, 0},
      "These trees are much taller than any growing near the shore and the shadows\n\
-are also deeper.  It's hard to keep my sense of direction.****\n", {0}},
+are also deeper. It's hard to keep my sense of direction.****\n", {0}},
     // 113
     {"You are in the woods.",
      {157, 91, 158, 116, 79, 0, 0, 0},
@@ -589,12 +589,12 @@ so intense here that we stand in utter blackness.****\n", {0}},
     {"You are at the shore.",
      {91, 0, 159, 145, 79, 0, 160, 0},
      "The low minus tide tonight might make it possible to climb down to a\n\
-small cave entrance below.  Large rocks would usually churn the waves\n\
+small cave entrance below. Large rocks would usually churn the waves\n\
 asunder.***  The beach goes -.\n", {0}},
     // 115
     {"You are on the coast road.",
      {158, 161, 162, 91, 79, 0, 0, 0},
-     "The road is beginning to turn slightly -.  I can hear the surf +.  The road\n\
+     "The road is beginning to turn slightly -. I can hear the surf +. The road\n\
 continues into the dark forest +.*\n", {0}},
     // 116
     {"The road winds deeper into the trees.",
@@ -605,14 +605,14 @@ road continues - and *- into the shadows.*\n", {0}},
     // 117
     {"This is the front porch of the bungalow.",
      {165, 92, 0, 0, 81, 0, 0, 0},
-     "The veranda is lit by a small yellow bug light.  The door leads -.\n\
-The stone walk down to the luau is lined with burning torches +.  That\n\
+     "The veranda is lit by a small yellow bug light. The door leads -.\n\
+The stone walk down to the luau is lined with burning torches +. That\n\
 roast pig smells good.**\n", {0}},
     // 118
     {"You are on a path leading to the lagoon.",
      {92, 166, 167, 168, 81, 0, 0, 0},
-     "This path winds through the underbrush and towards the lagoon *+.  The\n\
-broad faced moon peeps though the branches above.  The sound of drums echos\n\
+     "This path winds through the underbrush and towards the lagoon *+. The\n\
+broad faced moon peeps though the branches above. The sound of drums echos\n\
 in the woods.**\n", {0}},
     // 119
     {"This is a dirt road.",
@@ -623,19 +623,19 @@ up the night sky +.\n", {0}},
     {"You are on a dirt road.",
      {171, 118, 92, 172, 81, 0, 0, 0},
      "**There is a village +. A huge bonfire licks at the trees, and a celebration\n\
-of some sort is going on there.  The smell of luscious cooking is tantalizing\n\
-my flared nostrils.  The road continues +.\n", {0}},
+of some sort is going on there. The smell of luscious cooking is tantalizing\n\
+my flared nostrils. The road continues +.\n", {0}},
     // 121
     {"You are on a dirt road.",
      {173, 93, 174, 175, 82, 0, 0, 0},
-     "This is a wide grassy clearing bedewed with droplets of evening mist.  The\n\
-trees alongside the road moan and whisper as we pass.  They seem annoyed at\n\
-our presence.  **The road continues - and -.\n", {0}},
+     "This is a wide grassy clearing bedewed with droplets of evening mist. The\n\
+trees alongside the road moan and whisper as we pass. They seem annoyed at\n\
+our presence. **The road continues - and -.\n", {0}},
     // 122
     {"You are at the seaplane dock.",
      {93, 0, 176, 177, 82, 0, 0, 0},
-     "Not a living thing stirs the calm surface of the lagoon.  The wooden planks\n\
-creak unnaturally as we tread on them.  The dock reaches a clearing +.\n\
+     "Not a living thing stirs the calm surface of the lagoon. The wooden planks\n\
+creak unnaturally as we tread on them. The dock reaches a clearing +.\n\
 A dark trail leads around the lagoon **+.\n", {0}},
     // 123
     {"There are some tables on the lawn here.",
@@ -649,31 +649,31 @@ I think I stepped in something unpleasant. It would be best to go **-.*\n", {0}}
     // 125
     {"You are walking in a dry stream bed.",
      {178, 98, 179, 0, 84, 0, 0, 0},
-     "The large cobblestones are difficult to walk on.  No starlight reaches\n\
-below a black canopy of fog seemingly engulfing the whole island.  A dirt\n\
-path along the wash is **+.  The high bank is impossible to climb +.\n", {0}},
+     "The large cobblestones are difficult to walk on. No starlight reaches\n\
+below a black canopy of fog seemingly engulfing the whole island. A dirt\n\
+path along the wash is **+. The high bank is impossible to climb +.\n", {0}},
     // 126
     {"You are at the thermal pools.",
      {98, 0, 180, 181, 84, 0, 0, 0},
      "Odd spluttering and belching water splashes up around the rocks here.\n\
 A spectacular waterfall nearby tumbles down as a river of effervescent\n\
-bubbles.  The air is quite warm and a cave entrance ***+ spews steam.\n", {0}},
+bubbles. The air is quite warm and a cave entrance ***+ spews steam.\n", {0}},
     // 127
     {"You are in the woods.",
      {127, 180, 182, 98, 84, 0, 0, 0},
      "It is pitch black in the forest here and my pant leg is caught on something.\n\
-There may be poison oak here.  What was that?  A lantern just flickered by in\n\
+There may be poison oak here. What was that?  A lantern just flickered by in\n\
 the dark!  The sound of rushing water is coming from *+.**\n", {0}},
     // 128
     {"You are on a dirt trail.",
      {179, 181, 98, 0, 84, 0, 0, 0},
      "The trail seems to start here and head towards the forest +.**  High,\n\
-dark cliffs border the trail +.  Some crickets are chirping\n\
+dark cliffs border the trail +. Some crickets are chirping\n\
 noisily.\n", {0}},
     // 129
     {"You are  walking along the beach.",
      {183, 101, 184, 0, 87, 0, 0, 0},
-     "The surf is rather tame tonight.  The beach continues + and +.**\n", {0}},
+     "The surf is rather tame tonight. The beach continues + and +.**\n", {0}},
     // 130
     {"You are walking along the beach.",
      {101, 185, 186, 0, 87, 0, 0, 0},
@@ -682,13 +682,13 @@ noisily.\n", {0}},
     {"You are walking through some ferns.",
      {184, 186, 187, 101, 87, 0, 0, 0},
      "This is a wide field growing only ferns and small shrubs.**  In the dark\n\
-it would be all to easy to stumble into a venomous snake.  The ocean is\n\
+it would be all to easy to stumble into a venomous snake. The ocean is\n\
 *+.\n", {0}},
     // 132
     {"You are in a narrow canyon.",
      {0, 0, 188, 102, 76, 0, 0, 0},
      "The steep sides here squeeze a little freshet through a gauntlet like\n\
-series of riffles and pools.  The cool mountain air is refreshing.****\n", {0}},
+series of riffles and pools. The cool mountain air is refreshing.****\n", {0}},
     // 133
     {"The canyon is much wider here.",
      {0, 0, 102, 189, 76, 0, 0, 0},
@@ -699,9 +699,9 @@ and -.\n", {0}},
     // 134
     {"You are on the front porch of the cottage.",
      {190, 103, 0, 0, 0, 0, 0, 0},
-     "The veranda is deserted.  A table and chair are the only things on the porch.\n\
-Inside the house is a parlor lighted with an elegant chandelier.  The door\n\
-leads -.  The lawn and fountain are +.**\n", {0}},
+     "The veranda is deserted. A table and chair are the only things on the porch.\n\
+Inside the house is a parlor lighted with an elegant chandelier. The door\n\
+leads -. The lawn and fountain are +.**\n", {0}},
     // 135
     {"You are in a palm grove.",
      {103, 191, 192, 105, 88, 0, 0, 0},
@@ -709,18 +709,18 @@ leads -.  The lawn and fountain are +.**\n", {0}},
     // 136
     {"You are on a dirt road.",
      {193, 192, 245, 103, 88, 0, 0, 0},
-     "There are many bright lights +.  The road cleaves the darkness +.\n\
+     "There are many bright lights +. The road cleaves the darkness +.\n\
 A small dirt road goes -, and a driveway peels off +.\n", {0}},
     // 137
     {"You are in a field of small shrubs.",
      {184, 186, 103, 187, 88, 0, 0, 0},
-     "**Pine and other coniferous saplings are growing here.  The rich brown\n\
-soil is well watered.  Across a large lawn +, there is a small cottage lighted\n\
-with spot lights and gas lamps.  A cool land breeze is blowing.*\n", {0}},
+     "**Pine and other coniferous saplings are growing here. The rich brown\n\
+soil is well watered. Across a large lawn +, there is a small cottage lighted\n\
+with spot lights and gas lamps. A cool land breeze is blowing.*\n", {0}},
     // 138
     {"The beach is pretty rocky here.",
      {194, 105, 195, 0, 96, 0, 0, 0},
-     "The tide is very low tonight.  The beach is nicer *+.**\n", {0}},
+     "The tide is very low tonight. The beach is nicer *+.**\n", {0}},
     // 139
     {"The beach is almost 10 meters wide here.",
      {105, 183, 196, 0, 99, 0, 0, 0},
@@ -734,8 +734,8 @@ Stone steps lead down to the beach +.\n", {0}},
     // 141
     {"You are on the coast road.",
      {198, 106, 163, 199, 73, 0, 0, 0},
-     "The forest is dense on either side.  The trees seem to be actually squeezing\n\
-together to keep us from passing.  A feeling of enmity is in the air.**\n\
+     "The forest is dense on either side. The trees seem to be actually squeezing\n\
+together to keep us from passing. A feeling of enmity is in the air.**\n\
 The road continues - and -.\n", {0}},
     // 142
     {"You are in the forest.",
@@ -748,18 +748,18 @@ The road continues - and -.\n", {0}},
     // 144
     {"You are in a copse.",
      {142, 107, 145, 80, 0, 0, 0, 0},
-     "This is a secret hidden thicket only noticeable from the beach.  In the\n\
+     "This is a secret hidden thicket only noticeable from the beach. In the\n\
 moonlight, I can tell that someone has been digging here recently.****\n", {0}},
     // 145
     {"You are at the tide pools.",
      {91, 0, 114, 107, 79, 0, 0, 0},
      "These rocks and pools are the home for many sea anemones and crustaceans.\n\
-They are exposed because of the low tide.  There is a beach ***+.\n", {0}},
+They are exposed because of the low tide. There is a beach ***+.\n", {0}},
     // 146
     {"You are in the forest.",
      {199, 108, 143, 0, 73, 0, 0, 0},
      "This is a shallow depression sheltered from the wind by a thick growth of \n\
-thorny shrubs.  It looks like someone is camping here.  There is a fire pit\n\
+thorny shrubs. It looks like someone is camping here. There is a fire pit\n\
 with warm, crackling flames and coals here.*  The beach is +.*  The thorny\n\
 shrubs block the way -.\n", {0}},
     // 147
@@ -772,7 +772,7 @@ on -. Only water lies +.\n", {0}},
     {"You are in a breadfruit grove.",
      {202, 109, 203, 204, 77, 0, 0, 0},
      "The tall trees bend leisurely in the breeze, holding many round breadfruits\n\
-close to their large serrated leaves.  There are coconut palms +,\n\
+close to their large serrated leaves. There are coconut palms +,\n\
 *+, and +.\n", {0}},
     // 149
     {"You are in a grove of mango trees.",
@@ -803,7 +803,7 @@ shadows.****\n", {0}},
     // 155
     {"This is a dirt road.",
      {205, 210, 212, 111, 77, 0, 0, 0},
-     "The road runs - and - here.  It is very dark in the forest.**\n", {0}},
+     "The road runs - and - here. It is very dark in the forest.**\n", {0}},
     // 156
     {"You are in a palm grove.",
      {206, 211, 112, 213, 77, 0, 0, 0},
@@ -811,7 +811,7 @@ shadows.****\n", {0}},
     // 157
     {"You are on the edge of a small clearing.",
      {157, 113, 157, 157, 79, 0, 0, 0},
-     "The ground is rather marshy here and the darkness is intense.  A swarm of\n\
+     "The ground is rather marshy here and the darkness is intense. A swarm of\n\
 ravenous mosquitoes has descended upon you and has sent you quaking to your\n\
 knees.****\n", {0}},
     // 158
@@ -835,7 +835,7 @@ continues -.***\n", {0}},
      {115, 159, 162, 91, 79, 0, 0, 0},
      "This little thicket is hidden from the road in the shadows of the forest.\n\
 From here we have a clear view of any traffic along the road. A great hollow\n\
-tree stuffed with something is nearby.  The road is +.***\n", {0}},
+tree stuffed with something is nearby. The road is +.***\n", {0}},
     // 162
     {"You are on the coast road.",
      {215, 214, 0, 115, 86, 0, 0, 0},
@@ -843,15 +843,15 @@ tree stuffed with something is nearby.  The road is +.***\n", {0}},
     // 163
     {"You are on a dirt road.",
      {216, 116, 113, 141, 79, 0, 0, 0},
-     "We are walking through a tunnel of unfriendly trees and shrubs.  The tall\n\
+     "We are walking through a tunnel of unfriendly trees and shrubs. The tall\n\
 ones bend over the roadway and reach down with their branches to grab us.\n\
-Broad leafed plants at the roadside whisper in the darkness.  Something\n\
-just darted across the road and into the bushes *+.  Let's go *-.\n", {0}},
+Broad leafed plants at the roadside whisper in the darkness. Something\n\
+just darted across the road and into the bushes *+. Let's go *-.\n", {0}},
     // 164
     {"You have discovered a hidden thicket near the road.",
      {163, 142, 116, 106, 73, 0, 0, 0},
-     "I would think it best to stay on the road.  The forest seems very unfriendly\n\
-at night.  The road is **+.*\n", {0}},
+     "I would think it best to stay on the road. The forest seems very unfriendly\n\
+at night. The road is **+.*\n", {0}},
     // 165
     {"You are in the living room.",
      {0, 117, 217, 218, 0, 0, 0, 0},
@@ -861,14 +861,14 @@ the living room here where a couch and two chairs converge with an end table.\n\
     // 166
     {"You are at the lagoon.",
      {118, 0, 167, 168, 81, 0, 0, 0},
-     "A small beach here is deserted except for some fishing nets.  It is very\n\
-peaceful at the lagoon at night.  The sound of native drums is carried on\n\
-the night breeze.  There are paths leading off into darkness +,\n\
+     "A small beach here is deserted except for some fishing nets. It is very\n\
+peaceful at the lagoon at night. The sound of native drums is carried on\n\
+the night breeze. There are paths leading off into darkness +,\n\
 *+, and +.\n", {0}},
     // 167
     {"You are at the lagoon.",
      {118, 0, 170, 166, 81, 0, 0, 0},
-     "The grass near the water is moist with the refreshing evening dew.  Far away,\n\
+     "The grass near the water is moist with the refreshing evening dew. Far away,\n\
 drums reverberate in the forest.**  The path continues + and +.\n", {0}},
     // 168
     {"You are at the lagoon.",
@@ -893,19 +893,19 @@ loom in the darkness *+. The road continues - and -.\n", {0}},
     {"The road crosses the lagoon here.",
      {222, 0, 120, 174, 81, 0, 0, 0},
      "Strange mists rising from the water engulf a rickety old enclosed bridge here.\n\
-Spider webs catch our hair as we pass through its rotting timbers.  I felt\n\
-something drop on my neck.  The road delves into the accursed forest\n\
+Spider webs catch our hair as we pass through its rotting timbers. I felt\n\
+something drop on my neck. The road delves into the accursed forest\n\
 **+ and +.\n", {0}},
     // 173
     {"You are in a coconut palm grove.",
      {223, 121, 224, 225, 82, 0, 0, 0},
      "The tall palms are planted about 30 feet apart and the starry sky is clearly\n\
-visible above.  A low growing grass carpets the ground all around.  The grove\n\
+visible above. A low growing grass carpets the ground all around. The grove\n\
 continues +.***\n", {0}},
     // 174
     {"You are walking along a dirt road.",
      {224, 176, 172, 121, 82, 0, 0, 0},
-     "You are near misty patch of the roadway **+.  The road continues -.\n", {0}},
+     "You are near misty patch of the roadway **+. The road continues -.\n", {0}},
     // 175
     {"You are on a dirt road.",
      {225, 177, 121, 226, 82, 0, 0, 0},
@@ -915,7 +915,7 @@ starlight I can also discern that the road continues - toward the lagoon.*\n", {
     {"You are on a trail running around the lagoon.",
      {172, 0, 0, 122, 82, 0, 0, 0},
      "The dark waters brush the trail here and the path crosses an old  bridge\n\
-+.  There is deep water + and +. The trail continues -.\n", {0}},
++. There is deep water + and +. The trail continues -.\n", {0}},
     // 177
     {"This is the mouth of the lagoon.",
      {175, 0, 122, 227, 82, 0, 0, 0},
@@ -941,8 +941,8 @@ stream **+. The pools are +.\n", {0}},
     // 181
     {"You are at the entrance to a cave.",
      {128, 230, 126, 0, 84, 0, 0, 0},
-     "A torch lights the entrance to the cave.  Deep inside I can see shadows moving.\n\
-A path goes + from here.  The entrance is +.**\n", {0}},
+     "A torch lights the entrance to the cave. Deep inside I can see shadows moving.\n\
+A path goes + from here. The entrance is +.**\n", {0}},
     // 182
     {"You are in the woods.",
      {182, 229, 182, 127, 84, 0, 0, 0},
@@ -952,12 +952,12 @@ A path goes + from here.  The entrance is +.**\n", {0}},
     {"You are walking along the beach.",
      {139, 129, 184, 0, 99, 0, 0, 0},
      "Some dunes here progress inland and make it impossible to get very far in that\n\
-direction.  The beach continues - and -.*  The ocean is +.\n", {0}},
+direction. The beach continues - and -.*  The ocean is +.\n", {0}},
     // 184
     {"You are in the dunes.",
      {183, 101, 184, 129, 87, 0, 0, 0},
      "The endless rolling and pitching sand dunes are enough to make one very queasy!\n\
-The sand is cool and the stars are bright at the ocean.  The only way I'm going\n\
+The sand is cool and the stars are bright at the ocean. The only way I'm going\n\
 is ***+.\n", {0}},
     // 185
     {"This is a lousy beach.",
@@ -990,9 +990,9 @@ from the ground itself.* The canyon continues - and -.\n", {0}},
     {"You are in the drawing room.",
      {0, 134, 0, 0, 0, 0, 0, 0},
      "Exquisitely decorated with plants and antique furniture of superb\n\
-craftsmanship, the parlor reflects its owner's impeccable taste.  The tropical\n\
-night air pours in through open shutters *+.  There doesn't seem \n\
-to be anybody around.  A large immaculate oaken desk is visible in the\n\
+craftsmanship, the parlor reflects its owner's impeccable taste. The tropical\n\
+night air pours in through open shutters *+. There doesn't seem \n\
+to be anybody around. A large immaculate oaken desk is visible in the\n\
 study and it even has a old fashioned telephone to complete the decor.**\n", {0}},
     // 191
     {"You are in a palm grove.",
@@ -1012,11 +1012,11 @@ garage of similar construct to the barn +.\n", {0}},
     // 194
     {"This part of the beach is impassable.",
      {0, 138, 0, 0, 96, 0, 0, 0},
-     "The see is calm tonight.  The beach goes *-.**\n", {0}},
+     "The see is calm tonight. The beach goes *-.**\n", {0}},
     // 195
     {"You are in the gardens.",
      {195, 140, 197, 138, 96, 0, 0, 0},
-     "Dew beaded grass sparkles in the moonlight.  Tiny lamps beside the path light\n\
+     "Dew beaded grass sparkles in the moonlight. Tiny lamps beside the path light\n\
 the way to the ocean ***+.\n", {0}},
     // 196
     {"You are in the gardens.",
@@ -1176,7 +1176,7 @@ cave  continues -.**\n", {0}},
     {"You are just inside the cave entrance.",
      {274, 0, 0, 0, 0, 0, 0, 0},
      "The air is hot and sticky inside. The cave continues -. There is a \n\
-stone door in the wall +.  A wooden sign in the dust warns in old elven\n\
+stone door in the wall +. A wooden sign in the dust warns in old elven\n\
 runes, \"GSRF KDIRE NLVEMP!\".**\n", {0}},
     // 232
     {"You are at the edge of a huge chasm.",
@@ -1196,22 +1196,22 @@ shadows - and -.**\n", {0}},
     // 235
     {"You are at the clubhouse.",
      {0, 193, 0, 0, 0, 0, 0, 0},
-     "The clubhouse is built over the most inland part of the lagoon.  Tropical\n\
-bananas and fragrant frangipani grow along the grassy shore.  Walking across\n\
+     "The clubhouse is built over the most inland part of the lagoon. Tropical\n\
+bananas and fragrant frangipani grow along the grassy shore. Walking across\n\
 the short wooden bridge, we enter. Along one wall is a bar crowded with people.\n\
-The restaurant and disco dance floor are filled to capacity.  A rock group\n\
+The restaurant and disco dance floor are filled to capacity. A rock group\n\
 electrocutes itself to the satisfaction of the audience.****\n", {0}},
     // 236
     {"You are in the stables.",
      {0, 0, 0, 193, 0, 0, 0, 0},
      "Neighing horses snacking on hay and oats fill the stalls on both sides of\n\
-the barn.  It is rather warm in here but that is not the most offensive\n\
+the barn. It is rather warm in here but that is not the most offensive\n\
 part.****\n", {0}},
     // 237
     {"You are in the old garage.",
      {0, 0, 193, 0, 0, 0, 0, 0},
-     "This is an old wooden building of the same vintage as the stables.  Beneath\n\
-a sagging roof stand gardening tools and greasy rags.  Parked in the center\n\
+     "This is an old wooden building of the same vintage as the stables. Beneath\n\
+a sagging roof stand gardening tools and greasy rags. Parked in the center\n\
 is an underpowered Plymouth Volare' with a red and white striped golf cart\n\
 roof. ****\n", {0}},
     // 238
@@ -1235,7 +1235,7 @@ flowers and trees.** The road continues -. A walk leads -.\n", {0}},
     {"The stream plummets over a cliff here.",
      {182, 0, 0, 229, 84, 0, 0, 0},
      "Falling 10 agonizing meters into darkness, only droplets of the stream must\n\
-be left to dance off the floor below.  There is no way down, even with a\n\
+be left to dance off the floor below. There is no way down, even with a\n\
 strong rope. ****\n", {0}},
     // 243
     {"You are on a dirt road.",
@@ -1253,13 +1253,13 @@ strong rope. ****\n", {0}},
     {"You are in a low passage.",
      {247, 160, 0, 0, 0, 0, 0, 0},
      "The ceiling here sparkles with iridescent gems and minerals. Colorful starfish\n\
-and sea anemones cling to the slippery walls and floor.  The passage continues\n\
+and sea anemones cling to the slippery walls and floor. The passage continues\n\
 +.***\n", {0}},
     // 247
     {"The walls are very close together here.",
      {248, 246, 0, 0, 0, 0, 0, 0},
      "I can barely squeeze through the jagged opening. Slimy sea weeds provide\n\
-no footing at all. This tunnel seems to be an ancient lava tube.  There is\n\
+no footing at all. This tunnel seems to be an ancient lava tube. There is\n\
 a large room +.***\n", {0}},
     // 248
     {"You are in the cathedral room.",
@@ -1271,7 +1271,7 @@ engulfing darkness overhead. The sound of water dripping echoes in the void.\n\
     {"You are walking through a very round tunnel.",
      {252, 248, 0, 0, 252, 1, 0, 0},
      "The round walls of this tunnel are amazingly smooth to the touch. A little\n\
-trickle of water flows down the center.  The tunnel climbs steadily +.\n\
+trickle of water flows down the center. The tunnel climbs steadily +.\n\
 There is a large room +.**\n", {0}},
     // 250
     {"You are in the cathedral anteroom.",
@@ -1296,21 +1296,21 @@ glisten with shiny minerals.**  A hallway here runs + and -.\n", {0}},
     // 253
     {"You are in an elaborately tiled room.",
      {0, 0, 258, 0, 0, 0, 250, 0},
-     "Large colorful tiles plate the floor and walls.  The ceiling is a mosaic\n\
-of gems set in gold.  Hopefully it is only our footsteps that are echoing in\n\
-this hollow chamber.**  The room continues -.  A stone staircase leads\n\
+     "Large colorful tiles plate the floor and walls. The ceiling is a mosaic\n\
+of gems set in gold. Hopefully it is only our footsteps that are echoing in\n\
+this hollow chamber.**  The room continues -. A stone staircase leads\n\
 down.*\n", {0}},
     // 254
     {"You are at a dead end.",
      {0, 0, 251, 0, 0, 0, 0, 0},
-     "The walls here are alive with dark mussels.  They click their shells menacingly\n\
+     "The walls here are alive with dark mussels. They click their shells menacingly\n\
 if we disturb them.**  The only exit is +.*\n", {0}},
     // 255
     {"The tunnel is very low here.",
      {0, 0, 259, 252, 0, 0, 0, 0},
-     "You practically have to crawl on your knees to pass through this opening.  The\n\
+     "You practically have to crawl on your knees to pass through this opening. The\n\
 air is stiflingly damp, but you can't hear any sounds of water dripping.**\n\
-The crawlspace continues -.  The tunnel seems wider +.\n", {0}},
+The crawlspace continues -. The tunnel seems wider +.\n", {0}},
     // 256
     {"This is the supply room.",
      {0, 0, 252, 0, 0, 0, 0, 0},
@@ -1320,11 +1320,11 @@ A tunnel leads off +.*\n", {0}},
     // 257
     {"You have found a secret entrance to the catacombs",
      {0, 0, 0, 0, 216, 1, 252, 0},
-     "Below is a wet, seaweed covered floor.  Above is a way out.****\n", {0}},
+     "Below is a wet, seaweed covered floor. Above is a way out.****\n", {0}},
     // 258
     {"You are in the catacombs.",
      {0, 0, 260, 253, 0, 0, 0, 0},
-     "Ornate tombs and piles of treasure line the walls.  Long spears with many\n\
+     "Ornate tombs and piles of treasure line the walls. Long spears with many\n\
 blades, fine swords and coats of mail, heaps of coins, jewelry, pottery, \n\
 and golden statues are tribute past kings and queens.** The catacombs\n\
 continue - and -.\n", {0}},
@@ -1337,9 +1337,9 @@ but I would just as soon go -.\n", {0}},
     // 260
     {"You are in the Sepulcher.",
      {0, 0, 0, 258, 0, 0, 0, 0},
-     "A single tomb is here.  Encrusted with diamonds and opals, and secured with \n\
+     "A single tomb is here. Encrusted with diamonds and opals, and secured with \n\
 straps of a very hard, untarnished silver, this tomb must be of a great king.\n\
-Vases overflowing with gold coins stand nearby.  A line of verse on the wall\n\
+Vases overflowing with gold coins stand nearby. A line of verse on the wall\n\
 reads, \"Three he made and gave them to his daughters.\"****\n", {0}},
     // 261
     {"The passage is wider here.",
@@ -1354,8 +1354,8 @@ rickety wooden ladder.****\n", {0}},
     {"You are standing in several inches of water.",
      {264, 0, 265, 266, 262, 1, 0, 0},
      "This seems to be a working mine. Many different tunnels wander off following\n\
-glowing veins of precious metal.  The floor is flooded here since we must\n\
-be nearly at sea level.  A ladder leads up.****\n", {0}},
+glowing veins of precious metal. The floor is flooded here since we must\n\
+be nearly at sea level. A ladder leads up.****\n", {0}},
     // 264
     {"The tunnel here is blocked by broken rocks.",
      {0, 263, 0, 0, 0, 0, 0, 0},
@@ -1365,13 +1365,13 @@ way through.*  The passage goes -.**\n", {0}},
     {"The tunnel is too flooded to proceed.",
      {0, 0, 0, 263, 0, 0, 0, 0},
      "Hidden shafts could swallow us if we tried to continue on down this tunnel.\n\
-The flooding is already up to my waist.  Large crystals overhead shimmer\n\
+The flooding is already up to my waist. Large crystals overhead shimmer\n\
 rainbows of reflected light.***  Let's go -.\n", {0}},
     // 266
     {"The mine is less flooded here.",
      {0, 0, 263, 0, 0, 0, 0, 0},
      "A meandering gold laden vein of quartz and blooming crystals of diamonds\n\
-and topaz burst from the walls of the cave.  A passage goes -.***\n", {0}},
+and topaz burst from the walls of the cave. A passage goes -.***\n", {0}},
     // 267
     {"You are inside the cave.",
      {230, 268, 0, 0, 0, 0, 0, 0},
@@ -1386,7 +1386,7 @@ down and +.\n", {0}},
     // 269
     {"You are walking along the edge of a huge abyss.",
      {0, 0, 268, 0, 268, 1, 270, 0},
-     "Steam is rising in great clouds from the immeasurable depths.  A very narrow\n\
+     "Steam is rising in great clouds from the immeasurable depths. A very narrow\n\
 trail winds down.**  There is a tunnel -.*\n", {0}},
     // 270
     {"You are on the edge of a huge abyss.",
@@ -1400,21 +1400,21 @@ trail winds down.**  There is a tunnel -.*\n", {0}},
     {"You are on a wide shelf near the steamy abyss.",
      {0, 273, 0, 0, 271, 1, 0, 0},
      "The stifling hot cave seems even hotter to me, staring down into this misty \n\
-abyss.  A trail winds up.*  A passageway leads -.**\n", {0}},
+abyss. A trail winds up.*  A passageway leads -.**\n", {0}},
     // 273
     {"You are in a wide tunnel leading to a fuming abyss.",
      {272, 274, 0, 0, 0, 0, 0, 0},
      "The passageway winds through many beautiful formations of crystals and\n\
-sparkling minerals.  The tunnel continues - and -.**\n", {0}},
+sparkling minerals. The tunnel continues - and -.**\n", {0}},
     // 274
     {"You are in a tunnel.",
      {273, 231, 0, 0, 0, 0, 0, 0},
-     "It is very warm in here.  The smell of steam and hot rocks permeates the place.\n\
+     "It is very warm in here. The smell of steam and hot rocks permeates the place.\n\
 The cave continues - and -.**\n", {0}},
     // 275
     {"You are at the bottom of a pit.",
      {0, 0, 0, 0, 232, 0, 0, 0},
-     "At the top of the pit, a single star can be seen in the night sky.  There\n\
-doesn't appear to be any way to get out without a rope.  I don't remember\n\
+     "At the top of the pit, a single star can be seen in the night sky. There\n\
+doesn't appear to be any way to get out without a rope. I don't remember\n\
 how we got here.****\n", {0}},
 };

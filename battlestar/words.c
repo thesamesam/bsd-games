@@ -18,7 +18,7 @@ struct wlist wlist[] = {
     {"maid", MAID, OBJECT, NULL},
     {"maid's", MAID, OBJECT, NULL},
     {"body", BODY, NOUNS, NULL},
-    {"viper", VIPER, OBJECT, NULL},
+    {"starfighter", STARFIGHTER, OBJECT, NULL},
     {"lamp", LAMPON, OBJECT, NULL},
     {"lantern", LAMPON, OBJECT, NULL},
     {"shoes", SHOES, OBJECT, NULL},

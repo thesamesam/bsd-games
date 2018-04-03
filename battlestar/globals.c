@@ -18,10 +18,10 @@ const char *const objdes[NUMOFOBJECTS] = {
     "There is a old dented helmet with an ostrich plume here.",
     "There is a shield of some native tribe here.",
     "The maid's body is lying here. She was murdered!",
-    "There is a Viper ready for launch here.",
+    "There is a starfighter ready for launch here.",
     "A kerosene lantern is burning luridly here.",
     "An old pair of shoes has been discarded here.",
-    NULL,		       // Cylon.
+    NULL,		       // Drenian.
     "There is a pair of pajamas here.",
     "A kingly robe of royal purple and spun gold is draped here.",
     "There is a strange golden amulet on the floor here.",
@@ -85,10 +85,10 @@ const char *const objsht[NUMOFOBJECTS] = {
     "plumed helmet",
     "shield",
     "maid's body",
-    "viper",
+    "starfighter",
     "lantern",
     "shoes",
-    NULL,		       // Cylon.
+    NULL,		       // Drenian.
     "pajamas",
     "robe",
     "amulet",

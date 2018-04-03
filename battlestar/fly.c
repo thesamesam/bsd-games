@@ -12,13 +12,13 @@ int ourclock = 120;		// time for all the flights in the game
 
 enum {
     c_NStars = 64,
-    c_CylonMoveTime = 500
+    c_DrenianMoveTime = 500
 };
 
-static int _cylonLine = 0;
-static int _cylonCol = 0;
+static int _drenianLine = 0;
+static int _drenianCol = 0;
 static int _dr = 0, _dc = 0;
-static uint64_t _cylonNextMove = 0;
+static uint64_t _drenianNextMove = 0;
 static bool _destroyed = false;
 static struct { uint8_t l, c; } _stars [c_NStars] = {{0,0}};
 
@@ -51,7 +51,7 @@ static void draw_space_window (void)
 	mvwaddch (_w, n, getmaxx(_w)/2, '|');
 	mvwaddch (_w, n+6, getmaxx(_w)/2, '|');
     }
-    mvwaddstr (_w, _cylonLine, _cylonCol - 1, "/-\\"); // Cylon ship
+    mvwaddstr (_w, _drenianLine, _drenianCol - 1, "/-\\"); // Drenian ship
     mvwprintw (_w, getmaxy(_w)-1, 21, "TORPEDOES: %3d  FUEL: %3d  TIME: %3d", torps, fuel, ourclock);
 }
 
@@ -62,24 +62,24 @@ int visual (void)
     cbreak();
     noecho();
     curs_set (0);
-    _cylonLine = nrand (getmaxy(_w)-3)+1;
-    _cylonCol = nrand (getmaxx(_w)-2)+1;
+    _drenianLine = nrand (getmaxy(_w)-3)+1;
+    _drenianCol = nrand (getmaxx(_w)-2)+1;
     for (unsigned i = 0; i < ArraySize(_stars); ++i) {
 	_stars[i].l = nrand(getmaxy(_w));
 	_stars[i].c = nrand(getmaxx(_w));
     }
     for (;;) {
 	uint64_t now = time_ms();
-	if (now >= _cylonNextMove) {
-	    if (_cylonLine+_dr <= getmaxy(_w)-3 && _cylonLine+_dr > 0)
-		_cylonLine += _dr;
-	    if (_cylonCol+_dc < getmaxx(_w)-1 && _cylonCol+_dc > 0)
-		_cylonCol += _dc;
+	if (now >= _drenianNextMove) {
+	    if (_drenianLine+_dr <= getmaxy(_w)-3 && _drenianLine+_dr > 0)
+		_drenianLine += _dr;
+	    if (_drenianCol+_dc < getmaxx(_w)-1 && _drenianCol+_dc > 0)
+		_drenianCol += _dc;
 	    --ourclock;
-	    _cylonNextMove = now + c_CylonMoveTime;
+	    _drenianNextMove = now + c_DrenianMoveTime;
 	}
 	draw_space_window();
-	wtimeout (_w, _cylonNextMove - now);
+	wtimeout (_w, _drenianNextMove - now);
 	int k = wgetch(_w);
 	if (k == 'h' || k == KEY_LEFT) {
 	    _dc = -1;
@@ -97,7 +97,7 @@ int visual (void)
 	    if (torps) {
 		torps -= 2;
 		blast();
-		if (_cylonLine == getmaxy(_w)/2 && _cylonCol - getmaxx(_w)/2 < 2 && getmaxx(_w)/2 - _cylonCol < 2) {
+		if (_drenianLine == getmaxy(_w)/2 && _drenianCol - getmaxx(_w)/2 < 2 && getmaxx(_w)/2 - _drenianCol < 2) {
 		    _destroyed = true;
 		    sleep (1);
 		    break;

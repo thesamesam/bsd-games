@@ -138,7 +138,7 @@ void news(void)
 	clearbit(location[GARDEN].objects, ROPE);
 	meetgirl = 0;
     }
-    if (testbit(location[position].objects, CYLON)) {
+    if (testbit(location[position].objects, DRENIAN)) {
 	puts("Oh my God, you're being shot at by an alien spacecraft!");
 	printf("The targeting computer says we have %d seconds to attack!\n", ourclock);
 	fflush(stdout);
@@ -147,10 +147,10 @@ void news(void)
 	    hurt = nrand(NUMOFINJURIES);
 	    injuries[hurt] = 1;
 	    puts("Laser blasts sear the cockpit, and the alien veers off in a victory roll.");
-	    puts("The viper shudders under a terrible explosion.");
+	    puts("The starfighter shudders under a terrible explosion.");
 	    printf("I'm afraid you have suffered %s.\n", ouch[hurt]);
 	} else
-	    clearbit(location[position].objects, CYLON);
+	    clearbit(location[position].objects, DRENIAN);
     }
     if (injuries[SKULL] && injuries[INCISE] && injuries[NECK]) {
 	puts("I'm afraid you have suffered fatal injuries.");
@@ -199,7 +199,7 @@ void crash(void)
 	else {
 	    puts("You're out of fuel.  We'll have to crash land!");
 	    if (!location[position].down) {
-		puts("Your viper strikes the ground and explodes into fiery fragments.");
+		puts("Your starfighter strikes the ground and explodes into fiery fragments.");
 		puts("Thick black smoke billows up from the wreckage.");
 		die();
 	    }
@@ -208,7 +208,7 @@ void crash(void)
 	notes[LAUNCHED] = 0;
 	setbit(location[position].objects, CRASH);
 	ourtime += nrand(CYCLE / 4);
-	puts("The viper explodes into the ground and you lose consciousness...");
+	puts("The starfighter explodes into the ground and you lose consciousness...");
 	zzz();
 	hurt1 = nrand(NUMOFINJURIES - 2) + 2;
 	hurt2 = nrand(NUMOFINJURIES - 2) + 2;

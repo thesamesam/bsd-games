@@ -91,7 +91,7 @@ static int checkout(const char *uname)
 	    CUMBER = 3;
 	    WEIGHT = 9;	       // that'll get him!
 	    ourclock = 10;
-	    setbit(location[7].objects, WOODSMAN);	// viper room
+	    setbit(location[7].objects, WOODSMAN);	// starfighter room
 	    setbit(location[20].objects, WOODSMAN);	// laser "
 	    setbit(location[13].objects, DARK);	// amulet "
 	    setbit(location[8].objects, ELF);	// closet

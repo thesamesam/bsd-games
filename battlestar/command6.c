@@ -5,14 +5,14 @@
 
 int launch(void)
 {
-    if (testbit(location[position].objects, VIPER) && !notes[CANTLAUNCH]) {
+    if (testbit(location[position].objects, STARFIGHTER) && !notes[CANTLAUNCH]) {
 	if (fuel > 4) {
-	    clearbit(location[position].objects, VIPER);
+	    clearbit(location[position].objects, STARFIGHTER);
 	    position = location[position].up;
 	    notes[LAUNCHED] = 1;
 	    ourtime++;
 	    fuel -= 4;
-	    puts("You climb into the viper and prepare for launch.");
+	    puts("You climb into the starfighter and prepare for launch.");
 	    puts("With a touch of your thumb the turbo engines ignite, thrusting you back into\nyour seat.");
 	    return 1;
 	} else
@@ -27,7 +27,7 @@ int land(void)
     if (notes[LAUNCHED] && testbit(location[position].objects, LAND) && location[position].down) {
 	notes[LAUNCHED] = 0;
 	position = location[position].down;
-	setbit(location[position].objects, VIPER);
+	setbit(location[position].objects, STARFIGHTER);
 	fuel -= 2;
 	ourtime++;
 	puts("You are down.");
