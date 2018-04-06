@@ -4,7 +4,6 @@
 
 #include	"hack.h"
 #include	"extern.h"
-#include	"edog.h"
 #include	"mkroom.h"
 
 static void use_camera(struct obj *);
@@ -13,8 +12,6 @@ static int ck_ice_box(struct obj *);
 static int out_ice_box(struct obj *);
 static void use_ice_box(struct obj *);
 static struct monst *bchit(int, int, int, int);
-static void use_whistle(struct obj *);
-static void use_magic_whistle(struct obj *);
 static int dig(void);
 static int use_pick_axe(struct obj *);
 
@@ -36,31 +33,20 @@ int doapply(void)
 	case PICK_AXE:
 	    res = use_pick_axe(obj);
 	    break;
-
-	case MAGIC_WHISTLE:
-	    if (pl_character[0] == 'W' || u.ulevel > 9) {
-		use_magic_whistle(obj);
-		break;
-	    }
-	    // fallthrough
-	case WHISTLE:
-	    use_whistle(obj);
-	    break;
-
 	case CAN_OPENER:
 	    if (!carrying(TIN)) {
 		pline("You have no can to open.");
-		goto xit;
+		nomul(0);
+		return 0;
 	    }
 	    pline("You cannot open a tin without eating its contents.");
 	    pline("In order to eat, use the 'e' command.");
 	    if (obj != uwep)
 		pline("Opening the tin will be much easier if you wield the can-opener.");
-	    goto xit;
-
+	    nomul(0);
+	    return 0;
 	default:
 	    pline("Sorry, I don't know how to use that.");
-	  xit:
 	    nomul(0);
 	    return 0;
     }
@@ -71,18 +57,14 @@ int doapply(void)
 static void use_camera (struct obj* obj UNUSED)
 {
     if (!getdir(1)) {	       // ask: in what direction?
-	flags.move = multi = 0;
+	_wflags.move = multi = 0;
 	return;
     }
-    if (u.uswallow) {
-	pline("You take a picture of %s's stomach.", monnam(u.ustuck));
+    if (_u.dz) {
+	pline("You take a picture of the %s.", (_u.dz > 0) ? "floor" : "ceiling");
 	return;
     }
-    if (u.dz) {
-	pline("You take a picture of the %s.", (u.dz > 0) ? "floor" : "ceiling");
-	return;
-    }
-    struct monst* mtmp = bchit (u.dx, u.dy, COLNO, '!');
+    struct monst* mtmp = bchit (_u.dx, _u.dy, COLNO, '!');
     if (mtmp) {
 	if (mtmp->msleep) {
 	    mtmp->msleep = 0;
@@ -119,7 +101,7 @@ static struct obj* current_ice_box = NULL;	// a local variable of use_ice_box, t
 
 static int in_ice_box (struct obj *obj)
 {
-    if (obj == current_ice_box || (Punished && (obj == uball || obj == uchain))) {
+    if (obj == current_ice_box) {
 	pline ("You must be kidding.");
 	return 0;
     }
@@ -143,7 +125,7 @@ static int in_ice_box (struct obj *obj)
     obj->o_cnt_id = current_ice_box->o_id;
     obj->nobj = fcobj;
     fcobj = obj;
-    obj->age = moves - obj->age;	// actual age
+    obj->age = _u.moves - obj->age;	// actual age
     return 1;
 }
 
@@ -164,7 +146,7 @@ static int out_ice_box(struct obj *obj)
 	otmp->nobj = obj->nobj;
     }
     current_ice_box->owt -= obj->owt;
-    obj->age = moves - obj->age;	// simulated point of time
+    obj->age = _u.moves - obj->age;	// simulated point of time
     addinv(obj);
     return 0;
 }
@@ -175,7 +157,7 @@ static void use_ice_box (struct obj *obj)
     current_ice_box = obj;     // for use by in/out_ice_box
     for (struct obj* otmp = fcobj; otmp; otmp = otmp->nobj)
 	if (otmp->o_cnt_id == obj->o_id)
-	    cnt++;
+	    ++cnt;
     if (!cnt)
 	pline("Your ice-box is empty.");
     else {
@@ -190,13 +172,13 @@ static void use_ice_box (struct obj *obj)
     // call getobj: 0: allow cnt; #: allow all types; %: expect food
     struct obj* otmp = getobj("0#%", "put in");
     if (!otmp || !in_ice_box(otmp))
-	flags.move = multi = 0;
+	_wflags.move = multi = 0;
 }
 
 static struct monst *bchit(int ddx, int ddy, int range, int sym)
 {
     struct monst *mtmp = NULL;
-    int bchx = u.ux, bchy = u.uy;
+    int bchx = _u.ux, bchy = _u.uy;
 
     if (sym)
 	Tmp_at(-1, sym);       // open call
@@ -205,7 +187,7 @@ static struct monst *bchit(int ddx, int ddy, int range, int sym)
 	bchy += ddy;
 	if ((mtmp = m_at(bchx, bchy)) != NULL)
 	    break;
-	if (!ZAP_POS(levl[bchx][bchy].typ)) {
+	if (!ZAP_POS(_level->l[bchx][bchy].typ)) {
 	    bchx -= ddx;
 	    bchy -= ddy;
 	    break;
@@ -218,30 +200,9 @@ static struct monst *bchit(int ddx, int ddy, int range, int sym)
     return mtmp;
 }
 
-static void use_whistle (struct obj* obj UNUSED)
-{
-    pline("You produce a high whistling sound.");
-    for (struct monst *mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-	if (dist(mtmp->mx, mtmp->my) < u.ulevel * 20) {
-	    if (mtmp->msleep)
-		mtmp->msleep = 0;
-	    if (mtmp->mtame)
-		EDOG(mtmp)->whistletime = moves;
-	}
-    }
-}
-
-static void use_magic_whistle (struct obj* obj UNUSED)
-{
-    pline("You produce a strange whistling sound.");
-    for (struct monst* mtmp = fmon; mtmp; mtmp = mtmp->nmon)
-	if (mtmp->mtame)
-	    mnexto (mtmp);
-}
-
 static int dig_effort = 0;	// effort expended on current pos
-static uchar dig_level = 0;
-static coord dig_pos = { 0, 0 };
+static uint8_t dig_level = 0;
+static struct coord dig_pos = { 0, 0 };
 static bool dig_down = false;
 
 static int dig (void)
@@ -250,12 +211,12 @@ static int dig (void)
 
     // perhaps a nymph stole his pick-axe while he was busy digging
     // or perhaps he teleported away
-    if (u.uswallow || !uwep || uwep->otyp != PICK_AXE || dig_level != dlevel || ((dig_down && (dpx != u.ux || dpy != u.uy)) || (!dig_down && dist(dpx, dpy) > 2)))
+    if (!uwep || uwep->otyp != PICK_AXE || dig_level != _u.dlevel || ((dig_down && (dpx != _u.ux || dpy != _u.uy)) || (!dig_down && dist(dpx, dpy) > 2)))
 	return 0;
 
     dig_effort += 10 + abon() + uwep->spe + rn2(5);
     if (dig_down) {
-	if (!xdnstair) {
+	if (!_level->stair.dn.x) {
 	    pline("The floor here seems too hard to dig in.");
 	    return 0;
 	}
@@ -269,14 +230,14 @@ static int dig (void)
 		ttmp = maketrap(dpx, dpy, PIT);
 		ttmp->tseen = 1;
 		pline("You have dug a pit.");
-		u.utrap = rn1(4, 2);
-		u.utraptype = TT_PIT;
+		_u.utrap = rn1(4, 2);
+		_u.utraptype = TT_PIT;
 		return 0;
 	    }
 	}
     } else if (dig_effort > 100) {
 	const char* digtxt = "Now what exactly was it that you were digging in?";
-	struct rm* lev = &levl[dpx][dpy];
+	struct rm* lev = &_level->l[dpx][dpy];
 	struct obj* obj = sobj_at(ENORMOUS_ROCK, dpx, dpy);
 	if (obj) {
 	    fracture_rock(obj);
@@ -285,7 +246,7 @@ static int dig (void)
 	    lev->typ = CORR;
 	    digtxt = "You succeeded in cutting away some rock.";
 	} else if (lev->typ == HWALL || lev->typ == VWALL || lev->typ == SDOOR) {
-	    lev->typ = xdnstair ? DOOR : ROOM;
+	    lev->typ = _level->stair.dn.x ? DOOR : ROOM;
 	    digtxt = "You just made an opening in the wall.";
 	}
 	mnewsym(dpx, dpy);
@@ -293,9 +254,9 @@ static int dig (void)
 	pline(digtxt);	       // after mnewsym & prl
 	return 0;
     } else {
-	if (IS_WALL(levl[dpx][dpy].typ)) {
+	if (IS_WALL(_level->l[dpx][dpy].typ)) {
 	    int rno = inroom(dpx, dpy);
-	    if (rno >= 0 && rooms[rno].rtype >= 8) {
+	    if (rno >= 0 && _level->rooms[rno].rtype >= 8) {
 		pline("This wall seems too hard to dig into.");
 		return 0;
 	    }
@@ -313,27 +274,25 @@ int holetime(void)
 
 void dighole(void)
 {
-    if (!xdnstair) {
+    if (!_level->stair.dn.x) {
 	pline("The floor here seems too hard to dig in.");
 	return;
     }
-    struct trap* ttmp = t_at(u.ux, u.uy);
+    struct trap* ttmp = t_at(_u.ux, _u.uy);
     if (ttmp)
 	ttmp->ttyp = TRAPDOOR;
     else
-	ttmp = maketrap(u.ux, u.uy, TRAPDOOR);
+	ttmp = maketrap(_u.ux, _u.uy, TRAPDOOR);
     ttmp->tseen = 1;
     pline("You've made a hole in the floor.");
-    if (!u.ustuck) {
-	if (inshop())
-	    shopdig(1);
-	pline("You fall through ...");
-	if (u.utraptype == TT_PIT) {
-	    u.utrap = 0;
-	    u.utraptype = 0;
-	}
-	goto_level(dlevel + 1, false);
+    if (inshop())
+	shopdig(1);
+    pline("You fall through ...");
+    if (_u.utraptype == TT_PIT) {
+	_u.utrap = 0;
+	_u.utraptype = 0;
     }
+    goto_level(_u.dlevel + 1, false);
 }
 
 static int use_pick_axe(struct obj *obj)
@@ -356,46 +315,44 @@ static int use_pick_axe(struct obj *obj)
 	res = 1;
     }
     while (*sdp) {
-	(void) movecmd(*sdp);  // sets u.dx and u.dy and u.dz
-	rx = u.ux + u.dx;
-	ry = u.uy + u.dy;
-	if (u.dz > 0 || (u.dz == 0 && isok(rx, ry) && (IS_ROCK(levl[rx][ry].typ)
+	movecmd(*sdp);  // sets _u.dx and _u.dy and _u.dz
+	rx = _u.ux + _u.dx;
+	ry = _u.uy + _u.dy;
+	if (_u.dz > 0 || (_u.dz == 0 && isok(rx, ry) && (IS_ROCK(_level->l[rx][ry].typ)
 						       || sobj_at(ENORMOUS_ROCK, rx, ry))))
 	    *dsp++ = *sdp;
-	sdp++;
+	++sdp;
     }
     *dsp = 0;
     pline("In what direction do you want to dig? [%s] ", dirsyms);
     if (!getdir(0))	       // no txt
 	return res;
-    if (u.uswallow && attack(u.ustuck))	// return 1
-	;
-    else if (u.dz < 0)
+    if (_u.dz < 0)
 	pline("You cannot reach the ceiling.");
-    else if (u.dz == 0) {
+    else if (_u.dz == 0) {
 	if (Confusion)
 	    confdir();
-	rx = u.ux + u.dx;
-	ry = u.uy + u.dy;
+	rx = _u.ux + _u.dx;
+	ry = _u.uy + _u.dy;
 	if ((mtmp = m_at(rx, ry)) && attack(mtmp))
 	    return 1;
 	if (!isok(rx, ry)) {
 	    pline("Clash!");
 	    return 1;
 	}
-	lev = &levl[rx][ry];
+	lev = &_level->l[rx][ry];
 	if (lev->typ == DOOR)
 	    pline("Your %s against the door.", aobjnam(obj, "clang"));
 	else if (!IS_ROCK(lev->typ)
 		 && !sobj_at(ENORMOUS_ROCK, rx, ry)) {
 	    // ACCESSIBLE or POOL
-	    pline("You swing your %s through thin air.", aobjnam(obj, (char *) 0));
+	    pline("You swing your %s through thin air.", aobjnam(obj, NULL));
 	} else {
-	    if (dig_pos.x != rx || dig_pos.y != ry || dig_level != dlevel || dig_down) {
+	    if (dig_pos.x != rx || dig_pos.y != ry || dig_level != _u.dlevel || dig_down) {
 		dig_down = false;
 		dig_pos.x = rx;
 		dig_pos.y = ry;
-		dig_level = dlevel;
+		dig_level = _u.dlevel;
 		dig_effort = 0;
 		pline("You start digging.");
 	    } else
@@ -406,11 +363,11 @@ static int use_pick_axe(struct obj *obj)
     } else if (Levitation) {
 	pline("You cannot reach the floor.");
     } else {
-	if (dig_pos.x != u.ux || dig_pos.y != u.uy || dig_level != dlevel || !dig_down) {
+	if (dig_pos.x != _u.ux || dig_pos.y != _u.uy || dig_level != _u.dlevel || !dig_down) {
 	    dig_down = true;
-	    dig_pos.x = u.ux;
-	    dig_pos.y = u.uy;
-	    dig_level = dlevel;
+	    dig_pos.x = _u.ux;
+	    dig_pos.y = _u.uy;
+	    dig_level = _u.dlevel;
 	    dig_effort = 0;
 	    pline("You start digging in the floor.");
 	    if (inshop())

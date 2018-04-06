@@ -30,11 +30,7 @@ enum {
 
 // A few of the associated symbols are not hardwired.
 enum {
-#ifdef QUEST
-    CORR_SYM	= ':',
-#else
     CORR_SYM	= '#',
-#endif				// QUEST
     POOL_SYM	= '}',
     ERRCHAR	= '{'
 };
@@ -49,4 +45,3 @@ struct rm {
     unsigned seen:1;
     unsigned lit:1;
 };
-extern struct rm levl [COLNO][ROWNO];

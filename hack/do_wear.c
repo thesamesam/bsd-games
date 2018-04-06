@@ -28,7 +28,7 @@ int doremarm(void)
 	pline("You seem not able to take off the gloves while holding your weapon.");
 	return 0;
     }
-    (void) armoroff(otmp);
+    armoroff(otmp);
     return 1;
 }
 
@@ -57,7 +57,7 @@ int doremring(void)
 		case 'R':
 		    return dorr(uright);
 		case '?':
-		    (void) doprring();
+		    doprring();
 		    // might look at morc here %%
 	    }
 	}
@@ -85,10 +85,10 @@ int cursed(struct obj *otmp)
 
 int armoroff(struct obj *otmp)
 {
-    int delay = -objects[otmp->otyp].oc_delay;
+    int delay = -c_Objects[otmp->otyp].oc_delay;
     if (cursed(otmp))
 	return 0;
-    setworn((struct obj *) 0, otmp->owornmask & W_ARMOR);
+    setworn (NULL, otmp->owornmask & W_ARMOR);
     if (delay) {
 	nomul(delay);
 	switch (otmp->otyp) {
@@ -124,30 +124,30 @@ int doweararm(void)
     if (otmp->otyp == HELMET) {
 	if (uarmh) {
 	    pline("You are already wearing a helmet.");
-	    err++;
+	    ++err;
 	} else
 	    mask = W_ARMH;
     } else if (otmp->otyp == SHIELD) {
 	if (uarms)
-	    pline("You are already wearing a shield."), err++;
+	    pline("You are already wearing a shield."), ++err;
 	if (uwep && uwep->otyp == TWO_HANDED_SWORD)
-	    pline("You cannot wear a shield and wield a two-handed sword."), err++;
+	    pline("You cannot wear a shield and wield a two-handed sword."), ++err;
 	if (!err)
 	    mask = W_ARMS;
     } else if (otmp->otyp == PAIR_OF_GLOVES) {
 	if (uarmg) {
 	    pline("You are already wearing gloves.");
-	    err++;
+	    ++err;
 	} else if (uwep && uwep->cursed) {
 	    pline("You cannot wear gloves over your weapon.");
-	    err++;
+	    ++err;
 	} else
 	    mask = W_ARMG;
     } else {
 	if (uarm) {
 	    if (otmp->otyp != ELVEN_CLOAK || uarm2) {
 		pline("You are already wearing some armor.");
-		err++;
+		++err;
 	    }
 	}
 	if (!err)
@@ -161,8 +161,8 @@ int doweararm(void)
 	return 0;
     setworn(otmp, mask);
     if (otmp == uwep)
-	setuwep((struct obj *) 0);
-    delay = -objects[otmp->otyp].oc_delay;
+	setuwep (NULL);
+    delay = -c_Objects[otmp->otyp].oc_delay;
     if (delay) {
 	nomul(delay);
 	nomovemsg = "You finished your dressing manoeuvre.";
@@ -220,28 +220,25 @@ int dowearring(void)
 	} while (!mask);
     setworn(otmp, mask);
     if (otmp == uwep)
-	setuwep((struct obj *) 0);
-    oldprop = u.uprops[PROP(otmp->otyp)].p_flgs;
-    u.uprops[PROP(otmp->otyp)].p_flgs |= mask;
+	setuwep (NULL);
+    oldprop = _u.uprops[PROP(otmp->otyp)].p_flgs;
+    _u.uprops[PROP(otmp->otyp)].p_flgs |= mask;
     switch (otmp->otyp) {
 	case RIN_LEVITATION:
 	    if (!oldprop)
 		float_up();
 	    break;
-	case RIN_PROTECTION_FROM_SHAPE_CHANGERS:
-	    rescham();
-	    break;
 	case RIN_GAIN_STRENGTH:
-	    u.ustr += otmp->spe;
-	    u.ustrmax += otmp->spe;
-	    if (u.ustr > 118)
-		u.ustr = 118;
-	    if (u.ustrmax > 118)
-		u.ustrmax = 118;
-	    flags.botl = 1;
+	    _u.ustr += otmp->spe;
+	    _u.ustrmax += otmp->spe;
+	    if (_u.ustr > 118)
+		_u.ustr = 118;
+	    if (_u.ustrmax > 118)
+		_u.ustrmax = 118;
+	    _wflags.botl = 1;
 	    break;
 	case RIN_INCREASE_DAMAGE:
-	    u.udaminc += otmp->spe;
+	    _u.udaminc += otmp->spe;
 	    break;
     }
     prinv(otmp);
@@ -252,14 +249,14 @@ void ringoff(struct obj *obj)
 {
     long mask;
     mask = obj->owornmask & W_RING;
-    setworn((struct obj *) 0, obj->owornmask);
-    if (!(u.uprops[PROP(obj->otyp)].p_flgs & mask))
+    setworn (NULL, obj->owornmask);
+    if (!(_u.uprops[PROP(obj->otyp)].p_flgs & mask))
 	impossible("Strange... I didnt know you had that ring.");
-    u.uprops[PROP(obj->otyp)].p_flgs &= ~mask;
+    _u.uprops[PROP(obj->otyp)].p_flgs &= ~mask;
     switch (obj->otyp) {
 	case RIN_FIRE_RESISTANCE:
 	    // Bad luck if the player is in hell... --jgm
-	    if (!Fire_resistance && dlevel >= 30) {
+	    if (!Fire_resistance && _u.dlevel >= 30) {
 		pline("The flames of Hell burn you to a crisp.");
 		killer = "stupidity in hell";
 		done("burned");
@@ -271,16 +268,16 @@ void ringoff(struct obj *obj)
 	    }
 	    break;
 	case RIN_GAIN_STRENGTH:
-	    u.ustr -= obj->spe;
-	    u.ustrmax -= obj->spe;
-	    if (u.ustr > 118)
-		u.ustr = 118;
-	    if (u.ustrmax > 118)
-		u.ustrmax = 118;
-	    flags.botl = 1;
+	    _u.ustr -= obj->spe;
+	    _u.ustrmax -= obj->spe;
+	    if (_u.ustr > 118)
+		_u.ustr = 118;
+	    if (_u.ustrmax > 118)
+		_u.ustrmax = 118;
+	    _wflags.botl = 1;
 	    break;
 	case RIN_INCREASE_DAMAGE:
-	    u.udaminc -= obj->spe;
+	    _u.udaminc -= obj->spe;
 	    break;
     }
 }
@@ -302,9 +299,9 @@ void find_ac(void)
 	uac -= uleft->spe;
     if (uright && uright->otyp == RIN_PROTECTION)
 	uac -= uright->spe;
-    if (uac != u.uac) {
-	u.uac = uac;
-	flags.botl = 1;
+    if (uac != _u.uac) {
+	_u.uac = uac;
+	_wflags.botl = 1;
     }
 }
 
@@ -316,19 +313,19 @@ void glibr(void)
 	if (uleft || uright) {
 	    // Note: at present also cursed rings fall off
 	    pline("Your %s off your fingers.", (uleft && uright) ? "rings slip" : "ring slips");
-	    xfl++;
-	    if ((otmp = uleft) != Null(obj)) {
+	    ++xfl;
+	    if ((otmp = uleft)) {
 		ringoff(uleft);
 		dropx(otmp);
 	    }
-	    if ((otmp = uright) != Null(obj)) {
+	    if ((otmp = uright)) {
 		ringoff(uright);
 		dropx(otmp);
 	    }
 	}
-    if ((otmp = uwep) != Null(obj)) {
+    if ((otmp = uwep)) {
 	// Note: at present also cursed weapons fall
-	setuwep((struct obj *) 0);
+	setuwep (NULL);
 	dropx(otmp);
 	pline("Your weapon %sslips from your hands.", xfl ? "also " : "");
     }
@@ -355,6 +352,6 @@ void corrode_armor(void)
 	    return;
 	}
 	pline("Your %s!", aobjnam(otmph, "corrode"));
-	otmph->spe--;
+	--otmph->spe;
     }
 }

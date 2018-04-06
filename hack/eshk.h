@@ -17,9 +17,9 @@ struct bill_x {
 struct eshk {
     long robbed;		// amount stolen by most recent customer
     bool following;		// following customer since he owes us sth
-    schar shoproom;		// index in rooms; set by inshop()
-    coord shk;			// usual position shopkeeper
-    coord shd;			// position shop door
+    int8_t shoproom;		// index in _level->rooms; set by inshop()
+    struct coord shk;		// usual position shopkeeper
+    struct coord shd;		// position shop door
     int shoplevel;		// level of his shop
     int billct;
     struct bill_x bill[BILLSZ];

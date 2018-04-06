@@ -5,10 +5,6 @@
 #include "hack.h"
 #include "extern.h"
 
-#ifndef NOWORM
-    #include "wseg.h"
-#endif				// NOWORM
-
 enum { NOINVSYM = '#' };
 
 static int lastinvnr = 51;	// 0 ... 51
@@ -22,7 +18,7 @@ static void assigninvlet(struct obj *otmp)
     int i;
     struct obj *obj;
 
-    for (i = 0; i < 52; i++)
+    for (i = 0; i < 52; ++i)
 	inuse[i] = false;
     for (obj = invent; obj; obj = obj->nobj)
 	if (obj != otmp) {
@@ -36,7 +32,7 @@ static void assigninvlet(struct obj *otmp)
 	}
     if ((i = otmp->invlet) && (('a' <= i && i <= 'z') || ('A' <= i && i <= 'Z')))
 	return;
-    for (i = lastinvnr + 1; i != lastinvnr; i++) {
+    for (i = lastinvnr + 1; i != lastinvnr; ++i) {
 	if (i == 52) {
 	    i = -1;
 	    continue;
@@ -67,7 +63,7 @@ struct obj *addinv(struct obj *obj)
 	}
     obj->nobj = 0;
 
-    if (flags.invlet_constant) {
+    if (!_wflags.invlet_not_constant) {
 	assigninvlet(obj);
 	// The ordering of the chain is nowhere significant
 	// so in case you prefer some other order than the
@@ -93,197 +89,143 @@ struct obj *addinv(struct obj *obj)
 void useup(struct obj *obj)
 {
     if (obj->quan > 1) {
-	obj->quan--;
+	--obj->quan;
 	obj->owt = weight(obj);
     } else {
 	setnotworn(obj);
 	freeinv(obj);
-	obfree(obj, (struct obj *) 0);
+	obfree (obj, NULL);
     }
 }
 
-void freeinv(struct obj *obj)
+void freeinv (struct obj* otf)
 {
-    struct obj *otmp;
-
-    if (obj == invent)
+    if (otf == invent)
 	invent = invent->nobj;
-    else {
-	for (otmp = invent; otmp->nobj != obj; otmp = otmp->nobj)
-	    if (!otmp->nobj)
-		panic("freeinv");
-	otmp->nobj = obj->nobj;
-    }
+    else for (struct obj* o = invent; o; o = o->nobj)
+	if (o->nobj == otf)
+	    o->nobj = otf->nobj;
 }
 
-// destroy object in fobj chain (if unpaid, it remains on the bill)
+// destroy object in _level->objects chain (if unpaid, it remains on the bill)
 void delobj(struct obj *obj)
 {
     freeobj(obj);
     unpobj(obj);
-    obfree(obj, (struct obj *) 0);
+    obfree (obj, NULL);
 }
 
-// unlink obj from chain starting with fobj
-void freeobj(struct obj *obj)
+// unlink obj from chain starting with _level->objects
+void freeobj (struct obj* otf)
 {
-    struct obj *otmp;
-
-    if (obj == fobj)
-	fobj = fobj->nobj;
-    else {
-	for (otmp = fobj; otmp->nobj != obj; otmp = otmp->nobj)
-	    if (!otmp)
-		panic("error in freeobj");
-	otmp->nobj = obj->nobj;
-    }
+    if (otf == _level->objects)
+	_level->objects = _level->objects->nobj;
+    else for (struct obj* o = _level->objects; o; o = o->nobj)
+	if (o->nobj == otf)
+	    o->nobj = otf->nobj;
 }
 
 // Note: freegold throws away its argument!
-void freegold(struct gold *gold)
+void freegold (struct gold* gtf)
 {
-    struct gold *gtmp;
-
-    if (gold == fgold)
-	fgold = gold->ngold;
-    else {
-	for (gtmp = fgold; gtmp->ngold != gold; gtmp = gtmp->ngold)
-	    if (!gtmp)
-		panic("error in freegold");
-	gtmp->ngold = gold->ngold;
-    }
-    free((char *) gold);
+    if (gtf == _level->money)
+	_level->money = gtf->ngold;
+    else for (struct gold* g = _level->money; g; g = g->ngold)
+	if (g->ngold == gtf)
+	    g->ngold = gtf->ngold;
+    free (gtf);
 }
 
-void deltrap(struct trap *trap)
+void deltrap (struct trap* ttf)
 {
-    struct trap *ttmp;
-
-    if (trap == ftrap)
-	ftrap = ftrap->ntrap;
-    else {
-	for (ttmp = ftrap; ttmp->ntrap != trap; ttmp = ttmp->ntrap);
-	ttmp->ntrap = trap->ntrap;
-    }
-    free((char *) trap);
+    if (ttf == _level->traps)
+	_level->traps = _level->traps->ntrap;
+    else for (struct trap* t = _level->traps; t; t = t->ntrap)
+	if (t->ntrap == ttf)
+	    t->ntrap = ttf->ntrap;
+    free (ttf);
 }
 
-struct wseg *m_atseg;
-
-struct monst *m_at(int x, int y)
+struct monst* m_at (int x, int y)
 {
-    struct monst *mtmp;
-#ifndef NOWORM
-    struct wseg *wtmp;
-#endif				// NOWORM
-
-    m_atseg = 0;
-    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-	if (mtmp->mx == x && mtmp->my == y)
-	    return mtmp;
-#ifndef NOWORM
-	if (mtmp->wormno) {
-	    for (wtmp = wsegs[mtmp->wormno]; wtmp; wtmp = wtmp->nseg)
-		if (wtmp->wx == x && wtmp->wy == y) {
-		    m_atseg = wtmp;
-		    return mtmp;
-		}
-	}
-#endif				// NOWORM
-    }
-    return 0;
+    for (struct monst* m = _level->monsters; m; m = m->nmon)
+	if (m->mx == x && m->my == y)
+	    return m;
+    return NULL;
 }
 
-struct obj *o_at(int x, int y)
+struct obj* o_at (int x, int y)
 {
-    struct obj *otmp;
-
-    for (otmp = fobj; otmp; otmp = otmp->nobj)
-	if (otmp->ox == x && otmp->oy == y)
-	    return otmp;
-    return 0;
+    for (struct obj* o = _level->objects; o; o = o->nobj)
+	if (o->ox == x && o->oy == y)
+	    return o;
+    return NULL;
 }
 
-struct obj *sobj_at(int n, int x, int y)
+struct obj* sobj_at (int n, int x, int y)
 {
-    struct obj *otmp;
-
-    for (otmp = fobj; otmp; otmp = otmp->nobj)
-	if (otmp->ox == x && otmp->oy == y && otmp->otyp == n)
-	    return otmp;
-    return 0;
+    for (struct obj* o = _level->objects; o; o = o->nobj)
+	if (o->ox == x && o->oy == y && o->otyp == n)
+	    return o;
+    return NULL;
 }
 
-int carried(struct obj *obj)
+bool carried (const struct obj* q)
 {
-    struct obj *otmp;
-    for (otmp = invent; otmp; otmp = otmp->nobj)
-	if (otmp == obj)
-	    return 1;
-    return 0;
-}
-
-int carrying(int type)
-{
-    struct obj *otmp;
-
-    for (otmp = invent; otmp; otmp = otmp->nobj)
-	if (otmp->otyp == type)
+    for (const struct obj* o = invent; o; o = o->nobj)
+	if (o == q)
 	    return true;
     return false;
 }
 
-struct obj *o_on(unsigned int id, struct obj *objchn)
+bool carrying (int type)
 {
-    while (objchn) {
-	if (objchn->o_id == id)
-	    return objchn;
-	objchn = objchn->nobj;
-    }
-    return (struct obj *) 0;
+    for (const struct obj* o = invent; o; o = o->nobj)
+	if (o->otyp == type)
+	    return true;
+    return false;
 }
 
-struct trap *t_at(int x, int y)
+struct obj* o_on (unsigned id, struct obj* o)
 {
-    struct trap *trap = ftrap;
-    while (trap) {
+    for (; o; o = o->nobj)
+	if (o->o_id == id)
+	    return o;
+    return NULL;
+}
+
+struct trap* t_at (int x, int y)
+{
+    for (struct trap* trap = _level->traps; trap; trap = trap->ntrap)
 	if (trap->tx == x && trap->ty == y)
 	    return trap;
-	trap = trap->ntrap;
-    }
-    return 0;
+    return NULL;
 }
 
-struct gold *g_at(int x, int y)
+struct gold* g_at (int x, int y)
 {
-    struct gold *gold = fgold;
-    while (gold) {
+    for (struct gold* gold = _level->money; gold; gold = gold->ngold)
 	if (gold->gx == x && gold->gy == y)
 	    return gold;
-	gold = gold->ngold;
-    }
-    return 0;
+    return NULL;
 }
 
 // make dummy object structure containing gold - for temporary use only
-struct obj *mkgoldobj(long q)
+struct obj* mkgoldobj (long q)
 {
-    struct obj *otmp;
-
-    otmp = newobj(0);
-    // should set o_id etc. but otmp will be freed soon
-    otmp->olet = '$';
-    u.ugold -= q;
-    OGOLD(otmp) = q;
-    flags.botl = 1;
-    return otmp;
+    struct obj* o = newobj();
+    // should set o_id etc. but o will be freed soon
+    o->olet = '$';
+    o->ogold = q;
+    _u.ugold -= q;
+    _wflags.botl = 1;
+    return o;
 }
 
 // getobj returns:
-//      struct obj *xxx:        object to do something with.
-//      (struct obj *) 0        error return: no object.
-//      &zeroobj                explicitly no object (as in w-).
-struct obj *getobj(const char *let, const char *word)
+//      struct obj *xxx:	object to do something with.
+//      NULL			no object.
+struct obj* getobj(const char *let, const char *word)
 {
     struct obj *otmp;
     char ilet, ilet1, ilet2;
@@ -291,21 +233,21 @@ struct obj *getobj(const char *let, const char *word)
     char lets[BUFSZ];
     int foo = 0, foo2;
     char *bp = buf;
-    xchar allowcnt = 0;		// 0, 1 or 2
+    int8_t allowcnt = 0;		// 0, 1 or 2
     bool allowgold = false;
     bool allowall = false;
     bool allownone = false;
-    xchar foox = 0;
+    int8_t foox = 0;
     long cnt;
 
     if (*let == '0')
-	let++, allowcnt = 1;
+	++let, allowcnt = 1;
     if (*let == '$')
-	let++, allowgold = true;
+	++let, allowgold = true;
     if (*let == '#')
-	let++, allowall = true;
+	++let, allowall = true;
     if (*let == '-')
-	let++, allownone = true;
+	++let, allownone = true;
     if (allownone)
 	*bp++ = '-';
     if (allowgold)
@@ -316,25 +258,25 @@ struct obj *getobj(const char *let, const char *word)
     ilet = 'a';
     for (otmp = invent; otmp; otmp = otmp->nobj) {
 	if (!*let || strchr(let, otmp->olet)) {
-	    bp[foo++] = flags.invlet_constant ? otmp->invlet : ilet;
+	    bp[foo++] = _wflags.invlet_not_constant ? ilet : otmp->invlet;
 
 	    // ugly check: remove inappropriate things
 	    if ((!strcmp(word, "take off") && !(otmp->owornmask & (W_ARMOR - W_ARM2)))
 		|| (!strcmp(word, "wear") && (otmp->owornmask & (W_ARMOR | W_RING)))
 		|| (!strcmp(word, "wield") && (otmp->owornmask & W_WEP))) {
-		foo--;
-		foox++;
+		--foo;
+		++foox;
 	    }
 	}
 	if (ilet == 'z')
 	    ilet = 'A';
 	else
-	    ilet++;
+	    ++ilet;
     }
     bp[foo] = 0;
     if (foo == 0 && bp > buf && bp[-1] == ' ')
 	*--bp = 0;
-    (void) strcpy(lets, bp);   // necessary since we destroy buf
+    strcpy(lets, bp);   // necessary since we destroy buf
     if (foo > 5) {	       // compactify string
 	foo = foo2 = 1;
 	ilet2 = bp[0];
@@ -377,17 +319,16 @@ struct obj *getobj(const char *let, const char *word)
 	    continue;
 	}
 	if (strchr(quitchars, ilet))
-	    return (struct obj *) 0;
-	if (ilet == '-') {
-	    return allownone ? &zeroobj : (struct obj *) 0;
-	}
+	    return NULL;
+	if (ilet == '-')
+	    return NULL;
 	if (ilet == '$') {
 	    if (!allowgold) {
 		pline("You cannot %s gold.", word);
 		continue;
 	    }
-	    if (!(allowcnt == 2 && cnt < u.ugold))
-		cnt = u.ugold;
+	    if (!(allowcnt == 2 && cnt < _u.ugold))
+		cnt = _u.ugold;
 	    return mkgoldobj(cnt);
 	}
 	if (ilet == '?') {
@@ -396,12 +337,12 @@ struct obj *getobj(const char *let, const char *word)
 		continue;
 	    // he typed a letter (not a space) to more()
 	} else if (ilet == '*') {
-	    doinv((char *) 0);
+	    doinv (NULL);
 	    if (!(ilet = morc))
 		continue;
 	    // ...
 	}
-	if (flags.invlet_constant) {
+	if (!_wflags.invlet_not_constant) {
 	    for (otmp = invent; otmp; otmp = otmp->nobj)
 		if (otmp->invlet == ilet)
 		    break;
@@ -409,7 +350,7 @@ struct obj *getobj(const char *let, const char *word)
 	    if (ilet >= 'A' && ilet <= 'Z')
 		ilet += 'z' - 'A' + 1;
 	    ilet -= 'a';
-	    for (otmp = invent; otmp && ilet; ilet--, otmp = otmp->nobj);
+	    for (otmp = invent; otmp && ilet; --ilet, otmp = otmp->nobj);
 	}
 	if (!otmp) {
 	    pline("You don't have that object.");
@@ -453,8 +394,8 @@ int ggetobj(const char *word, int (*fn) (struct obj *), int max)
     int oletct = 0, iletct = 0;
     bool allflag = false;
     char olets[20], ilets[20];
-    int (*ckfn) (struct obj *) = (int (*)(struct obj *)) 0;
-    xchar allowgold = (u.ugold && !strcmp(word, "drop")) ? 1 : 0;	// BAH
+    int (*ckfn)(struct obj*) = NULL;
+    int8_t allowgold = (_u.ugold && !strcmp(word, "drop")) ? 1 : 0;	// BAH
     if (!invent && !allowgold) {
 	pline("You have nothing to %s.", word);
 	return 0;
@@ -494,8 +435,8 @@ int ggetobj(const char *word, int (*fn) (struct obj *), int max)
 	    continue;
 	if (sym == '$') {
 	    if (allowgold == 1)
-		(*fn) (mkgoldobj(u.ugold));
-	    else if (!u.ugold)
+		(*fn) (mkgoldobj(_u.ugold));
+	    else if (!_u.ugold)
 		pline("You have no gold.");
 	    allowgold = 2;
 	} else if (sym == 'a' || sym == 'A')
@@ -531,7 +472,7 @@ int askchain(struct obj *objchn, char *olets, int allflag, int (*fn) (struct obj
 	if (ilet == 'z')
 	    ilet = 'A';
 	else
-	    ilet++;
+	    ++ilet;
 	otmp2 = otmp->nobj;
 	if (olets && *olets && !strchr(olets, otmp->olet))
 	    continue;
@@ -571,7 +512,7 @@ char obj_to_let (struct obj *obj)
     struct obj *otmp;
     char ilet;
 
-    if (flags.invlet_constant)
+    if (!_wflags.invlet_not_constant)
 	return obj->invlet;
     ilet = 'a';
     for (otmp = invent; otmp && otmp != obj; otmp = otmp->nobj)
@@ -588,13 +529,13 @@ void prinv(struct obj *obj)
 static char *xprname (struct obj *obj, char let)
 {
     static char li[BUFSZ];
-    sprintf(li, "%c - %s.", flags.invlet_constant ? obj->invlet : let, doname(obj));
+    sprintf(li, "%c - %s.", _wflags.invlet_not_constant ? let : obj->invlet, doname(obj));
     return li;
 }
 
-int ddoinv(void)
+int ddoinv (void)
 {
-    doinv((char *) 0);
+    doinv (NULL);
     return 0;
 }
 
@@ -613,16 +554,16 @@ void doinv(char *lets)
 	pline("Not carrying anything.");
 	return;
     }
-    cornline(0, (char *) 0);
+    cornline (0, NULL);
     ilet = 'a';
     for (otmp = invent; otmp; otmp = otmp->nobj) {
-	if (flags.invlet_constant)
+	if (!_wflags.invlet_not_constant)
 	    ilet = otmp->invlet;
 	if (!lets || !*lets || strchr(lets, ilet)) {
 	    cornline(1, xprname(otmp, ilet));
 	    any[ct++] = ilet;
 	}
-	if (!flags.invlet_constant)
+	if (_wflags.invlet_not_constant)
 	    if (++ilet > 'z')
 		ilet = 'A';
     }
@@ -640,12 +581,12 @@ int dotypeinv(void)
     bool billx = inshop() && doinvbill(0);
     bool unpd = false;
 
-    if (!invent && !u.ugold && !billx) {
+    if (!invent && !_u.ugold && !billx) {
 	pline("You aren't carrying anything.");
 	return 0;
     }
     stct = 0;
-    if (u.ugold)
+    if (_u.ugold)
 	stuff[stct++] = '$';
     stuff[stct] = 0;
     for (otmp = invent; otmp; otmp = otmp->nobj) {
@@ -675,7 +616,7 @@ int dotypeinv(void)
 
     if (c == 'x' || c == 'X') {
 	if (billx)
-	    (void) doinvbill(1);
+	    doinvbill(1);
 	else
 	    pline("No used-up objects on the shopping bill.");
 	return 0;
@@ -687,11 +628,11 @@ int dotypeinv(void)
     stct = 0;
     ilet = 'a';
     for (otmp = invent; otmp; otmp = otmp->nobj) {
-	if (flags.invlet_constant)
+	if (!_wflags.invlet_not_constant)
 	    ilet = otmp->invlet;
 	if (c == otmp->olet || (c == 'u' && otmp->unpaid))
 	    stuff[stct++] = ilet;
-	if (!flags.invlet_constant)
+	if (_wflags.invlet_not_constant)
 	    if (++ilet > 'z')
 		ilet = 'A';
     }
@@ -712,25 +653,23 @@ int dolook(void)
     const char *verb = Blind ? "feel" : "see";
     int ct = 0;
 
-    if (!u.uswallow) {
-	if (Blind) {
-	    pline("You try to feel what is lying here on the floor.");
-	    if (Levitation) {  // ab@unido
-		pline("You cannot reach the floor!");
-		return 1;
-	    }
+    if (Blind) {
+	pline("You try to feel what is lying here on the floor.");
+	if (Levitation) {  // ab@unido
+	    pline("You cannot reach the floor!");
+	    return 1;
 	}
-	otmp0 = o_at(u.ux, u.uy);
-	gold = g_at(u.ux, u.uy);
     }
-    if (u.uswallow || (!otmp0 && !gold)) {
+    otmp0 = o_at(_u.ux, _u.uy);
+    gold = g_at(_u.ux, _u.uy);
+    if (!otmp0 && !gold) {
 	pline("You %s no objects here.", verb);
-	return ! !Blind;
+	return !!Blind;
     }
     cornline(0, "Things that are here:");
     for (otmp = otmp0; otmp; otmp = otmp->nobj) {
-	if (otmp->ox == u.ux && otmp->oy == u.uy) {
-	    ct++;
+	if (otmp->ox == _u.ux && otmp->oy == _u.uy) {
+	    ++ct;
 	    cornline(1, doname(otmp));
 	    if (Blind && otmp->otyp == DEAD_COCKATRICE && !uarmg) {
 		pline("Touching the dead cockatrice is a fatal mistake ...");
@@ -744,7 +683,7 @@ int dolook(void)
     if (gold) {
 	char gbuf[30];
 
-	(void) sprintf(gbuf, "%ld gold piece%s", gold->amount, plur(gold->amount));
+	sprintf(gbuf, "%ld gold piece%s", gold->amount, plur(gold->amount));
 	if (!ct++)
 	    pline("You %s here %s.", verb, gbuf);
 	else
@@ -752,35 +691,41 @@ int dolook(void)
     }
     if (ct == 1 && !gold) {
 	pline("You %s here %s.", verb, doname(otmp0));
-	cornline(3, (char *) 0);
+	cornline(3, NULL);
     }
     if (ct > 1)
-	cornline(2, (char *) 0);
+	cornline(2, NULL);
     return ! !Blind;
 }
 
-void stackobj(struct obj *obj)
+void stackobj (struct obj *obj)
 {
-    struct obj *otmp = fobj;
-    for (otmp = fobj; otmp; otmp = otmp->nobj)
-	if (otmp != obj)
-	    if (otmp->ox == obj->ox && otmp->oy == obj->oy && merged(obj, otmp, 1))
+    for (struct obj* o = _level->objects; o; o = o->nobj)
+	if (o != obj)
+	    if (o->ox == obj->ox && o->oy == obj->oy && merged(obj, o, 1))
 		return;
 }
 
-// merge obj with otmp and delete obj if types agree
-int merged(struct obj *otmp, struct obj *obj, int lose)
+// merge o1 with o2 and delete o2 if types agree
+bool merged (struct obj *o1, struct obj *o2, int lose)
 {
-    if (obj->otyp == otmp->otyp && obj->unpaid == otmp->unpaid && obj->spe == otmp->spe && obj->dknown == otmp->dknown && obj->cursed == otmp->cursed
-	&& (strchr("%*?!", obj->olet) || (obj->known == otmp->known && (obj->olet == WEAPON_SYM && obj->otyp < BOOMERANG)))) {
-	otmp->quan += obj->quan;
-	otmp->owt += obj->owt;
+    if (o2->otyp == o1->otyp
+	    && o2->unpaid == o1->unpaid
+	    && o2->spe == o1->spe
+	    && o2->dknown == o1->dknown
+	    && o2->cursed == o1->cursed
+	    && (strchr("%*?!", o2->olet)
+		|| (o2->known == o1->known
+		    && (o2->olet == WEAPON_SYM
+			&& o2->otyp < BOOMERANG)))) {
+	o1->quan += o2->quan;
+	o1->owt += o2->owt;
 	if (lose)
-	    freeobj(obj);
-	obfree(obj, otmp);     // free(obj), bill->otmp
-	return 1;
+	    freeobj(o2);
+	obfree (o2, o1);
+	return true;
     } else
-	return 0;
+	return false;
 }
 
 static long goldcounted = 0;
@@ -790,11 +735,11 @@ static long goldcounted = 0;
 // [Bug: d$ and pickup still tell you how much it was.]
 int countgold(void)
 {
-    if ((goldcounted += 100 * (u.ulevel + 1)) >= u.ugold) {
+    if ((goldcounted += 100 * (_u.ulevel + 1)) >= _u.ugold) {
 	long eps = 0;
 	if (!rn2(2))
-	    eps = rnd((int) (u.ugold / 100 + 1));
-	pline("You probably have about %ld gold pieces.", u.ugold + eps);
+	    eps = rnd((int) (_u.ugold / 100 + 1));
+	pline("You probably have about %ld gold pieces.", _u.ugold + eps);
 	return 0;	       // done
     }
     return 1;		       // continue
@@ -802,10 +747,10 @@ int countgold(void)
 
 int doprgold(void)
 {
-    if (!u.ugold)
+    if (!_u.ugold)
 	pline("You do not carry any gold.");
-    else if (u.ugold <= 500)
-	pline("You are carrying %ld gold pieces.", u.ugold);
+    else if (_u.ugold <= 500)
+	pline("You are carrying %u gold pieces.", _u.ugold);
     else {
 	pline("You sit down in order to count your gold pieces.");
 	goldcounted = 500;

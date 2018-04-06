@@ -8,31 +8,30 @@
 int dodrink(void)
 {
     struct obj *otmp, *objs;
-    struct monst *mtmp;
     int unkn = 0, nothing = 0;
 
     otmp = getobj("!", "drink");
     if (!otmp)
 	return 0;
-    if (!strcmp(objects[otmp->otyp].oc_descr, "smoky") && !rn2(13)) {
+    if (!strcmp(c_Objects[otmp->otyp].oc_descr, "smoky") && !rn2(13)) {
 	ghost_from_bottle();
 	goto use_it;
     }
     switch (otmp->otyp) {
 	case POT_RESTORE_STRENGTH:
-	    unkn++;
+	    ++unkn;
 	    pline("Wow!  This makes you feel great!");
-	    if (u.ustr < u.ustrmax) {
-		u.ustr = u.ustrmax;
-		flags.botl = 1;
+	    if (_u.ustr < _u.ustrmax) {
+		_u.ustr = _u.ustrmax;
+		_wflags.botl = 1;
 	    }
 	    break;
 	case POT_BOOZE:
-	    unkn++;
+	    ++unkn;
 	    pline("Ooph!  This tastes like liquid fire!");
 	    Confusion += d(3, 8);
 	    // the whiskey makes us feel better
-	    if (u.uhp < u.uhpmax)
+	    if (_u.uhp < _u.uhpmax)
 		losehp(-1, "bottle of whiskey");
 	    if (!rn2(4)) {
 		pline("You pass out.");
@@ -42,13 +41,13 @@ int dodrink(void)
 	    break;
 	case POT_INVISIBILITY:
 	    if (Invis || See_invisible)
-		nothing++;
+		++nothing;
 	    else {
 		if (!Blind)
 		    pline("Gee!  All of a sudden, you can't see yourself.");
 		else
-		    pline("You feel rather airy."), unkn++;
-		newsym(u.ux, u.uy);
+		    pline("You feel rather airy."), ++unkn;
+		newsym(_u.ux, _u.uy);
 	    }
 	    Invis += rn1(15, 31);
 	    break;
@@ -58,10 +57,10 @@ int dodrink(void)
 	    break;
 	case POT_HEALING:
 	    pline("You begin to feel better.");
-	    flags.botl = 1;
-	    u.uhp += rnd(10);
-	    if (u.uhp > u.uhpmax)
-		u.uhp = ++u.uhpmax;
+	    _wflags.botl = 1;
+	    _u.uhp += rnd(10);
+	    if (_u.uhp > _u.uhpmax)
+		_u.uhp = ++_u.uhpmax;
 	    if (Blind)
 		Blind = 1;     // see on next move
 	    if (Sick)
@@ -75,14 +74,14 @@ int dodrink(void)
 	    nomul(-(rn1(10, 25)));
 	    break;
 	case POT_MONSTER_DETECTION:
-	    if (!fmon) {
+	    if (!_level->monsters) {
 		strange_feeling(otmp, "You feel threatened.");
 		return 1;
 	    } else {
 		cls();
-		for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
-		    if (mtmp->mx > 0)
-			at(mtmp->mx, mtmp->my, mtmp->data->mlet);
+		for (struct monst* m = _level->monsters; m; m = m->nmon)
+		    if (m->mx > 0)
+			at(m->mx, m->my, m->data->mlet);
 		prme();
 		pline("You sense the presence of monsters.");
 		more();
@@ -90,18 +89,18 @@ int dodrink(void)
 	    }
 	    break;
 	case POT_OBJECT_DETECTION:
-	    if (!fobj) {
+	    if (!_level->objects) {
 		strange_feeling(otmp, "You feel a pull downward.");
 		return 1;
 	    } else {
-		for (objs = fobj; objs; objs = objs->nobj)
-		    if (objs->ox != u.ux || objs->oy != u.uy)
+		for (objs = _level->objects; objs; objs = objs->nobj)
+		    if (objs->ox != _u.ux || objs->oy != _u.uy)
 			goto outobjmap;
 		pline("You sense the presence of objects close nearby.");
 		break;
 	      outobjmap:
 		cls();
-		for (objs = fobj; objs; objs = objs->nobj)
+		for (objs = _level->objects; objs; objs = objs->nobj)
 		    at(objs->ox, objs->oy, objs->olet);
 		prme();
 		pline("You sense the presence of objects.");
@@ -120,38 +119,38 @@ int dodrink(void)
 	    if (!Confusion)
 		pline("Huh, What?  Where am I?");
 	    else
-		nothing++;
+		++nothing;
 	    Confusion += rn1(7, 16);
 	    break;
 	case POT_GAIN_STRENGTH:
 	    pline("Wow do you feel strong!");
-	    if (u.ustr >= 118)
+	    if (_u.ustr >= 118)
 		break;	       // > 118 is impossible
-	    if (u.ustr > 17)
-		u.ustr += rnd(118 - u.ustr);
+	    if (_u.ustr > 17)
+		_u.ustr += rnd(118 - _u.ustr);
 	    else
-		u.ustr++;
-	    if (u.ustr > u.ustrmax)
-		u.ustrmax = u.ustr;
-	    flags.botl = 1;
+		++_u.ustr;
+	    if (_u.ustr > _u.ustrmax)
+		_u.ustrmax = _u.ustr;
+	    _wflags.botl = 1;
 	    break;
 	case POT_SPEED:
 	    if (Wounded_legs) {
 		heal_legs();
-		unkn++;
+		++unkn;
 		break;
 	    }
 	    if (!(Fast & ~INTRINSIC))
 		pline("You are suddenly moving much faster.");
 	    else
-		pline("Your legs get new energy."), unkn++;
+		pline("Your legs get new energy."), ++unkn;
 	    Fast += rn1(10, 100);
 	    break;
 	case POT_BLINDNESS:
 	    if (!Blind)
 		pline("A cloud of darkness falls upon you.");
 	    else
-		nothing++;
+		++nothing;
 	    Blind += rn1(100, 250);
 	    seeoff(0);
 	    break;
@@ -160,10 +159,10 @@ int dodrink(void)
 	    break;
 	case POT_EXTRA_HEALING:
 	    pline("You feel much better.");
-	    flags.botl = 1;
-	    u.uhp += d(2, 20) + 1;
-	    if (u.uhp > u.uhpmax)
-		u.uhp = (u.uhpmax += 2);
+	    _wflags.botl = 1;
+	    _u.uhp += d(2, 20) + 1;
+	    if (_u.uhp > _u.uhpmax)
+		_u.uhp = (_u.uhpmax += 2);
 	    if (Blind)
 		Blind = 1;
 	    if (Sick)
@@ -173,63 +172,52 @@ int dodrink(void)
 	    if (!Levitation)
 		float_up();
 	    else
-		nothing++;
+		++nothing;
 	    Levitation += rnd(100);
-	    u.uprops[PROP(RIN_LEVITATION)].p_tofn = float_down;
+	    _u.uprops[PROP(RIN_LEVITATION)].p_tofn = float_down;
 	    break;
 	default:
 	    impossible("What a funny potion! (%u)", otmp->otyp);
 	    return 0;
     }
     if (nothing) {
-	unkn++;
+	++unkn;
 	pline("You have a peculiar feeling for a moment, then it passes.");
     }
-    if (otmp->dknown && !objects[otmp->otyp].oc_name_known) {
-	if (!unkn) {
-	    objects[otmp->otyp].oc_name_known = 1;
-	    more_experienced(0, 10);
-	} else if (!objects[otmp->otyp].oc_uname)
-	    docall(otmp);
+    if (otmp->dknown && !is_object_known(otmp->otyp) && !unkn) {
+	set_object_known (otmp->otyp);
+	more_experienced(0, 10);
     }
   use_it:
     useup(otmp);
     return 1;
 }
 
-void pluslvl(void)
+void pluslvl (void)
 {
-    int num;
-
     pline("You feel more experienced.");
-    num = rnd(10);
-    u.uhpmax += num;
-    u.uhp += num;
-    if (u.ulevel < 14) {
-	u.uexp = newuexp() + 1;
-	pline("Welcome to experience level %u.", ++u.ulevel);
+    int num = rnd(10);
+    _u.uhpmax += num;
+    _u.uhp += num;
+    if (_u.ulevel < 14) {
+	_u.uexp = newuexp() + 1;
+	pline("Welcome to experience level %u.", ++_u.ulevel);
     }
-    flags.botl = 1;
+    _wflags.botl = 1;
 }
 
-void strange_feeling(struct obj *obj, const char *txt)
+void strange_feeling (struct obj *obj, const char *txt)
 {
-    if (flags.beginner)
-	pline("You have a strange feeling for a moment, then it passes.");
-    else
-	pline(txt);
-    if (!objects[obj->otyp].oc_name_known && !objects[obj->otyp].oc_uname)
-	docall(obj);
-    useup(obj);
+    pline (txt);
+    useup (obj);
 }
-
-const char *const bottlenames[] = {
-    "bottle", "phial", "flagon", "carafe", "flask", "jar", "vial"
-};
 
 void potionhit(struct monst *mon, struct obj *obj)
 {
-    const char *botlnam = bottlenames[rn2(SIZE(bottlenames))];
+    static const char bottlenames[][8] = {
+	"bottle", "phial", "flagon", "carafe", "flask", "jar", "vial"
+    };
+    const char *botlnam = bottlenames[rn2(ArraySize(bottlenames))];
     bool uclose, isyou = (mon == &youmonst);
 
     if (isyou) {
@@ -241,7 +229,7 @@ void potionhit(struct monst *mon, struct obj *obj)
 	// perhaps 'E' and 'a' have no head?
 	pline("The %s crashes on %s's head and breaks into shivers.", botlnam, monnam(mon));
 	if (rn2(5) && mon->mhp > 1)
-	    mon->mhp--;
+	    --mon->mhp;
     }
     pline("The %s evaporates.", xname(obj));
 
@@ -287,7 +275,7 @@ void potionhit(struct monst *mon, struct obj *obj)
 	}
     if (uclose && rn2(5))
 	potionbreathe(obj);
-    obfree(obj, Null(obj));
+    obfree (obj, NULL);
 }
 
 void potionbreathe(struct obj *obj)
@@ -295,20 +283,20 @@ void potionbreathe(struct obj *obj)
     switch (obj->otyp) {
 	case POT_RESTORE_STRENGTH:
 	case POT_GAIN_STRENGTH:
-	    if (u.ustr < u.ustrmax)
-		u.ustr++, flags.botl = 1;
+	    if (_u.ustr < _u.ustrmax)
+		++_u.ustr, _wflags.botl = 1;
 	    break;
 	case POT_HEALING:
 	case POT_EXTRA_HEALING:
-	    if (u.uhp < u.uhpmax)
-		u.uhp++, flags.botl = 1;
+	    if (_u.uhp < _u.uhpmax)
+		++_u.uhp, _wflags.botl = 1;
 	    break;
 	case POT_SICKNESS:
-	    if (u.uhp <= 5)
-		u.uhp = 1;
+	    if (_u.uhp <= 5)
+		_u.uhp = 1;
 	    else
-		u.uhp -= 5;
-	    flags.botl = 1;
+		_u.uhp -= 5;
+	    _wflags.botl = 1;
 	    break;
 	case POT_CONFUSION:
 	case POT_BOOZE:
@@ -360,7 +348,7 @@ int dodip(void)
 	if (potion->otyp == POT_SICKNESS) {
 	    useup(potion);
 	    if (obj->spe < 7)
-		obj->spe++;    // %%
+		++obj->spe;    // %%
 	}
     }
     return 1;
@@ -370,7 +358,7 @@ void ghost_from_bottle(void)
 {
     struct monst *mtmp;
 
-    if (!(mtmp = makemon(PM_GHOST, u.ux, u.uy))) {
+    if (!(mtmp = makemon(PM_GHOST, _u.ux, _u.uy))) {
 	pline("This bottle turns out to be empty.");
 	return;
     }

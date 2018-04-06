@@ -5,14 +5,8 @@
 #include "hack.h"
 #include "extern.h"
 
-#ifdef QUEST
-    #define HACK_PROGNAME "Quest"
-#else
-    #define HACK_PROGNAME "Hack"
-#endif
-
 int doversion (void)
 {
-    pline (HACK_PROGNAME " in " BSDGAMES_VERSTRING);
+    pline ("Hack in " BSDGAMES_VERSTRING);
     return 0;
 }

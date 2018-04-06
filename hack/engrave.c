@@ -5,29 +5,15 @@
 #include "hack.h"
 #include "extern.h"
 
-struct engr {
-    struct engr *nxt_engr;
-    char *engr_txt;
-    xchar engr_x, engr_y;
-    unsigned engr_lth;		// for save & restore; not length of
-				// text
-    long engr_time;		// moment engraving was (will be)
-				// finished
-    xchar engr_type;
-#define	DUST	1
-#define	ENGRAVE	2
-#define	BURN	3
-} *head_engr;
-
 struct engr *engr_at(int x, int y)
 {
-    struct engr *ep = head_engr;
+    struct engr *ep = _level->engravings;
     while (ep) {
 	if (x == ep->engr_x && y == ep->engr_y)
 	    return ep;
 	ep = ep->nxt_engr;
     }
-    return (struct engr *) 0;
+    return NULL;
 }
 
 int sengr_at(const char *s, int x, int y)
@@ -35,14 +21,14 @@ int sengr_at(const char *s, int x, int y)
     struct engr *ep = engr_at(x, y);
     char *t;
     int n;
-    if (ep && ep->engr_time <= moves) {
+    if (ep && ep->engr_time <= _u.moves) {
 	t = ep->engr_txt;
 	// if(!strcmp(s,t)) return 1;
 	n = strlen(s);
 	while (*t) {
 	    if (!strncmp(s, t, n))
 		return 1;
-	    t++;
+	    ++t;
 	}
     }
     return 0;
@@ -50,8 +36,8 @@ int sengr_at(const char *s, int x, int y)
 
 void u_wipe_engr(int cnt)
 {
-    if (!u.uswallow && !Levitation)
-	wipe_engr_at(u.ux, u.uy, cnt);
+    if (!Levitation)
+	wipe_engr_at(_u.ux, _u.uy, cnt);
 }
 
 void wipe_engr_at(int x, int y, int cnt)
@@ -75,7 +61,7 @@ void wipe_engr_at(int x, int y, int cnt)
 	while (lth && ep->engr_txt[lth - 1] == ' ')
 	    ep->engr_txt[--lth] = 0;
 	while (ep->engr_txt[0] == ' ')
-	    ep->engr_txt++;
+	    ++ep->engr_txt;
 	if (!ep->engr_txt[0])
 	    del_engr(ep);
     }
@@ -86,73 +72,58 @@ void read_engr_at(int x, int y)
     struct engr *ep = engr_at(x, y);
     if (ep && ep->engr_txt[0]) {
 	switch (ep->engr_type) {
-	    case DUST:
-		pline("Something is written here in the dust.");
-		break;
-	    case ENGRAVE:
-		pline("Something is engraved here on the floor.");
-		break;
-	    case BURN:
-		pline("Some text has been burned here in the floor.");
-		break;
 	    default:
-		impossible("Something is written in a very strange way.");
+	    case DUST:	pline ("Something is written here in the dust."); break;
+	    case ENGRAVE: pline ("Something is engraved here on the floor."); break;
+	    case BURN:	pline ("Some text has been burned here in the floor."); break;
 	}
 	pline("You read: \"%s\".", ep->engr_txt);
     }
 }
 
-void make_engr_at(int x, int y, const char *s)
+void make_engr_at (int x, int y, const char *s)
 {
-    struct engr *ep;
-
-    if ((ep = engr_at(x, y)) != NULL)
+    struct engr* ep = engr_at (x, y);
+    if (ep)
 	del_engr(ep);
-    ep = (struct engr *)
-	alloc((unsigned) (sizeof(struct engr) + strlen(s) + 1));
-    ep->nxt_engr = head_engr;
-    head_engr = ep;
+    uint8_t lth = min_u (strlen(s)+1, UINT8_MAX);
+    ep = alloc ((sizeof(struct engr) + lth));
+    ep->nxt_engr = _level->engravings;
+    _level->engravings = ep;
+    ep->engr_txt = (char*)(ep + 1);
+    memcpy (ep->engr_txt, s, lth-1);
+    ep->engr_txt[lth-1] = 0;
+    ep->engr_lth = lth;
     ep->engr_x = x;
     ep->engr_y = y;
-    ep->engr_txt = (char *) (ep + 1);
-    (void) strcpy(ep->engr_txt, s);
-    ep->engr_time = 0;
     ep->engr_type = DUST;
-    ep->engr_lth = strlen(s) + 1;
+    ep->engr_time = 0;
 }
 
-int doengrave(void)
+int doengrave (void)
 {
     int len;
     char *sp;
-    struct engr *ep, *oep = engr_at(u.ux, u.uy);
-    char buf[BUFSZ];
-    xchar type;
+    struct engr *ep, *oep = engr_at(_u.ux, _u.uy);
+    int8_t type;
     int spct;			// number of leading spaces
     struct obj *otmp;
     multi = 0;
 
-    if (u.uswallow) {
-	pline("You're joking. Hahaha!");	// riv05!a3
-	return 0;
-    }
     // one may write with finger, weapon or wand
     otmp = getobj("#-)/", "write with");
     if (!otmp)
 	return 0;
 
-    if (otmp == &zeroobj)
-	otmp = 0;
     if (otmp && otmp->otyp == WAN_FIRE && otmp->spe) {
 	type = BURN;
-	otmp->spe--;
+	--otmp->spe;
     } else {
 	// first wield otmp
 	if (otmp != uwep) {
 	    if (uwep && uwep->cursed) {
-		// Andreas Bormann
 		pline("Since your weapon is welded to your hand,");
-		pline("you use the %s.", aobjnam(uwep, (char *) 0));
+		pline("you use the %s.", aobjnam(uwep, NULL));
 		otmp = uwep;
 	    } else {
 		if (!otmp)
@@ -164,9 +135,8 @@ int doengrave(void)
 		setuwep(otmp);
 	    }
 	}
-	if (!otmp)
-	    type = DUST;
-	else if (otmp->otyp == DAGGER || otmp->otyp == TWO_HANDED_SWORD || otmp->otyp == CRYSKNIFE || otmp->otyp == LONG_SWORD || otmp->otyp == AXE) {
+	type = DUST;
+	if (otmp && (otmp->otyp == DAGGER || otmp->otyp == TWO_HANDED_SWORD || otmp->otyp == LONG_SWORD || otmp->otyp == AXE)) {
 	    type = ENGRAVE;
 	    if ((int) otmp->spe <= -3) {
 		type = DUST;
@@ -174,8 +144,7 @@ int doengrave(void)
 		if (oep && oep->engr_type != DUST)
 		    return 1;
 	    }
-	} else
-	    type = DUST;
+	}
     }
     if (Levitation && type != BURN) {	// riv05!a3
 	pline("You can't reach the floor!");
@@ -191,16 +160,17 @@ int doengrave(void)
 	return 1;
     }
     pline("What do you want to %s on the floor here? ", (type == ENGRAVE) ? "engrave" : (type == BURN) ? "burn" : "write");
+    char buf[BUFSZ];
     getlin(buf);
     clrlin();
     spct = 0;
     sp = buf;
     while (*sp == ' ')
-	spct++, sp++;
+	++spct, ++sp;
     len = strlen(sp);
     if (!len || *buf == '\033') {
 	if (type == BURN)
-	    otmp->spe++;
+	    ++otmp->spe;
 	return 0;
     }
     switch (type) {
@@ -231,22 +201,27 @@ int doengrave(void)
     }
     if (oep)
 	len += strlen(oep->engr_txt) + spct;
-    ep = (struct engr *) alloc((unsigned) (sizeof(struct engr) + len + 1));
-    ep->nxt_engr = head_engr;
-    head_engr = ep;
-    ep->engr_x = u.ux;
-    ep->engr_y = u.uy;
-    sp = (char *) (ep + 1);    // (char *)ep + sizeof(struct engr)
+    len = min_u (len, UINT8_MAX-1);
+    ep = alloc (sizeof(struct engr) + len + 1);
+    ep->nxt_engr = _level->engravings;
+    _level->engravings = ep;
+    ep->engr_x = _u.ux;
+    ep->engr_y = _u.uy;
+    sp = (char*)(ep + 1);    // (char *)ep + sizeof(struct engr)
     ep->engr_txt = sp;
     if (oep) {
-	(void) strcpy(sp, oep->engr_txt);
-	(void) strcat(sp, buf);
+	char* spe = stpcpy(sp, oep->engr_txt);
+	int btc = len - strlen(oep->engr_txt);
+	if (btc > 0) {
+	    memcpy (spe, buf, btc);
+	    spe[btc] = 0;
+	}
 	del_engr(oep);
     } else
-	(void) strcpy(sp, buf);
+	strcpy(sp, buf);
     ep->engr_lth = len + 1;
     ep->engr_type = type;
-    ep->engr_time = moves - multi;
+    ep->engr_time = _u.moves - multi;
 
     // kludge to protect pline against excessively long texts
     if (len > BUFSZ - 20)
@@ -255,54 +230,42 @@ int doengrave(void)
     return 1;
 }
 
-void save_engravings(int fd)
+void save_engravings (int fd, const struct engr* ehead)
 {
-    struct engr *ep = head_engr;
-    while (ep) {
-	if (!ep->engr_lth || !ep->engr_txt[0]) {
-	    ep = ep->nxt_engr;
+    for (const struct engr* e = ehead; e; e = e->nxt_engr) {
+	if (!e->engr_lth || !e->engr_txt[0])
 	    continue;
-	}
-	bwrite(fd, (char *) &(ep->engr_lth), sizeof(ep->engr_lth));
-	bwrite(fd, (char *) ep, sizeof(struct engr) + ep->engr_lth);
-	ep = ep->nxt_engr;
+	bwrite (fd, &e->engr_lth, sizeof(e->engr_lth));
+	bwrite (fd, e, sizeof(struct engr) + e->engr_lth);
     }
-    bwrite(fd, (char *) nul, sizeof(unsigned));
-    head_engr = 0;
+    uint8_t eend = 0;
+    bwrite (fd, &eend, sizeof(eend));
 }
 
-void rest_engravings(int fd)
+struct engr* rest_engravings (int fd)
 {
-    struct engr *ep;
-    unsigned lth;
-    head_engr = 0;
-    while (1) {
-	mread(fd, (char *) &lth, sizeof(unsigned));
+    struct engr *ehead = NULL, **pp = &ehead;
+    for (;;) {
+	uint8_t lth;
+	mread (fd, &lth, sizeof(lth));
 	if (lth == 0)
-	    return;
-	ep = (struct engr *) alloc(sizeof(struct engr) + lth);
-	mread(fd, (char *) ep, sizeof(struct engr) + lth);
-	ep->nxt_engr = head_engr;
-	ep->engr_txt = (char *) (ep + 1);	// Andreas Bormann
-	head_engr = ep;
+	    break;
+	struct engr* ep = alloc (sizeof(struct engr) + lth);
+	mread (fd, ep, sizeof(struct engr) + lth);
+	ep->engr_txt = (char*)(ep + 1);
+	ep->nxt_engr = NULL;
+	*pp = ep;
+	pp = &ep->nxt_engr;
     }
+    return ehead;
 }
 
-void del_engr(struct engr *ep)
+void del_engr (struct engr* etd)
 {
-    struct engr *ept;
-    if (ep == head_engr)
-	head_engr = ep->nxt_engr;
-    else {
-	for (ept = head_engr; ept; ept = ept->nxt_engr) {
-	    if (ept->nxt_engr == ep) {
-		ept->nxt_engr = ep->nxt_engr;
-		goto fnd;
-	    }
-	}
-	impossible("Error in del_engr?");
-	return;
-      fnd:;
-    }
-    free((char *) ep);
+    if (etd == _level->engravings)
+	_level->engravings = etd->nxt_engr;
+    else for (struct engr* e = _level->engravings; e; e = e->nxt_engr)
+	if (e->nxt_engr == etd)
+	    e->nxt_engr = etd->nxt_engr;
+    free (etd);
 }

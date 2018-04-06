@@ -10,19 +10,19 @@ void timeout(void)
     struct prop *upp;
     if (Stoned)
 	stoned_dialogue();
-    for (upp = u.uprops; upp < u.uprops + SIZE(u.uprops); upp++)
+    for (upp = _u.uprops; upp < _u.uprops + ArraySize(_u.uprops); ++upp)
 	if ((upp->p_flgs & TIMEOUT) && !--upp->p_flgs) {
 	    if (upp->p_tofn)
 		(*upp->p_tofn) ();
 	    else
-		switch (upp - u.uprops) {
+		switch (upp - _u.uprops) {
 		    case STONED:
 			killer = "cockatrice";
 			done("died");
 			break;
 		    case SICK:
 			pline("You die because of food poisoning.");
-			killer = u.usick_cause;
+			killer = _u.usick_cause;
 			done("died");
 			break;
 		    case FAST:
@@ -36,7 +36,7 @@ void timeout(void)
 			setsee();
 			break;
 		    case INVIS:
-			on_scr(u.ux, u.uy);
+			on_scr(_u.ux, _u.uy);
 			pline("You are no longer invisible.");
 			break;
 		    case WOUNDED_LEGS:
@@ -46,21 +46,19 @@ void timeout(void)
 	}
 }
 
-// He is being petrified - dialogue by inmet!tower
-const char *const stoned_texts[] = {
-    "You are slowing down.",   // 5
-    "Your limbs are stiffening.",	// 4
-    "Your limbs have turned to stone.",	// 3
-    "You have turned to stone.",	// 2
-    "You are a statue."	       // 1
-};
-
 void stoned_dialogue(void)
 {
-    long i = (Stoned & TIMEOUT);
-
-    if (i > 0 && i <= SIZE(stoned_texts))
-	pline(stoned_texts[SIZE(stoned_texts) - i]);
+    // He is being petrified - dialogue by inmet!tower
+    static const char *const c_StonedTexts[] = {
+	"You are slowing down.",	// 5
+	"Your limbs are stiffening.",	// 4
+	"Your limbs have turned to stone.",// 3
+	"You have turned to stone.",	// 2
+	"You are a statue."		// 1
+    };
+    unsigned i = (Stoned & TIMEOUT);
+    if (i > 0 && i <= ArraySize(c_StonedTexts))
+	pline (c_StonedTexts[ArraySize(c_StonedTexts) - i]);
     if (i == 5)
 	Fast = 0;
     if (i == 3)

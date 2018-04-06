@@ -49,4 +49,3 @@ void write_score_file (const char* filename, const char* magic, const void* scor
     ftruncate (fd, sizeof(header)+scoresSize);
     close (fd);
 }
-

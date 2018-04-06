@@ -15,78 +15,77 @@ The current version is more than thrice as large (with such new features as
 
 Files for hack:
 	hack		The actual game
-	record		Top 100 list (just start with an empty file)
-	news		Tells about recent changes in hack, or bugs found ...
-			(Just start with no news file.)
-	data		Auxiliary file used by hack to give you the names
-			and sometimes some more information on the
-			objects and monsters.
-	help		Introductory information (no doubt outdated).
-	hh		Compactified version of help.
-	perm		An empty file used for locking purposes.
-	rumors		Texts for fortune cookies.
-			(Some of these contain information on the game,
-			others are just plain stupid. Additional rumors
-			are appreciated.)
-	hack.sh		A shell script.
-			(We have hack.sh in /usr/games/hack and
-			hack in /usr/games/lib/hackdir/hack and all the other
-			hack stuff in /usr/games/lib/hackdir - perhaps this
-			will make the script clear.
-			There is no need for you to use it.)
-	READ_ME		This file.
-	Original_READ_ME Jay Fenlason's READ_ME
-
-System files used:
-	/etc/termcap	Used in conjunction with the environment variable
-			$TERM.
-	/bin/cat
-	/usr/ucb/more
-	/bin/sh		Used when $SHELL is undefined.
+	hack.scores	Top 10 list (just start with an empty file)
+	README		This file.
 
 How to install hack:
-0. Compile the sources. Perhaps you should first look at the file config.h
-   and define BSD if you are on a BSDtype system,
-   define STUPID if your C-compiler chokes on complicated expressions.
-   Make sure schar and uchar represent signed and unsigned types.
-   If your C compiler doesnt allow initialization of bit fields
-   change Bitfield. When config.h looks reasonable, say 'make'.
-   (Perhaps you have to change TERMLIB in the makefile.)
-1. If it didnt exist already, introduce a loginname `play' .
-2. The program  hack  resides in a directory so that it is executable
-   for everybody and is suid play:
-	---s--s--x  1 play	206848 Apr  3 00:17 hack
-   Perhaps you wish to restrict playing to certain hours, or have games
-   running under nice; in that case you might write a program play.c
-   such that the program play is suid play and executable for everybody
-   while all the games in /usr/games are readable or executable for
-   play only; all the program play does is asking for the name of a game,
-   checking that time-of-day and system load do not forbid playing,
-   and then executing the game. Thus:
-	-r-sr-sr-x  1 play	 13312 May 24 12:52 play
-	---x------  1 play	206848 Apr  3 00:17 hack
-   If you are worried about security you might let play do
-   chroot("/usr/games") so that no player can get access to the rest
-   of the system via shell escapes and the likes.
-   If you #define SECURE in config.h then hack will not setuid(getuid())
-   before executing a chdir(). Hack will always do setuid(getuid()) with
-   a fork. If you do not define UNIX then hack will not fork.
-3. The rest of the stuff belonging to hack sits in a subdirectory hackdir
-   (on our system /usr/games/lib/hackdir) with modes
-	drwx------  3 play	1024 Aug  9 09:03 hackdir
-   Here all the temporary files will be created (with names like xlock.17
-   or user.5).
-4. If you are not really short on file space, creating a subdirectory
-   hackdir/save (modes again drwx------) will enable users to save their
-   unfinished games.
+0. make install
 
 The program hack is called
-$ hack [-d hackdir] [maxnrofplayers]
-(for playing) or
-$ hack [-d hackdir] -s [listofusers | limit | all]
-(for seeing part of the scorelist).
-The shell file hack (in this kit called hack.sh) takes care of
-calling hack with the right arguments.
+$ hack [-s]
 
-Send complaints, bug reports, suggestions for improvements to
-mcvax!aeb - in real life Andries Brouwer.
+------------------------------------------------------------------------
+
+$NetBSD: Original_READ_ME,v 1.2 1995/03/23 08:29:10 cgd Exp $
+
+This is export hack, my first semester programming project.
+
+To set it up for your system, you will have to do the following:
+	1: create a hack uid, to own the top ten list, etc.
+	2: create a hack directory "/usr/lib/game/hack" is the default.
+	2.5: make the directory 700 mode.	/* sav files go in there...*/
+	3: modify hack.main.c to use the new directory.
+	4: modify hack.main.c so it uses the new hack gid. Gid accounts can
+go into magic mode without the password, can get cores with ^G, etc.
+(make sure gid isn't checked anywhere else...)
+	5: recompile hack.
+	6: put it in games after making it set-uid hack.
+	8: fix the bugs I undobtedly left in it.
+	9: tell me what you think of it.
+
+	Hack uses the UCB file /etc/termcap to get your terminal escape codes.
+If you don't use it, you will have to make extensive changes to hack.pri.c
+
+If you find any bugs (That you think I don't know about), or have any
+awesome new changes (Like a better save (One that works!)), or have ANY
+questions, write me
+		Jay Fenlason
+		29 East St.
+		Sudbury Mass.
+			01776
+
+or call me at (617) 443-5036.  Since I have both a modem and a teen-age
+sister, Good Luck.
+
+
+Hack is split (roughly) into several source files that do different things.
+I have tried to fit all the procedures having to do with a certain segment
+of the game into a single file, but the job is not the best in the world.
+The rough splits are:
+
+hack.c		General random stuff and things I never got around to moving.
+hack.main.c	main() and other random procedures, also the lock file stuff.
+hack.mon.c	Monsters, moving, attacking, etc.
+hack.do.c	drink, eat, read, wield, save, etc.
+hack.do1.c	zap, wear, remove, etc...
+hack.pri.c	stuff having to do with the screen, most of the terminal
+		independant stuff is in here.
+hack.lev.c	temp files and calling of mklev.
+
+Because of the peculiar restraints on our system, I make mklev (create
+a level) a separate procedure execd by hack when needed.  The source for
+mklev is (Naturaly) mklev.c.  You may want to put mklev back into hack.
+Good luck.
+
+Most of hack was written by me, with help from
+		Kenny Woodland (KW)	(general random things including
+			the original BUZZ())
+		Mike Thome	(MT)	(The original chamelian)
+	and	Jon Payne	(JP)	(The original lock file kludge and
+			the massive CURS())
+
+This entire program would not have been possible without the SFSU Logo
+Workshop.  I am eternally grateful to all of our students (Especially K.L.),
+without whom I would never have seen Rogue.  I am especially grateful to
+Mike Clancy, without whose generous help I would never have gotten to play
+ROGUE.

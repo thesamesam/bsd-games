@@ -16,22 +16,19 @@ const char *const traps[] = {
     " teleportation trap",
     " pit",
     " sleeping gas trap",
-    " piercer",
-    " mimic"
+    " piercer"
 };
 
 struct trap *maketrap(int x, int y, int typ)
 {
-    struct trap *ttmp;
-
-    ttmp = newtrap();
+    struct trap* ttmp = newtrap();
     ttmp->ttyp = typ;
     ttmp->tseen = 0;
     ttmp->once = 0;
     ttmp->tx = x;
     ttmp->ty = y;
-    ttmp->ntrap = ftrap;
-    ftrap = ttmp;
+    ttmp->ntrap = _level->traps;
+    _level->traps = ttmp;
     return ttmp;
 }
 
@@ -54,44 +51,44 @@ void dotrap(struct trap *trap)
 		    pline("You float over a bear trap.");
 		    break;
 		}
-		u.utrap = 4 + rn2(4);
-		u.utraptype = TT_BEARTRAP;
+		_u.utrap = 4 + rn2(4);
+		_u.utraptype = TT_BEARTRAP;
 		pline("A bear trap closes on your foot!");
 		break;
 	    case PIERC:
 		deltrap(trap);
-		if (makemon(PM_PIERCER, u.ux, u.uy)) {
+		if (makemon(PM_PIERCER, _u.ux, _u.uy)) {
 		    pline("A piercer suddenly drops from the ceiling!");
 		    if (uarmh)
 			pline("Its blow glances off your helmet.");
 		    else
-			(void) thitu(3, d(4, 6), "falling piercer");
+			thitu(3, d(4, 6), "falling piercer");
 		}
 		break;
 	    case ARROW_TRAP:
 		pline("An arrow shoots out at you!");
 		if (!thitu(8, rnd(6), "arrow")) {
-		    mksobj_at(ARROW, u.ux, u.uy);
-		    fobj->quan = 1;
+		    mksobj_at(ARROW, _u.ux, _u.uy);
+		    _level->objects->quan = 1;
 		}
 		break;
 	    case TRAPDOOR:
-		if (!xdnstair) {
+		if (!_level->stair.dn.x) {
 		    pline("A trap door in the ceiling opens and a rock falls on your head!");
 		    if (uarmh)
 			pline("Fortunately, you are wearing a helmet!");
 		    losehp(uarmh ? 2 : d(2, 10), "falling rock");
-		    mksobj_at(ROCK, u.ux, u.uy);
-		    fobj->quan = 1;
-		    stackobj(fobj);
+		    mksobj_at(ROCK, _u.ux, _u.uy);
+		    _level->objects->quan = 1;
+		    stackobj(_level->objects);
 		    if (Invisible)
-			newsym(u.ux, u.uy);
+			newsym(_u.ux, _u.uy);
 		} else {
-		    int newlevel = dlevel + 1;
+		    unsigned newlevel = _u.dlevel + 1;
 		    while (!rn2(4) && newlevel < 29)
-			newlevel++;
+			++newlevel;
 		    pline("A trap door opens up under you!");
-		    if (Levitation || u.ustuck) {
+		    if (Levitation) {
 			pline("For some reason you don't fall in.");
 			break;
 		    }
@@ -104,17 +101,17 @@ void dotrap(struct trap *trap)
 		    if (!rn2(6))
 			poisoned("dart", "poison dart");
 		} else {
-		    mksobj_at(DART, u.ux, u.uy);
-		    fobj->quan = 1;
+		    mksobj_at(DART, _u.ux, _u.uy);
+		    _level->objects->quan = 1;
 		}
 		break;
 	    case TELEP_TRAP:
 		if (trap->once) {
 		    deltrap(trap);
-		    newsym(u.ux, u.uy);
+		    newsym(_u.ux, _u.uy);
 		    vtele();
 		} else {
-		    newsym(u.ux, u.uy);
+		    newsym(_u.ux, _u.uy);
 		    tele();
 		}
 		break;
@@ -125,8 +122,8 @@ void dotrap(struct trap *trap)
 		    break;
 		}
 		pline("You fall into a pit!");
-		u.utrap = rn1(6, 2);
-		u.utraptype = TT_PIT;
+		_u.utrap = rn1(6, 2);
+		_u.utraptype = TT_PIT;
 		losehp(rnd(6), "fall into a pit");
 		selftouch("Falling, you");
 		break;
@@ -200,7 +197,7 @@ int mintrap(struct monst *mtmp)
 		// not mondied here !!
 		break;
 	    case TRAPDOOR:
-		if (!xdnstair) {
+		if (!_level->stair.dn.x) {
 		    mtmp->mhp -= 10;
 		    if (in_sight)
 			pline("A trap door in the ceiling opens and a rock hits %s!", monnam(mtmp));
@@ -227,16 +224,16 @@ void selftouch(const char *arg)
     if (uwep && uwep->otyp == DEAD_COCKATRICE) {
 	pline("%s touch the dead cockatrice.", arg);
 	pline("You turn to stone.");
-	killer = objects[uwep->otyp].oc_name;
+	killer = c_Objects[uwep->otyp].oc_name;
 	done("died");
     }
 }
 
 void float_up(void)
 {
-    if (u.utrap) {
-	if (u.utraptype == TT_PIT) {
-	    u.utrap = 0;
+    if (_u.utrap) {
+	if (_u.utraptype == TT_PIT) {
+	    _u.utrap = 0;
 	    pline("You float up, out of the pit!");
 	} else {
 	    pline("You float up, only your leg is still stuck.");
@@ -249,12 +246,12 @@ void float_down(void)
 {
     struct trap *trap;
     pline("You float gently to the ground.");
-    if ((trap = t_at(u.ux, u.uy)) != NULL)
+    if ((trap = t_at(_u.ux, _u.uy)) != NULL)
 	switch (trap->ttyp) {
 	    case PIERC:
 		break;
 	    case TRAPDOOR:
-		if (!xdnstair || u.ustuck)
+		if (!_level->stair.dn.x)
 		    break;
 		// fallthrough
 	    default:
@@ -266,7 +263,7 @@ void float_down(void)
 void vtele(void)
 {
     struct mkroom *croom;
-    for (croom = &rooms[0]; croom->hx >= 0; croom++)
+    for (croom = &_level->rooms[0]; croom->hx >= 0; ++croom)
 	if (croom->rtype == VAULT) {
 	    int x, y;
 
@@ -282,7 +279,7 @@ void vtele(void)
 
 void tele(void)
 {
-    coord cc;
+    struct coord cc;
     int nux, nuy;
 
     if (Teleport_control) {
@@ -305,81 +302,40 @@ void tele(void)
 
 void teleds(int nux, int nuy)
 {
-    if (Punished)
-	unplacebc();
     unsee();
-    u.utrap = 0;
-    u.ustuck = 0;
-    u.ux = nux;
-    u.uy = nuy;
+    _u.utrap = 0;
+    _u.ux = nux;
+    _u.uy = nuy;
     setsee();
-    if (Punished)
-	placebc(1);
-    if (u.uswallow) {
-	u.uswldtim = u.uswallow = 0;
-	docrt();
-    }
     nomul(0);
-    if (levl[nux][nuy].typ == POOL && !Levitation)
+    if (_level->l[nux][nuy].typ == POOL && !Levitation)
 	drown();
-    (void) inshop();
+    inshop();
     pickup(1);
     if (!Blind)
-	read_engr_at(u.ux, u.uy);
+	read_engr_at(_u.ux, _u.uy);
 }
 
 int teleok(int x, int y)
 {			       // might throw him into a POOL
-    return isok(x, y) && !IS_ROCK(levl[x][y].typ) && !m_at(x, y) && !sobj_at(ENORMOUS_ROCK, x, y) && !t_at(x, y)
+    return isok(x, y) && !IS_ROCK(_level->l[x][y].typ) && !m_at(x, y) && !sobj_at(ENORMOUS_ROCK, x, y) && !t_at(x, y)
 	;
     // Note: gold is permitted (because of vaults)
 }
 
 int dotele(void)
 {
-    if (
-#ifdef WIZARD
-	   !wizard &&
-#endif				// WIZARD
-	   (!Teleportation || u.ulevel < 6 || (pl_character[0] != 'W' && u.ulevel < 10))) {
+    if (!Teleportation || _u.ulevel < 6 || (pl_character[0] != 'W' && _u.ulevel < 10)) {
 	pline("You are not able to teleport at will.");
 	return 0;
     }
-    if (u.uhunger <= 100 || u.ustr < 6) {
+    if (_u.uhunger <= 100 || _u.ustr < 6) {
 	pline("You miss the strength for a teleport spell.");
 	return 1;
     }
     tele();
     morehungry(100);
     return 1;
-}
-
-void placebc(int attach)
-{
-    if (!uchain || !uball) {
-	impossible("Where are your chain and ball??");
-	return;
-    }
-    uball->ox = uchain->ox = u.ux;
-    uball->oy = uchain->oy = u.uy;
-    if (attach) {
-	uchain->nobj = fobj;
-	fobj = uchain;
-	if (!carried(uball)) {
-	    uball->nobj = fobj;
-	    fobj = uball;
-	}
-    }
-}
-
-void unplacebc(void)
-{
-    if (!carried(uball)) {
-	freeobj(uball);
-	unpobj(uball);
-    }
-    freeobj(uchain);
-    unpobj(uchain);
 }
 
 void level_tele(void)
@@ -395,11 +351,11 @@ void level_tele(void)
 	newlevel = atoi(buf);
     } else {
 	newlevel = 5 + rn2(20);	// 5 - 24
-	if (dlevel == newlevel) {
-	    if (!xdnstair)
-		newlevel--;
+	if (_u.dlevel == newlevel) {
+	    if (!_level->stair.dn.x)
+		--newlevel;
 	    else
-		newlevel++;
+		++newlevel;
 	}
     }
     if (newlevel >= 30) {
@@ -411,7 +367,7 @@ void level_tele(void)
 	    pline("But the fire doesn't seem to harm you.");
 	} else {
 	    pline("You burn to a crisp.");
-	    dlevel = maxdlevel = newlevel;
+	    _u.dlevel = _u.maxdlevel = newlevel;
 	    killer = "visit to the hell";
 	    done("burned");
 	}
@@ -425,7 +381,7 @@ void level_tele(void)
 	}
 	pline("Unfortunately, you don't know how to fly.");
 	pline("You fall down a few thousand feet and break your neck.");
-	dlevel = 0;
+	_u.dlevel = 0;
 	killer = "fall";
 	done("died");
     }
@@ -437,18 +393,18 @@ void drown(void)
 {
     pline("You fall into a pool!");
     pline("You can't swim!");
-    if (rn2(3) < u.uluck + 2) {
+    if ((int) rn2(3) < _u.uluck + 2) {
 	// most scrolls become unreadable
 	struct obj *obj;
 
 	for (obj = invent; obj; obj = obj->nobj)
-	    if (obj->olet == SCROLL_SYM && rn2(12) > u.uluck)
+	    if (obj->olet == SCROLL_SYM && (int) rn2(12) > _u.uluck)
 		obj->otyp = SCR_BLANK_PAPER;
 	// we should perhaps merge these scrolls ?
 
 	pline("You attempt a teleport spell.");	// utcsri!carroll
-	(void) dotele();
-	if (levl[u.ux][u.uy].typ != POOL)
+	dotele();
+	if (_level->l[_u.ux][_u.uy].typ != POOL)
 	    return;
     }
     pline("You drown ...");

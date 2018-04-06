@@ -6,9 +6,9 @@
 
 struct gold {
     struct gold *ngold;
-    xchar gx, gy;
+    int8_t gx, gy;
     long amount;
 };
 
-#define newgold()	(struct gold *) alloc(sizeof(struct gold))
-extern struct gold *fgold;
+static inline struct gold* newgold (void)
+    { return alloc (sizeof(struct gold)); }

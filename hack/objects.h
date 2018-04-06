@@ -8,17 +8,16 @@
 
 // objects have letter " % ) ( 0 _ ` [ ! ? / = *
 
-struct objclass objects[] = {
+const struct objclass c_Objects[] = {
 
-    {"strange object", NULL, NULL, 1, 0,
-     ILLOBJ_SYM, 0, 0, 0, 0, 0, 0},
-    {"amulet of Yendor", NULL, NULL, 1, 0,
-     AMULET_SYM, 100, 0, 2, 0, 0, 0},
+    { .oc_name = "strange object", .oc_olet = ILLOBJ_SYM, .oc_prob = 100 },
+    { .oc_name = "amulet of Yendor", .oc_olet = AMULET_SYM, .oc_prob = 100, .oc_weight = 2 },
 
-#define	FOOD(name,prob,delay,weight,nutrition)	{ name, NULL, NULL, 1, 1,\
-		FOOD_SYM, prob, delay, weight, 0, 0, nutrition }
+#define	FOOD(name,prob,delay,weight,nutrit)\
+    { .oc_name = name, .oc_merge = true,\
+	.oc_olet = FOOD_SYM, .oc_prob = prob, .oc_delay = delay,\
+	.oc_weight = weight, .nutrition = nutrit }
 
-    // dog eats foods 0-4 but prefers 1 above 0,2,3,4
     // food 4 can be read
     // food 5 improves your vision
     // food 6 makes you stronger (like Popeye)
@@ -54,7 +53,6 @@ struct objclass objects[] = {
     FOOD("dead jackal", 0, 1, 10, 100),
     FOOD("dead kobold", 0, 1, 10, 100),
     FOOD("dead leprechaun", 0, 4, 40, 400),
-    FOOD("dead mimic", 0, 4, 40, 400),
     FOOD("dead nymph", 0, 4, 40, 400),
     FOOD("dead orc", 0, 2, 20, 200),
     FOOD("dead purple worm", 0, 7, 70, 700),
@@ -90,8 +88,6 @@ struct objclass objects[] = {
     FOOD("dead tengu", 0, 3, 30, 300),
     FOOD("dead unicorn", 0, 3, 30, 300),
     FOOD("dead violet fungi", 0, 1, 10, 100),
-    FOOD("dead long worm", 0, 5, 50, 500),
-    // %% wt of long worm should be proportional to its length
     FOOD("dead xan", 0, 3, 30, 300),
     FOOD("dead yellow light", 0, 1, 1, 10),
     FOOD("dead zruty", 0, 6, 60, 600),
@@ -99,9 +95,10 @@ struct objclass objects[] = {
     // weapons ... - ROCK come several at a time
     // weapons ... - (ROCK-1) are shot using idem+(BOW-ARROW)
     // weapons AXE, SWORD, THSWORD are good for worm-cutting
-    // weapons (PICK-)AXE, DAGGER, CRYSKNIFE are good for tin-opening
-#define WEAPON(name,prob,wt,ldam,sdam)	{ name, NULL, NULL, 1, 0,\
-		WEAPON_SYM, prob, 0, wt, ldam, sdam, 0 }
+    // weapons (PICK-)AXE and DAGGER are good for tin-opening
+#define WEAPON(name,prob,wt,ldam,sdam)\
+    { .oc_name = name, .oc_olet = WEAPON_SYM, .oc_prob = prob,\
+	.oc_weight = wt, .wldam = ldam, .wsdam = sdam }
 
     WEAPON("arrow", 7, 0, 6, 6),
     WEAPON("sling bullet", 7, 0, 4, 6),
@@ -115,34 +112,21 @@ struct objclass objects[] = {
     WEAPON("long sword", 8, 3, 8, 12),
     WEAPON("two handed sword", 6, 4, 12, 6),
     WEAPON("dagger", 6, 3, 4, 3),
-    WEAPON("worm tooth", 0, 4, 2, 2),
-    WEAPON("crysknife", 0, 3, 10, 10),
     WEAPON("spear", 6, 3, 6, 8),
     WEAPON("bow", 6, 3, 4, 6),
     WEAPON("sling", 5, 3, 6, 6),
     WEAPON("crossbow", 6, 3, 4, 6),
 
-    {"whistle", "whistle", NULL, 0, 0,
-     TOOL_SYM, 90, 0, 2, 0, 0, 0},
-    {"magic whistle", "whistle", NULL, 0, 0,
-     TOOL_SYM, 10, 0, 2, 0, 0, 0},
-    {"expensive camera", NULL, NULL, 1, 1,
-     TOOL_SYM, 0, 0, 3, 0, 0, 0},
-    {"ice box", "large box", NULL, 0, 0,
-     TOOL_SYM, 0, 0, 40, 0, 0, 0},
-    {"pick-axe", NULL, NULL, 1, 1,
-     TOOL_SYM, 0, 0, 5, 6, 3, 0},
-    {"can opener", NULL, NULL, 1, 1,
-     TOOL_SYM, 0, 0, 1, 0, 0, 0},
-    {"heavy iron ball", NULL, NULL, 1, 0,
-     BALL_SYM, 100, 0, 20, 0, 0, 0},
-    {"iron chain", NULL, NULL, 1, 0,
-     CHAIN_SYM, 100, 0, 20, 0, 0, 0},
-    {"enormous rock", NULL, NULL, 1, 0,
-     ROCK_SYM, 100, 0, 200, 0, 0, 0},
+    { .oc_name = "can opener", .oc_merge = true, .oc_olet = TOOL_SYM, .oc_prob = 40, .oc_weight = 1 },
+    { .oc_name = "pick-axe", .oc_merge = true, .oc_olet = TOOL_SYM, .oc_prob = 40, .oc_weight = 5, .wldam = 6, .wsdam = 3 },
+    { .oc_name = "expensive camera", .oc_merge = true, .oc_olet = TOOL_SYM, .oc_prob = 10, .oc_weight = 3 },
+    { .oc_name = "ice box", .oc_olet = TOOL_SYM, .oc_prob = 10, .oc_weight = 40 },
 
-#define ARMOR(name,prob,delay,ac,can)	{ name, NULL, NULL, 1, 0,\
-		ARMOR_SYM, prob, delay, 8, ac, can, 0 }
+    { .oc_name = "enormous rock", .oc_olet = ROCK_SYM, .oc_prob = 100, .oc_weight = 200 },
+
+#define ARMOR(name,prob,delay,ac,can)\
+    { .oc_name = name, .oc_olet = ARMOR_SYM, .oc_prob = prob,\
+	.oc_delay = delay, .oc_weight = 8, .a_ac = ac, .a_can = can }
     ARMOR("helmet", 3, 1, 9, 0),
     ARMOR("plate mail", 5, 5, 3, 2),
     ARMOR("splint mail", 8, 5, 4, 1),
@@ -157,33 +141,30 @@ struct objclass objects[] = {
     ARMOR("shield", 3, 0, 9, 0),
     ARMOR("pair of gloves", 1, 1, 9, 0),
 
-#define POTION(name,color)	{ name, color, NULL, 0, 1,\
-		POTION_SYM, 0, 0, 2, 0, 0, 0 }
-    POTION("restore strength", "orange"),
-    POTION("booze", "bubbly"),
-    POTION("invisibility", "glowing"),
-    POTION("fruit juice", "smoky"),
-    POTION("healing", "pink"),
-    POTION("paralysis", "puce"),
-    POTION("monster detection", "purple"),
-    POTION("object detection", "yellow"),
-    POTION("sickness", "white"),
-    POTION("confusion", "swirly"),
-    POTION("gain strength", "purple-red"),
-    POTION("speed", "ruby"),
-    POTION("blindness", "dark green"),
-    POTION("gain level", "emerald"),
-    POTION("extra healing", "sky blue"),
-    POTION("levitation", "brown"),
-    POTION(NULL, "brilliant blue"),
-    POTION(NULL, "clear"),
-    POTION(NULL, "magenta"),
-    POTION(NULL, "ebony"),
+#define POTION(name,color,prob)\
+    { .oc_name = name, .oc_descr = color, .oc_merge = true,\
+	.oc_olet = POTION_SYM, .oc_prob = prob, .oc_weight = 2 }
+    POTION("restore strength", "smoky", 2),
+    POTION("booze", "bubbly", 20),
+    POTION("invisibility", "glowing", 5),
+    POTION("fruit juice", "orange", 20),
+    POTION("healing", "pink", 10),
+    POTION("paralysis", "puce", 1),
+    POTION("monster detection", "purple", 10),
+    POTION("object detection", "yellow", 10),
+    POTION("sickness", "white", 1),
+    POTION("confusion", "swirly", 1),
+    POTION("gain strength", "purple-red", 1),
+    POTION("speed", "ruby", 2),
+    POTION("blindness", "dark green", 1),
+    POTION("gain level", "emerald", 5),
+    POTION("extra healing", "sky blue", 10),
+    POTION("levitation", "brown", 1),
 
-#define SCROLL(name,text,prob) { name, text, NULL, 0, 1,\
-		SCROLL_SYM, prob, 0, 3, 0, 0, 0 }
-    SCROLL("mail", "KIRJE", 0),
-    SCROLL("enchant armor", "ZELGO MER", 6),
+#define SCROLL(name,text,prob)\
+    { .oc_name = name, .oc_descr = text, .oc_merge = true,\
+	.oc_olet = SCROLL_SYM, .oc_prob = prob, .oc_weight = 3 }
+    SCROLL("enchant armor", "ZELGO MER", 8),
     SCROLL("destroy armor", "JUYED AWK YACC", 5),
     SCROLL("confuse monster", "NR 9", 5),
     SCROLL("scare monster", "XIXAXA XOXAXA XUXAXA", 4),
@@ -192,7 +173,6 @@ struct objclass objects[] = {
     SCROLL("enchant weapon", "DAIYEN FOOELS", 6),
     SCROLL("damage weapon", "HACKEM MUCHE", 5),
     SCROLL("create monster", "LEP GEX VEN ZEA", 5),
-    SCROLL("taming", "PRIRUTSENIE", 1),
     SCROLL("genocide", "ELBIB YLOH", 2),
     SCROLL("light", "VERR YED HORRE", 10),
     SCROLL("teleportation", "VENZAR BORGAVVE", 5),
@@ -202,14 +182,10 @@ struct objclass objects[] = {
     SCROLL("magic mapping", "ELAM EBOW", 5),
     SCROLL("amnesia", "DUAM XNAHT", 3),
     SCROLL("fire", "ANDOVA BEGARIN", 5),
-    SCROLL("punishment", "VE FORBRYDERNE", 1),
-    SCROLL(NULL, "VELOX NEB", 0),
-    SCROLL(NULL, "FOOBIE BLETCH", 0),
-    SCROLL(NULL, "TEMOV", 0),
-    SCROLL(NULL, "GARVEN DEH", 0),
 
-#define	WAND(name,metal,prob,flags)	{ name, metal, NULL, 0, 0,\
-		WAND_SYM, prob, 0, 3, flags, 0, 0 }
+#define	WAND(name,metal,prob,flags)\
+    { .oc_name = name, .oc_descr = metal, .oc_olet = WAND_SYM,\
+	.oc_prob = prob, .oc_weight = 3, .bits = flags }
     WAND("light", "iridium", 10, NODIR),
     WAND("secret door detection", "tin", 5, NODIR),
     WAND("create monster", "platinum", 5, NODIR),
@@ -223,41 +199,37 @@ struct objclass objects[] = {
     WAND("teleportation", "pine", 5, IMMEDIATE),
     WAND("make invisible", "marble", 9, IMMEDIATE),
     WAND("digging", "iron", 5, RAY),
-    WAND("magic missile", "aluminium", 10, RAY),
+    WAND("magic missile", "oak", 10, RAY),
     WAND("fire", "steel", 5, RAY),
     WAND("sleep", "curved", 5, RAY),
     WAND("cold", "short", 5, RAY),
-    WAND("death", "long", 1, RAY),
-    WAND(NULL, "oak", 0, 0),
-    WAND(NULL, "ebony", 0, 0),
-    WAND(NULL, "runed", 0, 0),
+    WAND("death", "runed", 1, RAY),
 
-#define	RING(name,stone,spec)	{ name, stone, NULL, 0, 0,\
-		RING_SYM, 0, 0, 1, spec, 0, 0 }
-    RING("adornment", "engagement", 0),
-    RING("teleportation", "wooden", 0),
-    RING("regeneration", "black onyx", 0),
-    RING("searching", "topaz", 0),
-    RING("see invisible", "pearl", 0),
-    RING("stealth", "sapphire", 0),
-    RING("levitation", "moonstone", 0),
-    RING("poison resistance", "agate", 0),
-    RING("aggravate monster", "tiger eye", 0),
-    RING("hunger", "shining", 0),
-    RING("fire resistance", "gold", 0),
-    RING("cold resistance", "copper", 0),
-    RING("protection from shape changers", "diamond", 0),
-    RING("conflict", "jade", 0),
-    RING("gain strength", "ruby", SPEC),
-    RING("increase damage", "silver", SPEC),
-    RING("protection", "granite", SPEC),
-    RING("warning", "wire", 0),
-    RING("teleport control", "iron", 0),
-    RING(NULL, "ivory", 0),
-    RING(NULL, "blackened", 0),
+#define	RING(name,stone,prob,spec)\
+    { .oc_name = name, .oc_descr = stone, .oc_olet = RING_SYM, .oc_prob = prob, .oc_weight = 1, .bits = spec }
+    RING("adornment", "engagement", 20, 0),
+    RING("teleportation", "wooden", 1, 0),
+    RING("regeneration", "black onyx", 1, 0),
+    RING("searching", "topaz", 10, 0),
+    RING("see invisible", "pearl", 1, 0),
+    RING("stealth", "sapphire", 10, 0),
+    RING("levitation", "moonstone", 10, 0),
+    RING("poison resistance", "agate", 10, 0),
+    RING("aggravate monster", "tiger eye", 1, 0),
+    RING("hunger", "shining", 1, 0),
+    RING("fire resistance", "gold", 5, 0),
+    RING("cold resistance", "copper", 1, 0),
+    RING("protection from shape changers", "diamond", 10, 0),
+    RING("conflict", "jade", 1, 0),
+    RING("gain strength", "ruby", 1, SPEC),
+    RING("increase damage", "silver", 5, SPEC),
+    RING("protection", "granite", 10, SPEC),
+    RING("warning", "ivory", 1, 0),
+    RING("teleport control", "iron", 1, 0),
 
-#define	GEM(name,color,prob,gval)	{ name, color, NULL, 0, 1,\
-		GEM_SYM, prob, 0, 1, 0, 0, gval }
+#define	GEM(name,color,prob,gval)\
+    { .oc_name = name, .oc_descr = color, .oc_merge = true, .oc_olet = GEM_SYM,\
+	.oc_prob = prob, .oc_weight = 1, .g_val = gval }
     GEM("diamond", "blue", 1, 4000),
     GEM("ruby", "red", 1, 3500),
     GEM("sapphire", "blue", 1, 3000),
@@ -273,17 +245,8 @@ struct objclass objects[] = {
     GEM("onyx", "white", 2, 550),
     GEM("jasper", "yellowish brown", 2, 500),
     GEM("jade", "green", 2, 450),
-    GEM("worthless piece of blue glass", "blue", 20, 0),
-    GEM("worthless piece of red glass", "red", 20, 0),
-    GEM("worthless piece of yellow glass", "yellow", 20, 0),
-    GEM("worthless piece of green glass", "green", 20, 0),
-    {NULL, NULL, NULL, 0, 0, ILLOBJ_SYM, 0, 0, 0, 0, 0, 0}
+    GEM("blue glass", "blue", 20, 0),
+    GEM("red glass", "red", 20, 0),
+    GEM("yellow glass", "yellow", 20, 0),
+    GEM("green glass", "green", 20, 0),
 };
-
-const char obj_symbols[] = {
-    ILLOBJ_SYM, AMULET_SYM, FOOD_SYM, WEAPON_SYM, TOOL_SYM,
-    BALL_SYM, CHAIN_SYM, ROCK_SYM, ARMOR_SYM, POTION_SYM, SCROLL_SYM,
-    WAND_SYM, RING_SYM, GEM_SYM, 0
-};
-
-int bases[sizeof(obj_symbols)];

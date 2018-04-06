@@ -9,21 +9,21 @@ char mkobjstr[] = "))[[!!!!????%%%%/=**))[[!!!!????%%%%/=**(%";
 
 struct obj *mkobj_at(int let, int x, int y)
 {
-    struct obj *otmp = mkobj(let);
-    otmp->ox = x;
-    otmp->oy = y;
-    otmp->nobj = fobj;
-    fobj = otmp;
-    return otmp;
+    struct obj *o = mkobj(let);
+    o->ox = x;
+    o->oy = y;
+    o->nobj = _level->objects;
+    _level->objects = o;
+    return o;
 }
 
 void mksobj_at(int otyp, int x, int y)
 {
-    struct obj *otmp = mksobj(otyp);
-    otmp->ox = x;
-    otmp->oy = y;
-    otmp->nobj = fobj;
-    fobj = otmp;
+    struct obj *o = mksobj(otyp);
+    o->ox = x;
+    o->oy = y;
+    o->nobj = _level->objects;
+    _level->objects = o;
 }
 
 struct obj *mkobj(int let)
@@ -31,50 +31,37 @@ struct obj *mkobj(int let)
     if (!let)
 	let = mkobjstr[rn2(sizeof(mkobjstr) - 1)];
     return mksobj(letter(let) ? CORPSE + ((let > 'Z') ? (let - 'a' + 'Z' - '@' + 1) : (let - '@'))
-		   : probtype(let)
+		   : (int) probtype(let)
 	    )
 	;
 }
 
-struct obj zeroobj;
-
-struct obj *mksobj(int otyp)
+struct obj* mksobj (int otyp)
 {
-    struct obj *otmp;
-    char let = objects[otyp].oc_olet;
-
-    otmp = newobj(0);
-    *otmp = zeroobj;
-    otmp->age = moves;
-    otmp->o_id = flags.ident++;
-    otmp->quan = 1;
-    otmp->olet = let;
-    otmp->otyp = otyp;
-    otmp->dknown = strchr("/=!?*", let) ? 0 : 1;
-    switch (let) {
+    struct obj* o = newobj();
+    o->age = _u.moves;
+    o->o_id = _wflags.ident++;
+    o->quan = 1;
+    o->otyp = otyp;
+    o->olet = c_Objects[otyp].oc_olet;
+    o->dknown = strchr("/=!?*", o->olet) ? 0 : 1;
+    switch (o->olet) {
 	case WEAPON_SYM:
-	    otmp->quan = (otmp->otyp <= ROCK) ? rn1(6, 6) : 1;
+	    o->quan = (o->otyp <= ROCK) ? rn1(6, 6) : 1;
 	    if (!rn2(11))
-		otmp->spe = rnd(3);
+		o->spe = rnd(3);
 	    else if (!rn2(10)) {
-		otmp->cursed = 1;
-		otmp->spe = -rnd(3);
+		o->cursed = 1;
+		o->spe = -rnd(3);
 	    }
 	    break;
 	case FOOD_SYM:
-	    if (otmp->otyp >= CORPSE)
+	    if (o->otyp >= CORPSE)
 		break;
-#ifdef NOT_YET_IMPLEMENTED
-	    // if tins are to be identified, need to adapt doname() etc
-	    if (otmp->otyp == TIN)
-		otmp->spe = rnd( ...);
-#endif				// NOT_YET_IMPLEMENTED
 	    // fallthrough
 	case GEM_SYM:
-	    otmp->quan = rn2(6) ? 1 : 2;
+	    o->quan = rn2(6) ? 1 : 2;
 	case TOOL_SYM:
-	case CHAIN_SYM:
-	case BALL_SYM:
 	case ROCK_SYM:
 	case POTION_SYM:
 	case SCROLL_SYM:
@@ -82,35 +69,35 @@ struct obj *mksobj(int otyp)
 	    break;
 	case ARMOR_SYM:
 	    if (!rn2(8))
-		otmp->cursed = 1;
+		o->cursed = 1;
 	    if (!rn2(10))
-		otmp->spe = rnd(3);
+		o->spe = rnd(3);
 	    else if (!rn2(9)) {
-		otmp->spe = -rnd(3);
-		otmp->cursed = 1;
+		o->spe = -rnd(3);
+		o->cursed = 1;
 	    }
 	    break;
 	case WAND_SYM:
-	    if (otmp->otyp == WAN_WISHING)
-		otmp->spe = 3;
+	    if (o->otyp == WAN_WISHING)
+		o->spe = 3;
 	    else
-		otmp->spe = rn1(5, (objects[otmp->otyp].bits & NODIR) ? 11 : 4);
+		o->spe = rn1(5, (c_Objects[o->otyp].bits & NODIR) ? 11 : 4);
 	    break;
 	case RING_SYM:
-	    if (objects[otmp->otyp].bits & SPEC) {
+	    if (c_Objects[o->otyp].bits & SPEC) {
 		if (!rn2(3)) {
-		    otmp->cursed = 1;
-		    otmp->spe = -rnd(2);
+		    o->cursed = 1;
+		    o->spe = -rnd(2);
 		} else
-		    otmp->spe = rnd(2);
-	    } else if (otmp->otyp == RIN_TELEPORTATION || otmp->otyp == RIN_AGGRAVATE_MONSTER || otmp->otyp == RIN_HUNGER || !rn2(9))
-		otmp->cursed = 1;
+		    o->spe = rnd(2);
+	    } else if (o->otyp == RIN_TELEPORTATION || o->otyp == RIN_AGGRAVATE_MONSTER || o->otyp == RIN_HUNGER || !rn2(9))
+		o->cursed = 1;
 	    break;
 	default:
 	    panic("impossible mkobj");
     }
-    otmp->owt = weight(otmp);
-    return otmp;
+    o->owt = weight(o);
+    return o;
 }
 
 int letter(int c)
@@ -120,24 +107,24 @@ int letter(int c)
 
 int weight(struct obj *obj)
 {
-    int wt = objects[obj->otyp].oc_weight;
+    int wt = c_Objects[obj->otyp].oc_weight;
     return wt ? wt * obj->quan : (obj->quan + 1) / 2;
 }
 
 void mkgold(long num, int x, int y)
 {
     struct gold *gold;
-    long amount = (num ? num : 1 + (rnd(dlevel + 2) * rnd(30)));
+    long amount = (num ? num : 1 + (rnd(_u.dlevel + 2) * rnd(30)));
 
     if ((gold = g_at(x, y)) != NULL)
 	gold->amount += amount;
     else {
 	gold = newgold();
-	gold->ngold = fgold;
+	gold->ngold = _level->money;
 	gold->gx = x;
 	gold->gy = y;
 	gold->amount = amount;
-	fgold = gold;
+	_level->money = gold;
 	// do sth with display?
     }
 }

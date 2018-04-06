@@ -5,18 +5,10 @@
 #include "hack.h"
 #include "extern.h"
 
-long* alloc (unsigned lth)
+void* alloc (size_t n)
 {
-    void* ptr = malloc(lth);
-    if (!ptr)
-	panic ("Cannot get %d bytes", lth);
-    return (long*) ptr;
-}
-
-long* enlarge (char* ptr, unsigned lth)
-{
-    void* nptr = realloc (ptr, lth);
-    if (!nptr)
-	panic ("Cannot reallocate %d bytes", lth);
-    return (long*) nptr;
+    void* p = calloc (n, 1);
+    if (!p)
+	panic ("Cannot get %zu bytes", n);
+    return p;
 }

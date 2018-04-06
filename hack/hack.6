@@ -49,7 +49,7 @@
 .\"
 .\" THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
 .\" INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
-.\" AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL
+.\" AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
 .\" THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 .\" EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 .\" PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
@@ -66,14 +66,7 @@
 .Nd exploring The Dungeons of Doom
 .Sh SYNOPSIS
 .Nm
-.Op Fl d Ar directory
-.Op Fl n
-.Op Fl u Ar playername
-.Nm
-.Op Fl d Ar directory
 .Op Fl s
-.Op Fl X
-.Op Ar playername ...
 .Sh DESCRIPTION
 .Nm
 is a display oriented dungeons \*[Am] dragons-like game.
@@ -90,89 +83,30 @@ will identify the things you see on the screen.
 .Pp
 To win the game (as opposed to merely playing to beat other people's high
 scores) you must locate the Amulet of Yendor which is somewhere below
-the 20th level of the dungeon and get it out.
-Nobody has achieved this yet and if somebody does, he will probably go
-down in history as a hero among heroes.
+the 20th level of the dungeon and get it out. Nobody has achieved this
+yet and if somebody does, he will probably go down in history as a hero
+among heroes.
 .Pp
 When the game ends, either by your death, when you quit, or if you escape
 from the caves,
 .Nm
-will give you (a fragment of) the list of top scorers.
-The scoring is based on many aspects of your behavior but a rough estimate
-is obtained by taking the amount of gold you've found in the cave plus four
-times your (real) experience.
-Precious stones may be worth a lot of gold when brought to the exit.
-There is a 10% penalty for getting yourself killed.
-.Pp
-The administration of the game is kept in the directory specified with the
-.Fl d
-option, or, if no such option is given, in the directory specified by
-the environment variable
-.Ev HACKDIR ,
-or, if no such variable exists, in the current directory.
-This same directory contains several auxiliary files such as lockfiles and
-the list of topscorers and a subdirectory
-.Pa save
-where games are saved.
-The game administrator may however choose to install hack with a fixed
-playing ground, usually
-.Pa /var/lib/bsdgames/hack .
-.Pp
-The
-.Fl n
-option suppresses printing of the news.
-.Pp
-The
-.Fl u
-.Ar playername
-option supplies the answer to the question "Who are you?".
-When
-.Ar playername
-has as suffix one of
-.Em -T ,
-.Em -S ,
-.Em -K ,
-.Em -F ,
-.Em -C ,
-or
-.Em -W ,
-then this supplies the answer to the question "What kind of character ... ?".
+will give you (a fragment of) the list of top scorers. The scoring is
+based on many aspects of your behavior but a rough estimate is obtained
+by taking the amount of gold you've found in the cave plus four times
+your (real) experience. Precious stones may be worth a lot of gold when
+brought to the exit. There is a 10% penalty for getting yourself killed.
 .Pp
 The
 .Fl s
-option will print out the list of your scores.
-It may be followed by arguments
-.Fl X
-where X is one of the letters C, F, K, S, T, W to print the scores of
-Cavemen, Fighters, Knights, Speleologists, Tourists or Wizards.
-It may also be followed by one or more player names to print the scores of the
-players mentioned.
-.Sh AUTHORS
-Jay Fenlason (+ Kenny Woodland, Mike Thome and Jon Payne) wrote the
-original hack, very much like rogue (but full of bugs).
-.br
-Andries Brouwer continuously deformed their sources into the current
-version - in fact an entirely different game.
+option will print out the list of top scores.
 .Sh FILES
 .Bl -tag -width 24n -compact
-.It Pa hack
+.It Pa /usr/bin/hack
 The hack program.
-.It Pa data, rumors
-Data files used by hack.
-.It Pa help, hh
-Help data files.
-.It Pa record
+.It Pa /var/lib/bsdgames/hack.scores
 The list of topscorers.
-.It Pa save
-A subdirectory containing the saved games.
-.It Pa bones_dd
-Descriptions of the ghost and belongings of a deceased adventurer.
-.It Pa xlock.dd
-Description of a dungeon level.
-.It Pa safelock
-Lock file for xlock.
-.It Pa record_lock
-Lock file for record.
+.It Pa $HOME/.local/share/hack.save
+The saved game
 .El
 .Sh ENVIRONMENT
 .Bl -tag -width 24n -compact
@@ -180,30 +114,12 @@ Lock file for record.
 Your login name.
 .It Ev HOME
 Your home directory.
-.It Ev SHELL
-Your shell.
 .It Ev TERM
 The type of your terminal.
-.It Ev HACKPAGER, PAGER
+.It Ev PAGER
 Pager used instead of default pager.
-.It Ev MAIL
-Mailbox file.
-.It Ev MAILREADER
-Reader used instead of default (probably
-.Pa /usr/bin/mail ) .
-.It Ev HACKDIR
-Playground.
 .It Ev HACKOPTIONS
 String predefining several hack options (see help file).
 .El
-.Pp
-Several other environment variables are used in debugging (wizard) mode,
-like
-.Ev GENOCIDED ,
-.Ev INVENT ,
-.Ev MAGIC
-and
-.Ev SHOPTYPE .
 .Sh BUGS
-Probably infinite.
-Mail complaints to mcvax!aeb .
+Submit bug reports at https://github.com/msharov/bsd-games/issues

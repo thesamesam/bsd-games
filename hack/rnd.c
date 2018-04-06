@@ -5,25 +5,25 @@
 #include "hack.h"
 #include "extern.h"
 
-int rn1(int x, int y)
+unsigned rn1 (unsigned x, unsigned y)
 {
     return nrand(x) + y;
 }
 
-int rn2(int x)
+unsigned rn2 (unsigned x)
 {
     return nrand(x);
 }
 
-int rnd(int x)
+unsigned rnd (unsigned x)
 {
     return nrand(x) + 1;
 }
 
-int d(int n, int x)
+unsigned d (unsigned n, unsigned x)
 {
-    int tmp = n;
+    unsigned r = n;
     while (n--)
-	tmp += nrand(x);
-    return tmp;
+	r += nrand(x);
+    return r;
 }

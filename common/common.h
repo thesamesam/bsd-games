@@ -65,6 +65,7 @@ uint16_t bsdsum (const void* v, size_t n, uint16_t sum);
 unsigned nrand (unsigned r);
 void srandrand (void);
 uint64_t time_ms (void);
+int mkpath (const char* path, mode_t mode);
 
 // ui.c
 void initialize_curses (void);
@@ -110,6 +111,26 @@ static inline void iota_u8 (uint8_t* v, size_t n)
     { for (size_t i = 0; i < n; ++i) v[i] = i; }
 static inline void random_shuffle_u8 (uint8_t* v, size_t n)
     { for (; n; --n,++v) swap_u8 (v, v+nrand(n)); }
+
+static inline const char* scasb (const char* p, size_t* n, char c)
+{
+#if __i386__ || __x86_64__
+    __asm__ ("repnz\tscasb":"+D"(p),"+c"(*n):"a"(c):"memory");
+#else
+    do { ++p; } while (--*n && p[-1] != c);
+#endif
+    return p;
+}
+
+static inline const char* strnext_r (const char* s, size_t* n)
+    { return scasb (s, n, '\0'); }
+
+static inline const char* zstrn (const char* strs, unsigned n, unsigned nstrs)
+{
+    for (size_t i = min_u(n,nstrs-1)+1,sz=-1; --i;)
+	strs = strnext_r(strs,&sz);
+    return strs;
+}
 
 #ifdef __cplusplus
 } // extern "C"

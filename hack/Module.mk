@@ -5,7 +5,6 @@ hack/EXE	:= $Ohack/${hack/NAME}
 hack/SRCS	:= $(filter-out hack/makedefs.c,$(wildcard hack/*.c))
 hack/OBJS	:= $(addprefix $O,$(hack/SRCS:.c=.o))
 hack/DEPS	:= $(hack/OBJS:.o=.d)
-hack/DATA	:= $(wildcard hack/gamehelp/*)
 hack/LIBS	:= ${COMLIB} ${CURSES_LIBS}
 
 ################ Compilation ###########################################
@@ -33,34 +32,25 @@ hack/onames.h:	hack/objects.h hack/makedefs.c | $Ohack/makedefs
 ifdef BINDIR
 hack/EXEI	:= ${BINDIR}/${hack/NAME}
 hack/MANI	:= ${MANDIR}/man6/${hack/NAME}.6.gz
-hack/DATAI	:= $(patsubst hack/gamehelp/%,${DATADIR}/hack/%,${hack/DATA})
-hack/SCOREI	:= ${STATEDIR}/hack/perm ${STATEDIR}/hack/record
+hack/SCOREI	:= ${STATEDIR}/hack.scores
 
 install:		hack/install
-hack/install:	${hack/EXEI} ${hack/MANI} ${hack/DATAI} ${hack/SCOREI}
+hack/install:	${hack/EXEI} ${hack/MANI} ${hack/SCOREI}
 ${hack/EXEI}:	${hack/EXE}
 	@echo "Installing $@ ..."
 	@${INSTALLEXE} $< $@
 ${hack/MANI}:	hack/${hack/NAME}.6
 	@echo "Installing $@ ..."
 	@gzip -9 -c $< > $@ && chmod 644 $@
-${hack/DATAI}:	${DATADIR}/hack/%:	hack/gamehelp/%
-	@echo "Installing $@ ..."
-	@${INSTALLDATA} $< $@
-${hack/SCOREI}:	${STATEDIR}/hack
-${STATEDIR}/hack:
-	@echo "Creating hack dir and score files ..."
-	@mkdir -m 755 ${STATEDIR}/hack
-	@chgrp users ${STATEDIR}/hack
-	@${INSTALLSCORE} /dev/null ${STATEDIR}/hack/perm
-	@${INSTALLSCORE} /dev/null ${STATEDIR}/hack/record
+${hack/SCOREI}:
+	@echo "Creating hack score file ..."
+	@${INSTALLSCORE} /dev/null ${STATEDIR}/hack.scores
 
 uninstall:		hack/uninstall
 hack/uninstall:
 	@if [ -f ${hack/EXEI} ]; then\
 	    echo "Removing ${hack/EXEI} ...";\
-	    rm -f ${hack/EXEI} ${hack/MANI} ${hack/DATAI} ${hack/SCOREI};\
-	    rmdir ${DATADIR}/hack ${STATEDIR}/hack;\
+	    rm -f ${hack/EXEI} ${hack/MANI} ${hack/SCOREI};\
 	fi
 endif
 
@@ -77,6 +67,6 @@ $Ohack/.d:	$O.d
 	@[ -d $Ohack ] || mkdir $Ohack && touch $Ohack/.d
 
 ${hack/OBJS} $Ohack/makedefs.o: ${CONFS} hack/Module.mk $Ohack/.d
-${hack/OBJS}:		hack/onames.h
+${hack/OBJS}:	hack/onames.h
 
 -include ${hack/DEPS}

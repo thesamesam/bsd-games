@@ -4,26 +4,17 @@
 
 #pragma once
 
-struct flag {
+struct worldflag {
     unsigned ident;		// social security number for each monster
-    unsigned debug:1;		// in debugging mode
-#define	wizard	flags.debug
     unsigned toplin:2;		// a top line (message) has been printed
 				// 0: top line empty; 2: no --More-- reqd.
     unsigned cbreak:1;		// in cbreak mode, rogue format
     unsigned standout:1;	// use standout for --More--
     unsigned nonull:1;		// avoid sending nulls to the terminal
     unsigned time:1;		// display elapsed 'time'
-    unsigned nonews:1;		// suppress news printing
     unsigned notombstone:1;
-    unsigned end_top;		// describe desired score list
-    unsigned end_around;
-    unsigned end_own:1;		// idem (list all own scores)
     unsigned no_rest_on_space:1;// spaces are ignored
-    unsigned beginner:1;
-    unsigned female:1;
-    unsigned invlet_constant:1;	// let objects keep their
-				// inventory symbol
+    unsigned invlet_not_constant:1;	// let objects keep their inventory symbol
     unsigned move:1;
     unsigned mv:1;
     unsigned run:3;		// 0: h (etc), 1: H (etc), 2: fh (etc)
@@ -37,6 +28,10 @@ struct flag {
     unsigned no_of_wizards:2;	// 0, 1 or 2 (wizard and his shadow)
 				// reset from 2 to 1, but never to 0
     unsigned moonphase:3;
+    unsigned end_own:1;		// idem (list all own scores)
+
+    uint16_t end_top;		// describe desired score list
+    uint16_t end_around;
 };
 
 enum {
@@ -44,4 +39,4 @@ enum {
     FULL_MOON = 4
 };
 
-extern struct flag flags;
+extern struct worldflag _wflags;

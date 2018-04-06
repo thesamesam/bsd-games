@@ -69,21 +69,6 @@ static uint16_t sum_save_array (void)
     return sum;
 }
 
-// Creates all directories in path
-static int mkpath (const char* path, mode_t mode)
-{
-    char pbuf [PATH_MAX], *pbe = pbuf;
-    do {
-	if (*path == '/' || !*path) {
-	    *pbe = '\0';
-	    if (pbuf[0] && 0 > mkdir (pbuf, mode) && errno != EEXIST)
-		return -1;
-	}
-	*pbe++ = *path;
-    } while (*path++);
-    return 0;
-}
-
 struct SaveHeader {
     char magictext[6];
     uint16_t sum;
@@ -92,7 +77,7 @@ struct SaveHeader {
 // to output the data using checksum to start random #s
 static int save (const char* outfile)
 {
-    int fd = open (outfile, O_CREAT| O_EXCL| O_WRONLY, 0600);
+    int fd = creat (outfile, S_IRUSR| S_IWUSR);
     if (fd < 0)
 	goto error;
     struct SaveHeader header = {{'a','d','v','e','n','t'}, sum_save_array()};
@@ -145,9 +130,9 @@ void ciao (void)
 	return;
     }
     char savename [PATH_MAX];
-    snprintf (ArrayBlock(savename), ADVENTURE_SAVE_DIR, homedir);
+    snprintf (ArrayBlock(savename), _PATH_SAVED_GAMES, homedir);
     if (0 != access (savename, R_OK))
-	mkpath (savename, 0700);
+	mkpath (savename, S_IRWXU);
     if (0 != access (savename, W_OK)) {
 	printf ("You are not allowed to write to %s\n", savename);
 	return;

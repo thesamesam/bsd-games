@@ -7,14 +7,11 @@
 
 struct trap {
     struct trap *ntrap;
-    xchar tx, ty;
-    unsigned ttyp:5;
-    unsigned tseen:1;
-    unsigned once:1;
+    int8_t tx, ty;
+    uint8_t ttyp:5;
+    uint8_t tseen:1;
+    uint8_t once:1;
 };
-
-extern struct trap *ftrap;
-#define newtrap()	(struct trap *) alloc(sizeof(struct trap))
 
 // various kinds of traps
 enum {
@@ -26,6 +23,8 @@ enum {
     PIT,
     SLP_GAS_TRAP,
     PIERC,
-    MIMIC,	// used only in mklev.c
     TRAPNUM	// if not less than 32, change sizeof(ttyp)
 };		// see also mtrapseen (bit map)
+
+static inline struct trap* newtrap (void)
+    { return alloc (sizeof(struct trap)); }

@@ -5,7 +5,7 @@
 
 #include "hack.h"
 #include "extern.h"
-#include "flag.h"	       // for flags.nonull
+#include "flag.h"
 #include <termios.h>
 #include <termcap.h>
 
@@ -19,20 +19,17 @@ int CO, LI;			// used in pri.c and whatis.c
 
 void startup(void)
 {
-    char *term;
-    char *tptr;
-    char *tbufptr, *pc;
-
-    tptr = (char *) alloc(1024);
-
-    tbufptr = tbuf;
-    if (!(term = getenv("TERM")))
+    char* term = getenv("TERM");
+    if (!term)
 	error("Can't get TERM.");
     if (!strncmp(term, "5620", 4))
-	flags.nonull = 1;      // this should be a termcap flag
+	_wflags.nonull = 1;      // this should be a termcap flag
+    char* tptr = alloc (1024);
     if (tgetent(tptr, term) < 1)
 	error("Unknown terminal type: %s.", term);
-    if ((pc = tgetstr("pc", &tbufptr)) != NULL)
+    char* tbufptr = tbuf;
+    char* pc = tgetstr("pc", &tbufptr);
+    if (pc)
 	PC = *pc;
     if (!(BC = tgetstr("bc", &tbufptr))) {
 	if (!tgetflag("bs"))
@@ -74,7 +71,7 @@ void startup(void)
     set_whole_screen();	       // uses LI and CD
     if (tbufptr - tbuf > (int) sizeof(tbuf))
 	error("TERMCAP entry too big...\n");
-    free(tptr);
+    free (tptr);
 }
 
 void start_screen(void)
@@ -90,8 +87,6 @@ void end_screen(void)
 }
 
 // Cursor movements
-// not xchar: perhaps xchar is unsigned and
-// curx-x would be unsigned as well
 void curs (int x, int y)
 {
     if (y == cury && x == curx)
@@ -103,7 +98,7 @@ void curs (int x, int y)
     if (abs(cury - y) <= 3 && abs(curx - x) <= 3)
 	nocmov(x, y);
     else if ((x <= 3 && abs(cury - y) <= 3) || (!CM && x < abs(curx - x))) {
-	(void) putchar('\r');
+	putchar('\r');
 	curx = 1;
 	nocmov(x, y);
     } else if (!CM) {
@@ -118,7 +113,7 @@ void nocmov(int x, int y)
 	if (UP) {
 	    while (cury > y) { // Go up.
 		xputs(UP);
-		cury--;
+		--cury;
 	    }
 	} else if (CM) {
 	    cmov(x, y);
@@ -130,7 +125,7 @@ void nocmov(int x, int y)
 	if (XD) {
 	    while (cury < y) {
 		xputs(XD);
-		cury++;
+		++cury;
 	    }
 	} else if (CM) {
 	    cmov(x, y);
@@ -138,7 +133,7 @@ void nocmov(int x, int y)
 	    while (cury < y) {
 		xputc('\n');
 		curx = 1;
-		cury++;
+		++cury;
 	    }
 	}
     }
@@ -149,12 +144,12 @@ void nocmov(int x, int y)
 	    // should instead print what is there already
 	    while (curx < x) {
 		xputs(ND);
-		curx++;
+		++curx;
 	    }
     } else if (curx > x) {
 	while (curx > x) {     // Go to the left.
 	    xputs(BC);
-	    curx--;
+	    --curx;
 	}
     }
 }
@@ -186,7 +181,7 @@ void cl_end(void)
 	int cx = curx, cy = cury;
 	while (curx < COLNO) {
 	    xputc(' ');
-	    curx++;
+	    ++curx;
 	}
 	curs(cx, cy);
     }
@@ -224,7 +219,7 @@ void standoutend(void)
 void backsp(void)
 {
     xputs(BC);
-    curx--;
+    --curx;
 }
 
 void bell(void)
@@ -251,7 +246,7 @@ void cl_eos(void)
 	    cl_end();
 	    xputc('\n');
 	    curx = 1;
-	    cury++;
+	    ++cury;
 	}
 	cl_end();
 	curs(cx, cy);

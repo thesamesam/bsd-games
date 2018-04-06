@@ -6,250 +6,263 @@
 #include "extern.h"
 #include "mkroom.h"
 
-#ifndef NOWORM
-#include	"wseg.h"
-#endif				// NOWORM
+static void savetrapchn (int fd, const struct trap *trap);
+static void savegoldchn (int fd, const struct gold* gold);
 
-bool level_exists[MAXLEVEL + 1];
+bool level_exists [MAXLEVEL + 1] = { false };
 
-void savelev(int fd, int lev)
+void savelev (int fd, const struct level* l)
 {
-#ifndef NOWORM
-    struct wseg *wtmp, *wtmp2;
-    int tmp;
-#endif				// NOWORM
-
-    if (fd < 0)
-	panic("Save on bad file!");	// impossible
-    if (lev >= 0 && lev <= MAXLEVEL)
-	level_exists[lev] = true;
-
-    bwrite(fd, (char *) &hackpid, sizeof(hackpid));
-    bwrite(fd, (char *) &lev, sizeof(lev));
-    bwrite(fd, (char *) levl, sizeof(levl));
-    bwrite(fd, (char *) &moves, sizeof(long));
-    bwrite(fd, (char *) &xupstair, sizeof(xupstair));
-    bwrite(fd, (char *) &yupstair, sizeof(yupstair));
-    bwrite(fd, (char *) &xdnstair, sizeof(xdnstair));
-    bwrite(fd, (char *) &ydnstair, sizeof(ydnstair));
-    savemonchn(fd, fmon);
-    savegoldchn(fd, fgold);
-    savetrapchn(fd, ftrap);
-    saveobjchn(fd, fobj);
-    saveobjchn(fd, billobjs);
-    billobjs = 0;
-    save_engravings(fd);
-#ifndef QUEST
-    bwrite(fd, (char *) rooms, sizeof(rooms));
-    bwrite(fd, (char *) doors, sizeof(doors));
-#endif				// QUEST
-    fgold = 0;
-    ftrap = 0;
-    fmon = 0;
-    fobj = 0;
-#ifndef NOWORM
-    bwrite(fd, (char *) wsegs, sizeof(wsegs));
-    for (tmp = 1; tmp < 32; tmp++) {
-	for (wtmp = wsegs[tmp]; wtmp; wtmp = wtmp2) {
-	    wtmp2 = wtmp->nseg;
-	    bwrite(fd, (char *) wtmp, sizeof(struct wseg));
-	}
-	wsegs[tmp] = 0;
-    }
-    bwrite(fd, (char *) wgrowtime, sizeof(wgrowtime));
-#endif				// NOWORM
+    bwrite (fd, l->l, sizeof(l->l));
+    savemonchn (fd, l->monsters);
+    savegoldchn (fd, l->money);
+    savetrapchn (fd, l->traps);
+    saveobjchn (fd, l->objects);
+    saveobjchn (fd, l->billobjs);
+    save_engravings (fd, l->engravings);
+    bwrite (fd, l->rooms, sizeof(l->rooms));
+    bwrite (fd, l->doors, sizeof(l->doors));
 }
 
-void bwrite(int fd, const void *loc, unsigned num)
+void bwrite (int fd, const void* loc, unsigned num)
 {
     if (write(fd, loc, num) != (ssize_t) num)
 	panic("cannot write %u bytes to file #%d", num, fd);
 }
 
-void saveobjchn(int fd, struct obj *otmp)
+void saveobjchn (int fd, const struct obj* o)
 {
-    struct obj *otmp2;
-    unsigned xl;
-    int minusone = -1;
-
-    while (otmp) {
-	otmp2 = otmp->nobj;
-	xl = otmp->onamelth;
-	bwrite(fd, (char *) &xl, sizeof(int));
-	bwrite(fd, (char *) otmp, xl + sizeof(struct obj));
-	free((char *) otmp);
-	otmp = otmp2;
-    }
-    bwrite(fd, (char *) &minusone, sizeof(int));
+    uint32_t n = 0;
+    for (const struct obj* oi = o; oi; oi = oi->nobj)
+	++n;
+    bwrite (fd, &n, sizeof(n));
+    for (; o; o = o->nobj)
+	bwrite (fd, o, sizeof(struct obj));
 }
 
-void savemonchn(int fd, struct monst *mtmp)
+struct obj* restobjchn (int fd)
 {
-    struct monst *mtmp2;
-    unsigned xl;
-    int minusone = -1;
-    const struct permonst *monbegin = &mons[0];
-
-    bwrite(fd, &monbegin, sizeof(monbegin));
-
-    while (mtmp) {
-	mtmp2 = mtmp->nmon;
-	xl = mtmp->mxlth + mtmp->mnamelth;
-	bwrite(fd, (char *) &xl, sizeof(int));
-	bwrite(fd, (char *) mtmp, xl + sizeof(struct monst));
-	if (mtmp->minvent)
-	    saveobjchn(fd, mtmp->minvent);
-	free((char *) mtmp);
-	mtmp = mtmp2;
+    uint32_t n = 0;
+    mread (fd, &n, sizeof(n));
+    struct obj *r = NULL, **pp = &r;
+    for (unsigned i = 0; i < n; ++i) {
+	struct obj* o = newobj();
+	mread (fd, o, sizeof(*o));
+	if (!o->o_id)
+	    o->o_id = _wflags.ident++;
+	*pp = o;
+	pp = &o->nobj;
     }
-    bwrite(fd, (char *) &minusone, sizeof(int));
+    return r;
 }
 
-void savegoldchn(int fd, struct gold *gold)
+void savemonchn (int fd, const struct monst* m)
 {
-    struct gold *gold2;
-    while (gold) {
-	gold2 = gold->ngold;
-	bwrite(fd, (char *) gold, sizeof(struct gold));
-	free((char *) gold);
-	gold = gold2;
+    const struct permonst* monbegin = &c_Monsters[0];
+    bwrite (fd, &monbegin, sizeof(monbegin));
+    uint32_t n = 0;
+    for (const struct monst* mi = m; mi; mi = mi->nmon)
+	++n;
+    bwrite (fd, &n, sizeof(n));
+    for (; m; m = m->nmon) {
+	uint32_t xl = m->mxlth+m->mnamelth;
+	bwrite (fd, &xl, sizeof(xl));
+	bwrite (fd, m, sizeof(*m)+xl);
+	if (m->minvent)
+	    saveobjchn (fd, m->minvent);
     }
-    bwrite(fd, nul, sizeof(struct gold));
 }
 
-void savetrapchn(int fd, struct trap *trap)
+struct monst* restmonchn (int fd)
 {
-    struct trap *trap2;
-    while (trap) {
-	trap2 = trap->ntrap;
-	bwrite(fd, (char *) trap, sizeof(struct trap));
-	free((char *) trap);
-	trap = trap2;
+    struct permonst* monbegin = NULL;
+    mread (fd, &monbegin, sizeof(monbegin));
+    ptrdiff_t differ = (const char*) &c_Monsters[0] - (const char*) monbegin;
+    uint32_t n = 0;
+    mread (fd, &n, sizeof(n));
+    struct monst *r = NULL, **pp = &r;
+    for (unsigned i = 0; i < n; ++i) {
+	uint32_t xl = 0;
+	mread (fd, &xl, sizeof(xl));
+	struct monst* m = newmonst (xl);
+	mread (fd, m, sizeof(*m)+xl);
+	m->data = (const struct permonst*)((const char*) m->data + differ);
+	if (m->minvent)
+	    m->minvent = restobjchn (fd);
+	*pp = m;
+	pp = &m->nmon;
     }
-    bwrite(fd, nul, sizeof(struct trap));
+    return r;
 }
 
-void getlev(int fd, int pid, int lev)
+static void savegoldchn (int fd, const struct gold* gold)
 {
-    struct gold *gold;
-    struct trap *trap;
-#ifndef NOWORM
-    struct wseg *wtmp;
-#endif				// NOWORM
-    int tmp;
-    long omoves;
-    int hpid;
-    xchar dlvl;
+    uint32_t n = 0;
+    for (const struct gold* ig = gold; ig; ig = ig->ngold)
+	++n;
+    bwrite (fd, &n, sizeof(n));
+    for (; gold; gold = gold->ngold)
+	bwrite (fd, gold, sizeof(*gold));
+}
 
-    // First some sanity checks
-    mread(fd, (char *) &hpid, sizeof(hpid));
-    mread(fd, (char *) &dlvl, sizeof(dlvl));
-    if ((pid && pid != hpid) || (lev && dlvl != lev)) {
-	pline("Strange, this map is not as I remember it.");
-	pline("Somebody is trying some trickery here ...");
-	pline("This game is void ...");
-	done("tricked");
+static struct gold* restgoldchn (int fd)
+{
+    uint32_t n = 0;
+    mread (fd, &n, sizeof(n));
+    struct gold *r = NULL, **pp = &r;
+    for (unsigned i = 0; i < n; ++i) {
+	struct gold* o = newgold();
+	mread (fd, o, sizeof(*o));
+	*pp = o;
+	pp = &o->ngold;
     }
-    fgold = 0;
-    ftrap = 0;
-    mread(fd, (char *) levl, sizeof(levl));
-    mread(fd, (char *) &omoves, sizeof(omoves));
-    mread(fd, (char *) &xupstair, sizeof(xupstair));
-    mread(fd, (char *) &yupstair, sizeof(yupstair));
-    mread(fd, (char *) &xdnstair, sizeof(xdnstair));
-    mread(fd, (char *) &ydnstair, sizeof(ydnstair));
+    return r;
+}
 
-    fmon = restmonchn(fd);
+static void savetrapchn (int fd, const struct trap *trap)
+{
+    uint32_t n = 0;
+    for (const struct trap* it = trap; it; it = it->ntrap)
+	++n;
+    bwrite (fd, &n, sizeof(n));
+    for (; trap; trap = trap->ntrap)
+	bwrite (fd, trap, sizeof(*trap));
+}
 
-    // regenerate animals while on another level
-    {
-	long tmoves = (moves > omoves) ? moves - omoves : 0;
-	struct monst *mtmp, *mtmp2;
+static struct trap* resttrapchn (int fd)
+{
+    uint32_t n = 0;
+    mread (fd, &n, sizeof(n));
+    struct trap *r = NULL, **pp = &r;
+    for (unsigned i = 0; i < n; ++i) {
+	struct trap* o = newtrap();
+	mread (fd, o, sizeof(*o));
+	*pp = o;
+	pp = &o->ntrap;
+    }
+    return r;
+}
 
-	for (mtmp = fmon; mtmp; mtmp = mtmp2) {
-	    long newhp;		// tmoves may be very large
-
-	    mtmp2 = mtmp->nmon;
-	    if (strchr(genocided, mtmp->data->mlet)) {
-		mondead(mtmp);
-		continue;
-	    }
-	    if (mtmp->mtame && tmoves > 250) {
-		mtmp->mtame = 0;
-		mtmp->mpeaceful = 0;
-	    }
-	    newhp = mtmp->mhp + (strchr(MREGEN, mtmp->data->mlet) ? tmoves : tmoves / 20);
-	    if (newhp > mtmp->mhpmax)
-		mtmp->mhp = mtmp->mhpmax;
-	    else
-		mtmp->mhp = newhp;
+static void remove_genocided_monsters (struct monst** pp)
+{
+    for (struct monst* m; (m = *pp); pp = &m->nmon) {
+	if (is_monster_genocided (m->data->mlet)) {
+	    *pp = m->nmon;
+	    free (m);
+	    m = *pp;
 	}
     }
+}
 
+static void regenerate_monster_health (unsigned tmoves, struct monst* mc)
+{
+    for (struct monst *m = mc; m; m = m->nmon)
+	m->mhp = min_u (m->mhpmax, m->mhp + (strchr(MREGEN, m->data->mlet) ? tmoves : tmoves/20));
+}
+
+void getlev (int fd, struct level* l)
+{
+    mread (fd, l->l, sizeof(l->l));
+    l->monsters = restmonchn(fd);
+    remove_genocided_monsters (&l->monsters);
+    regenerate_monster_health (_u.moves > l->lastvisit ? _u.moves - l->lastvisit : 0, l->monsters);
     setgd();
-    gold = newgold();
-    mread(fd, (char *) gold, sizeof(struct gold));
-    while (gold->gx) {
-	gold->ngold = fgold;
-	fgold = gold;
-	gold = newgold();
-	mread(fd, (char *) gold, sizeof(struct gold));
-    }
-    free((char *) gold);
-    trap = newtrap();
-    mread(fd, (char *) trap, sizeof(struct trap));
-    while (trap->tx) {
-	trap->ntrap = ftrap;
-	ftrap = trap;
-	trap = newtrap();
-	mread(fd, (char *) trap, sizeof(struct trap));
-    }
-    free((char *) trap);
-    fobj = restobjchn(fd);
-    billobjs = restobjchn(fd);
-    rest_engravings(fd);
-#ifndef QUEST
-    mread(fd, (char *) rooms, sizeof(rooms));
-    mread(fd, (char *) doors, sizeof(doors));
-#endif				// QUEST
-#ifndef NOWORM
-    mread(fd, (char *) wsegs, sizeof(wsegs));
-    for (tmp = 1; tmp < 32; tmp++)
-	if (wsegs[tmp]) {
-	    wheads[tmp] = wsegs[tmp] = wtmp = newseg();
-	    while (1) {
-		mread(fd, (char *) wtmp, sizeof(struct wseg));
-		if (!wtmp->nseg)
-		    break;
-		wheads[tmp]->nseg = wtmp = newseg();
-		wheads[tmp] = wtmp;
-	    }
-	}
-    mread(fd, (char *) wgrowtime, sizeof(wgrowtime));
-#endif				// NOWORM
+    l->money = restgoldchn (fd);
+    l->traps = resttrapchn (fd);
+    l->objects = restobjchn (fd);
+    l->billobjs = restobjchn (fd);
+    l->engravings = rest_engravings (fd);
+    mread (fd, l->rooms, sizeof(l->rooms));
+    mread (fd, l->doors, sizeof(l->doors));
 }
 
-void mread(int fd, char *buf, unsigned len)
+void mread (int fd, void* buf, unsigned len)
 {
-    int rlen;
-
-    rlen = read(fd, buf, (int) len);
+    ssize_t rlen = read (fd, buf, len);
     if (rlen != (int) len) {
-	pline("Read %d instead of %u bytes.\n", rlen, len);
-	if (restoring) {
-	    (void) unlink(SAVEF);
-	    error("Error restoring old game.");
-	}
-	panic("Error reading level file.");
+	pline ("Read %zd instead of %u bytes.\n", rlen, len);
+	panic ("Error reading level file.");
     }
 }
 
 void mklev(void)
 {
-    if (getbones())
-	return;
-
     in_mklev = true;
     makelevel();
     in_mklev = false;
+}
+
+// return roomnumber or -1
+int inroom(int x, int y)
+{
+    struct mkroom *croom = &_level->rooms[0];
+    while (croom->hx >= 0) {
+	if (croom->hx >= x - 1 && croom->lx <= x + 1 && croom->hy >= y - 1 && croom->ly <= y + 1)
+	    return croom - _level->rooms;
+	++croom;
+    }
+    return -1;	       // not in room or on door
+}
+
+static void freeobjchn (struct obj* oc)
+{
+    while (oc) {
+	struct obj* o = oc;
+	oc = oc->nobj;
+	o->nobj = NULL;
+	free (o);
+    }
+}
+
+static void freemonchn (struct monst* mc)
+{
+    while (mc) {
+	struct monst* m = mc;
+	mc = mc->nmon;
+	freeobjchn (m->minvent);
+	m->minvent = NULL;
+	m->nmon = NULL;
+	free (m);
+    }
+}
+
+static void freegoldchn (struct gold* gc)
+{
+    while (gc) {
+	struct gold* g = gc;
+	gc = gc->ngold;
+	g->ngold = NULL;
+	free (g);
+    }
+}
+
+static void freetrapchn (struct trap* tc)
+{
+    while (tc) {
+	struct trap* t = tc;
+	tc = tc->ntrap;
+	t->ntrap = NULL;
+	free (t);
+    }
+}
+
+static void freeengrchn (struct engr* ec)
+{
+    while (ec) {
+	struct engr* e = ec;
+	ec = ec->nxt_engr;
+	e->nxt_engr = NULL;
+	free (e);
+    }
+}
+
+void level_dtor (struct level* l)
+{
+    freemonchn (l->monsters);
+    freeobjchn (l->objects);
+    freegoldchn (l->money);
+    freetrapchn (l->traps);
+    freeobjchn (l->billobjs);
+    freeengrchn (l->engravings);
+    memset (l, 0, sizeof(*l));
 }

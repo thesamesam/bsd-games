@@ -132,17 +132,17 @@ void findname(char *nampt, int let)
     const char *const *q;
     int i;
     while (p->x && p->x != let)
-	p++;
+	++p;
     q = p->xn;
-    for (i = 0; i < dlevel; i++)
+    for (i = 0; i < _u.dlevel; ++i)
 	if (!q[i]) {
 	    // Not enough names, try general name
 	    if (let)
 		findname(nampt, 0);
 	    else
-		(void) strcpy(nampt, "Dirk");
+		strcpy(nampt, "Dirk");
 	    return;
 	}
-    (void) strncpy(nampt, q[i], PL_NSIZ);
+    strncpy(nampt, q[i], PL_NSIZ);
     nampt[PL_NSIZ - 1] = 0;
 }

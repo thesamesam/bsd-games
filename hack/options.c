@@ -7,20 +7,15 @@
 
 void initoptions(void)
 {
-    char *opts;
+    _wflags.end_top = 5;
+    _wflags.end_around = 4;
 
-    flags.time = flags.nonews = flags.notombstone = flags.end_own = flags.standout = flags.nonull = false;
-    flags.no_rest_on_space = true;
-    flags.invlet_constant = true;
-    flags.end_top = 5;
-    flags.end_around = 4;
-    flags.female = false;      // players are usually male
-
-    if ((opts = getenv("HACKOPTIONS")) != NULL)
+    char* opts = getenv("HACKOPTIONS");
+    if (opts)
 	parseoptions(opts, true);
 }
 
-void parseoptions(char *opts, bool from_env)
+void parseoptions (char *opts, bool from_env)
 {
     char *op, *op2;
     unsigned num;
@@ -41,50 +36,38 @@ void parseoptions(char *opts, bool from_env)
     negated = false;
     while ((*opts == '!') || !strncmp(opts, "no", 2)) {
 	if (*opts == '!')
-	    opts++;
+	    ++opts;
 	else
 	    opts += 2;
 	negated = !negated;
     }
 
     if (!strncmp(opts, "standout", 8)) {
-	flags.standout = !negated;
+	_wflags.standout = !negated;
 	return;
     }
     if (!strncmp(opts, "null", 3)) {
-	flags.nonull = negated;
+	_wflags.nonull = negated;
 	return;
     }
     if (!strncmp(opts, "tombstone", 4)) {
-	flags.notombstone = negated;
-	return;
-    }
-    if (!strncmp(opts, "news", 4)) {
-	flags.nonews = negated;
+	_wflags.notombstone = negated;
 	return;
     }
     if (!strncmp(opts, "time", 4)) {
-	flags.time = !negated;
-	flags.botl = 1;
+	_wflags.time = !negated;
+	_wflags.botl = 1;
 	return;
     }
     if (!strncmp(opts, "restonspace", 4)) {
-	flags.no_rest_on_space = negated;
+	_wflags.no_rest_on_space = negated;
 	return;
     }
     if (!strncmp(opts, "fixinv", 4)) {
 	if (from_env)
-	    flags.invlet_constant = !negated;
+	    _wflags.invlet_not_constant = negated;
 	else
 	    pline("The fixinvlet option must be in HACKOPTIONS.");
-	return;
-    }
-    if (!strncmp(opts, "male", 4)) {
-	flags.female = negated;
-	return;
-    }
-    if (!strncmp(opts, "female", 6)) {
-	flags.female = !negated;
 	return;
     }
     // name:string
@@ -96,7 +79,7 @@ void parseoptions(char *opts, bool from_env)
 	op = strchr(opts, ':');
 	if (!op)
 	    goto bad;
-	(void) strncpy(plname, op + 1, sizeof(plname) - 1);
+	strncpy(plname, op + 1, sizeof(plname) - 1);
 	return;
     }
     // endgame:5t[op] 5a[round] o[wn]
@@ -104,33 +87,26 @@ void parseoptions(char *opts, bool from_env)
 	op = strchr(opts, ':');
 	if (!op)
 	    goto bad;
-	op++;
+	++op;
 	while (*op) {
 	    num = 1;
 	    if (digit(*op)) {
 		num = atoi(op);
 		while (digit(*op))
-		    op++;
+		    ++op;
 	    } else if (*op == '!') {
 		negated = !negated;
-		op++;
+		++op;
 	    }
 	    switch (*op) {
-		case 't':
-		    flags.end_top = num;
-		    break;
-		case 'a':
-		    flags.end_around = num;
-		    break;
-		case 'o':
-		    flags.end_own = !negated;
-		    break;
-		default:
-		    goto bad;
+		case 't':	_wflags.end_top = num; break;
+		case 'a':	_wflags.end_around = num; break;
+		case 'o':	_wflags.end_own = !negated; break;
+		default:	goto bad;
 	    }
 	    while (letter(*++op));
 	    if (*op == '/')
-		op++;
+		++op;
 	}
 	return;
     }
@@ -160,24 +136,21 @@ int doset(void)
     pline("What options do you want to set? ");
     getlin(buf);
     if (!buf[0] || buf[0] == '\033') {
-	(void) strcpy(buf, "HACKOPTIONS=");
-	(void) strcat(buf, flags.female ? "female," : "male,");
-	if (flags.standout)
-	    (void) strcat(buf, "standout,");
-	if (flags.nonull)
-	    (void) strcat(buf, "nonull,");
-	if (flags.nonews)
-	    (void) strcat(buf, "nonews,");
-	if (flags.time)
-	    (void) strcat(buf, "time,");
-	if (flags.notombstone)
-	    (void) strcat(buf, "notombstone,");
-	if (flags.no_rest_on_space)
-	    (void) strcat(buf, "!rest_on_space,");
-	if (flags.end_top != 5 || flags.end_around != 4 || flags.end_own) {
-	    (void) sprintf(eos(buf), "endgame: %u topscores/%u around me", flags.end_top, flags.end_around);
-	    if (flags.end_own)
-		(void) strcat(buf, "/own scores");
+	strcpy(buf, "HACKOPTIONS=");
+	if (_wflags.standout)
+	    strcat(buf, "standout,");
+	if (_wflags.nonull)
+	    strcat(buf, "nonull,");
+	if (_wflags.time)
+	    strcat(buf, "time,");
+	if (_wflags.notombstone)
+	    strcat(buf, "notombstone,");
+	if (_wflags.no_rest_on_space)
+	    strcat(buf, "!rest_on_space,");
+	if (_wflags.end_top != 5 || _wflags.end_around != 4 || _wflags.end_own) {
+	    sprintf(eos(buf), "endgame: %u topscores/%u around me", _wflags.end_top, _wflags.end_around);
+	    if (_wflags.end_own)
+		strcat(buf, "/own scores");
 	} else {
 	    char *eop = eos(buf);
 	    if (*--eop == ',')

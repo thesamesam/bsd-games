@@ -5,18 +5,20 @@
 #pragma once
 #include "../config.h"
 
+struct monst;
+struct obj;
+struct permonst;
+struct trap;
+struct gold;
+struct level;
+
 // alloc.c
-long *alloc(unsigned);
-long *enlarge(char *, unsigned);
+void* alloc (size_t n) __attribute__((malloc));
 
 // apply.c
 int doapply(void);
 int holetime(void);
 void dighole(void);
-
-// bones.c
-void savebones(void);
-int getbones(void);
 
 // hack.c
 void unsee(void);
@@ -61,7 +63,7 @@ void dropy(struct obj *);
 int doddrop(void);
 int dodown(void);
 int doup(void);
-void goto_level(int, bool);
+void goto_level (unsigned dest, bool at_stairs);
 int donull(void);
 int dopray(void);
 int dothrow(void);
@@ -71,11 +73,7 @@ void set_wounded_legs(long, int);
 void heal_legs(void);
 
 // do_name.c
-coord getpos(int, const char *);
-int do_mname(void);
-void do_oname(struct obj *);
-int ddocall(void);
-void docall(struct obj *);
+struct coord getpos(int force, const char *goal);
 char *xmonnam(struct monst *, int);
 char *lmonnam(struct monst *);
 char *monnam(struct monst *);
@@ -100,17 +98,6 @@ void glibr(void);
 struct obj *some_armor(void);
 void corrode_armor(void);
 
-// dog.c
-void makedog(void);
-void initedog(struct monst *);
-void losedogs(void);
-void keepdogs(void);
-void fall_down(struct monst *);
-int dogfood(struct obj *);
-int dog_move(struct monst *, int);
-int inroom(int, int);
-int tamedog(struct monst *, struct obj *);
-
 // eat.c
 void init_uhunger(void);
 int opentin(void);
@@ -127,21 +114,11 @@ int eatcorpse(struct obj *);
 // end.c
 int dodone(void);
 void done1(int);
-void done_intr(int);
-void done_hangup(int);
 void done_in_by(struct monst *);
-void done(const char *) __attribute__((noreturn));
-void topten(void);
-void outheader(void);
-struct toptenentry;
-int outentry(int, struct toptenentry *, int);
-char *itoa(int);
-const char *ordin(int);
-void clearlocks(void);
+void done (const char *) __attribute__((noreturn));
 void hangup(int) NORETURN;
 char *eos(char *);
-void charcat(char *, int);
-void prscore(int, char **);
+void savescore (void);
 
 // engrave.c
 struct engr *engr_at(int x, int y);
@@ -151,8 +128,8 @@ void wipe_engr_at(int x, int y, int cnt);
 void read_engr_at(int x, int y);
 void make_engr_at(int x, int y, const char *s);
 int doengrave(void);
-void save_engravings(int fd);
-void rest_engravings(int fd);
+void save_engravings (int fd, const struct engr* ehead);
+struct engr* rest_engravings(int fd);
 void del_engr(struct engr *ep);
 
 // fight.c
@@ -175,8 +152,8 @@ void deltrap(struct trap *);
 struct monst *m_at(int, int);
 struct obj *o_at(int, int);
 struct obj *sobj_at(int, int, int);
-int carried(struct obj *);
-int carrying(int);
+bool carried (const struct obj* o);
+bool carrying (int type);
 struct obj *o_on(unsigned int, struct obj *);
 struct trap *t_at(int, int);
 struct gold *g_at(int, int);
@@ -192,7 +169,7 @@ void doinv(char *);
 int dotypeinv(void);
 int dolook(void);
 void stackobj(struct obj *);
-int merged(struct obj *, struct obj *, int);
+bool merged(struct obj *, struct obj *, int);
 int countgold(void);
 int doprgold(void);
 int doprwep(void);
@@ -206,25 +183,24 @@ void setioctls(void);
 int dosuspend(void);
 
 // lev.c
-void savelev(int, int);
-void bwrite(int, const void *, unsigned);
-void saveobjchn(int, struct obj *);
-void savemonchn(int, struct monst *);
-void savegoldchn(int, struct gold *);
-void savetrapchn(int, struct trap *);
-void getlev(int, int, int);
-void mread(int, char *, unsigned);
+void savelev (int fd, const struct level* l);
+void bwrite (int, const void*, unsigned);
+void saveobjchn(int, const struct obj *);
+void savemonchn(int, const struct monst *);
+void getlev (int fd, struct level* l);
+void mread (int, void*, unsigned);
 void mklev(void);
+int inroom(int, int);
+void level_dtor (struct level* l);
 
 // main.c
-void glo(int);
 void askname(void);
-void impossible(const char *, ...) PRINTFLIKE(1,2);
+void impossible (const char* msg, ...) PRINTFLIKE(1,2);
 void stop_occupation(void);
 
 // makemon.c
 struct monst *makemon(const struct permonst *, int, int);
-coord enexto(int, int);
+struct coord enexto(int, int);
 int goodpos(int, int);
 void rloc(struct monst *);
 struct monst *mkmon_at(int, int, int);
@@ -240,7 +216,6 @@ void addrs(int, int, int, int);
 void addrsx(int, int, int, int, bool);
 struct mkroom;
 int comp(const void *, const void *);
-coord finddpos(int, int, int, int);
 int okdoor(int, int);
 void dodoor(int, int, struct mkroom *);
 void dosdoor(int, int, struct mkroom *, int);
@@ -257,7 +232,7 @@ void makemaz(void);
 void walkfrom(int, int);
 void move(int *, int *, int);
 int okay(int, int, int);
-coord mazexy(void);
+struct coord mazexy(void);
 
 // mkobj.c
 struct obj *mkobj_at(int, int, int);
@@ -282,43 +257,45 @@ int sq(int);
 
 // mon.c
 void movemon(void);
-void justswld(struct monst *, const char *);
-void youswld(struct monst *, int, int, const char *);
 int dochugw(struct monst *);
 int dochug(struct monst *);
-int m_move(struct monst *, int);
+int m_move(struct monst *);
 void mpickgold(struct monst *);
 void mpickgems(struct monst *);
-int mfndpos(struct monst *, coord[9], int[9], int);
+int mfndpos(struct monst *, struct coord[9], int[9], int);
 int dist(int, int);
 void poisoned(const char *, const char *);
 void mondead(struct monst *);
 void replmon(struct monst *, struct monst *);
 void relmon(struct monst *);
-void monfree(struct monst *);
-void dmonsfree(void);
-void unstuck(struct monst *);
+void monfree (struct monst *);
+void dmonsfree (void);
 void killed(struct monst *);
 void kludge(const char *, const char *);
-void rescham(void);
-int newcham(struct monst *, const struct permonst *);
 void mnexto(struct monst *);
 int ishuman(struct monst *);
 void setmangry(struct monst *);
 int canseemon(struct monst *);
+void fall_down(struct monst *);
 
 // monst.c
+const struct permonst* monster_by_char (char c);
+bool is_monster_genocided (char mlet);
+void make_monster_genocided (char mlet);
+void restgenocided (int fd);
+void savegenocided (int fd);
 
 // o_init.c
-int letindex(int);
+void set_object_known (unsigned oi);
+void set_object_unknown (unsigned oi);
+bool is_object_known (unsigned oi);
+uint8_t object_sym_base (char sym);
+const char* object_description (unsigned oi);
 void init_objects(void);
-int probtype(int);
-void setgemprobs(void);
-void oinit(void);
+unsigned probtype (char let);
 void savenames(int);
 void restnames(int);
 int dodiscovered(void);
-int interesting_to_discover(int);
 
 // objnam.c
 char *strprepend(char *, char *);
@@ -337,18 +314,12 @@ void parseoptions(char *, bool);
 int doset(void);
 
 // pager.c
-int dowhatis(void);
-void intruph(int);
-void page_more(FILE *, int);
 void set_whole_screen(void);
-int readnews(void);
-void set_pager(int);
-int page_line(const char *);
-void cornline(int, const char *);
-int dohelp(void);
-int page_file(const char *, bool);
-int dosh(void);
-int child(int);
+void set_pager (int mode);
+void cornline (int mode, const char* text);
+int page_line (const char *s);
+int dowhatis (void);
+int dohelp (void);
 
 // potion.c
 int dodrink(void);
@@ -360,8 +331,7 @@ int dodip(void);
 void ghost_from_bottle(void);
 
 // pri.c
-void swallowed(void);
-void panic(const char *, ...) PRINTFLIKE(1,2);
+void panic (const char* msg, ...) NORETURN PRINTFLIKE(1,2);
 void atl(int, int, int);
 void on_scr(int, int);
 void tmp_at(int, int);
@@ -405,28 +375,23 @@ void outrip(void);
 void center(int, char *);
 
 // rumors.c
-void init_rumors(FILE *);
-int skipline(FILE *);
-void outline(FILE *);
-void outrumor(void);
-int used(int);
+void print_rumor (void);
 
 // save.c
-int dosave(void);
-int dosave0(int);
-int dorecover(int);
-struct obj *restobjchn(int);
-struct monst *restmonchn(int);
+int dosave (void);
+bool dosave0 (bool failok);
+bool dorecover (void);
+struct obj* restobjchn (int fd);
+struct monst* restmonchn (int fd);
 
 // search.c
 int findit(void);
 int dosearch(void);
 int doidtrap(void);
 void wakeup(struct monst *);
-void seemimic(struct monst *);
 
 // shk.c
-void obfree(struct obj *, struct obj *);
+void obfree (struct obj *, struct obj *);
 void paybill(void);
 char *shkname(struct monst *);
 void shkdead(struct monst *);
@@ -489,15 +454,15 @@ void xmore(const char *);
 void more(void);
 void cmore(const char *);
 void clrlin(void);
-void pline(const char *, ...) PRINTFLIKE(1,2);
-void vpline(const char *, va_list) PRINTFLIKE(1,0);
+void pline (const char* msg, ...) PRINTFLIKE(1,2);
+void vpline (const char* msg, va_list) PRINTFLIKE(1,0);
 void putsym(int);
 void putstr(const char *);
 
 // track.c
 void initrack(void);
 void settrack(void);
-coord *gettrack(int, int);
+struct coord *gettrack(int, int);
 
 // trap.c
 struct trap *maketrap(int, int, int);
@@ -511,8 +476,6 @@ void tele(void);
 void teleds(int, int);
 int teleok(int, int);
 int dotele(void);
-void placebc(int);
-void unplacebc(void);
 void level_tele(void);
 void drown(void);
 
@@ -536,26 +499,14 @@ struct trobj;
 void ini_inv(struct trobj *);
 void wiz_inv(void);
 void plnamesuffix(void);
-int role_index(int);
+void you_dtor (void);
 
 // unix.c
-void setrandom(void);
-struct tm *getlt(void);
-int getyear(void);
-const char* getdatestr (void);
-int phase_of_the_moon(void);
-int night(void);
-int midnight(void);
-void gethdate(char *);
-int uptodate(int);
-int veryold(int);
-void getlock(void);
-void getmailstatus(void);
-void ckmailstatus(void);
-void newmail(void);
-void mdrush(struct monst *, bool);
-void readmail(void);
-void regularize(char *);
+int getyear (void);
+const char *getdatestr (void);
+int phase_of_the_moon (void);
+int night (void);
+int midnight (void);
 
 // vault.c
 void setgd(void);
@@ -580,21 +531,6 @@ void inrange(struct monst *);
 void aggravate(void);
 void clonewiz(struct monst *);
 
-// worm.c
-#ifndef NOWORM
-int getwn(struct monst *);
-void initworm(struct monst *);
-void worm_move(struct monst *);
-void worm_nomove(struct monst *);
-void wormdead(struct monst *);
-void wormhit(struct monst *);
-void wormsee(unsigned);
-struct wseg;
-void pwseg(struct wseg *);
-void cutworm(struct monst *, int, int, int);
-void remseg(struct wseg *);
-#endif
-
 // worn.c
 void setworn(struct obj *, long);
 void setnotworn(struct obj *);
@@ -617,7 +553,7 @@ void fracture_rock(struct obj *);
 void burn_scrolls(void);
 
 // rnd.c
-int rn1(int, int);
-int rn2(int);
-int rnd(int);
-int d(int, int);
+unsigned rn1 (unsigned, unsigned);
+unsigned rn2 (unsigned);
+unsigned rnd (unsigned);
+unsigned d (unsigned, unsigned);

@@ -12,8 +12,7 @@ static long noisetime;
 int hitmm(struct monst *magr, struct monst *mdef)
 {
     const struct permonst *pa = magr->data, *pd = mdef->data;
-    int hit;
-    schar tmp;
+    int8_t tmp;
     bool vis;
     if (strchr("Eauy", pa->mlet))
 	return 0;
@@ -25,47 +24,33 @@ int hitmm(struct monst *magr, struct monst *mdef)
 	if (mdef->msleep)
 	    mdef->msleep = 0;
     }
-    hit = (tmp > rnd(20));
+    bool hit = (tmp > (int) rnd(20));
     if (hit)
 	mdef->msleep = 0;
     vis = (cansee(magr->mx, magr->my) && cansee(mdef->mx, mdef->my));
     if (vis) {
 	char buf[BUFSZ];
-	if (mdef->mimic)
-	    seemimic(mdef);
-	if (magr->mimic)
-	    seemimic(magr);
-	(void) sprintf(buf, "%s %s", Monnam(magr), hit ? "hits" : "misses");
+	sprintf(buf, "%s %s", Monnam(magr), hit ? "hits" : "misses");
 	pline("%s %s.", buf, monnam(mdef));
     } else {
 	bool far = (dist(magr->mx, magr->my) > 15);
-	if (far != far_noise || moves - noisetime > 10) {
+	if (far != far_noise || _u.moves - noisetime > 10) {
 	    far_noise = far;
-	    noisetime = moves;
+	    noisetime = _u.moves;
 	    pline("You hear some noises%s.", far ? " in the distance" : "");
 	}
     }
     if (hit) {
-	if (magr->data->mlet == 'c' && !magr->cham) {
+	if (magr->data->mlet == 'c') {
 	    magr->mhpmax += 3;
 	    if (vis)
 		pline("%s is turned to stone!", Monnam(mdef));
-	    else if (mdef->mtame)
-		pline("You have a peculiarly sad feeling for a moment, then it passes.");
 	    monstone(mdef);
 	    hit = 2;
 	} else if ((mdef->mhp -= d(pa->damn, pa->damd)) < 1) {
 	    magr->mhpmax += 1 + rn2(pd->mlevel + 1);
-	    if (magr->mtame && magr->mhpmax > 8 * pa->mlevel) {
-		if (pa == &li_dog)
-		    magr->data = pa = &dog;
-		else if (pa == &dog)
-		    magr->data = pa = &la_dog;
-	    }
 	    if (vis)
 		pline("%s is killed!", Monnam(mdef));
-	    else if (mdef->mtame)
-		pline("You have a sad feeling for a moment, then it passes.");
 	    mondied(mdef);
 	    hit = 2;
 	}
@@ -78,12 +63,12 @@ void mondied(struct monst *mdef)
 {
     const struct permonst *pd = mdef->data;
     if (letter(pd->mlet) && rn2(3)) {
-	(void) mkobj_at(pd->mlet, mdef->mx, mdef->my);
+	mkobj_at(pd->mlet, mdef->mx, mdef->my);
 	if (cansee(mdef->mx, mdef->my)) {
 	    unpmon(mdef);
-	    atl(mdef->mx, mdef->my, fobj->olet);
+	    atl(mdef->mx, mdef->my, _level->objects->olet);
 	}
-	stackobj(fobj);
+	stackobj(_level->objects);
     }
     mondead(mdef);
 }
@@ -97,20 +82,16 @@ void monstone(struct monst *mdef)
 	mksobj_at(ROCK, mdef->mx, mdef->my);
     if (cansee(mdef->mx, mdef->my)) {
 	unpmon(mdef);
-	atl(mdef->mx, mdef->my, fobj->olet);
+	atl(mdef->mx, mdef->my, _level->objects->olet);
     }
     mondead(mdef);
 }
 
-int fightm(struct monst *mtmp)
+int fightm (struct monst* fm)
 {
-    struct monst *mon;
-    for (mon = fmon; mon; mon = mon->nmon)
-	if (mon != mtmp) {
-	    if (DIST(mon->mx, mon->my, mtmp->mx, mtmp->my) < 3)
-		if (rn2(4))
-		    return hitmm(mtmp, mon);
-	}
+    for (struct monst* m = _level->monsters; m; m = m->nmon)
+	if (m != fm && DIST(m->mx, m->my, fm->mx, fm->my) < 3 && rn2(4))
+	    return hitmm (fm, m);
     return -1;
 }
 
@@ -119,7 +100,7 @@ int thitu(int tlev, int dam, const char *name)
 {
     char buf[BUFSZ];
     setan(name, buf);
-    if (u.uac + tlev <= rnd(20)) {
+    if (_u.uac + tlev <= (int) rnd(20)) {
 	if (Blind)
 	    pline("It misses.");
 	else
@@ -155,36 +136,33 @@ bool hmon(			// return true if mon still alive
 	    tmp = rnd(2);
 	else {
 	    if (strchr(mlarge, mon->data->mlet)) {
-		tmp = rnd(objects[obj->otyp].wldam);
+		tmp = rnd(c_Objects[obj->otyp].wldam);
 		if (obj->otyp == TWO_HANDED_SWORD)
 		    tmp += d(2, 6);
 		else if (obj->otyp == FLAIL)
 		    tmp += rnd(4);
 	    } else {
-		tmp = rnd(objects[obj->otyp].wsdam);
+		tmp = rnd(c_Objects[obj->otyp].wsdam);
 	    }
 	    tmp += obj->spe;
 	    if (!thrown && obj == uwep && obj->otyp == BOOMERANG && !rn2(3)) {
-		pline("As you hit %s, the boomerang breaks into splinters.", monnam(mon));
-		freeinv(obj);
-		setworn((struct obj *) 0, obj->owornmask);
-		obfree(obj, (struct obj *) 0);
-		tmp++;
+		pline ("As you hit %s, the boomerang breaks into splinters.", monnam(mon));
+		freeinv (obj);
+		setworn (NULL, obj->owornmask);
+		obfree (obj, NULL);
+		++tmp;
 	    }
 	}
-	if (mon->data->mlet == 'O' && obj->otyp == TWO_HANDED_SWORD && !strcmp(ONAME(obj), "Orcrist"))
+	if (mon->data->mlet == 'O' && obj->otyp == TWO_HANDED_SWORD)
 	    tmp += rnd(10);
     } else
 	switch (obj->otyp) {
-	    case HEAVY_IRON_BALL:
-		tmp = rnd(25);
-		break;
 	    case EXPENSIVE_CAMERA:
 		pline("You succeed in destroying your camera. Congratulations!");
 		freeinv(obj);
 		if (obj->owornmask)
-		    setworn((struct obj *) 0, obj->owornmask);
-		obfree(obj, (struct obj *) 0);
+		    setworn (NULL, obj->owornmask);
+		obfree (obj, NULL);
 		return true;
 	    case DEAD_COCKATRICE:
 		pline("You hit %s with the cockatrice corpse.", monnam(mon));
@@ -215,13 +193,7 @@ bool hmon(			// return true if mon still alive
 
 	// NOTE: perhaps obj is undefined!! (if !thrown && BOOMERANG)
 
-    tmp += u.udaminc + dbon();
-    if (u.uswallow) {
-	if ((tmp -= u.uswldtim) <= 0) {
-	    pline("Your arms are no longer able to hit.");
-	    return true;
-	}
-    }
+    tmp += _u.udaminc + dbon();
     if (tmp < 1)
 	tmp = 1;
     mon->mhp -= tmp;
@@ -229,35 +201,31 @@ bool hmon(			// return true if mon still alive
 	killed(mon);
 	return false;
     }
-    if (mon->mtame && (!mon->mflee || mon->mfleetim)) {
-	mon->mflee = 1;	       // Rick Richardson
-	mon->mfleetim += 10 * rnd(tmp);
-    }
     if (!hittxt) {
 	if (thrown)	// this assumes that we cannot throw plural things
-	    hit (xname(obj), mon, exclam(tmp));	// or: objects[obj->otyp].oc_name
+	    hit (xname(obj), mon, exclam(tmp));	// or: c_Objects[obj->otyp].oc_name
 	else if (Blind)
 	    pline("You hit it.");
 	else
 	    pline("You hit %s%s", monnam(mon), exclam(tmp));
     }
-    if (u.umconf && !thrown) {
+    if (_u.umconf && !thrown) {
 	if (!Blind) {
 	    pline("Your hands stop glowing blue.");
 	    if (!mon->mfroz && !mon->msleep)
 		pline("%s appears confused.", Monnam(mon));
 	}
 	mon->mconf = 1;
-	u.umconf = 0;
+	_u.umconf = 0;
     }
     return true;	       // mon still alive
 }
 
 // try to attack; return false if monster evaded
-// u.dx and u.dy must be set
+// _u.dx and _u.dy must be set
 int attack(struct monst *mtmp)
 {
-    schar tmp;
+    int8_t tmp;
     bool malive = true;
     const struct permonst *mdat;
     mdat = mtmp->data;
@@ -271,26 +239,10 @@ int attack(struct monst *mtmp)
 	    && !mtmp->mconf
 	    && mtmp->mcansee
 	    && !rn2(7)
-	    && (m_move(mtmp, 0) == 2 // he died
-		|| mtmp->mx != u.ux + u.dx || mtmp->my != u.uy + u.dy))	// he moved:
+	    && (m_move(mtmp) == 2 // he died
+		|| mtmp->mx != _u.ux + _u.dx || mtmp->my != _u.uy + _u.dy))	// he moved:
 	return false;
 
-    if (mtmp->mimic) {
-	if (!u.ustuck && !mtmp->mflee)
-	    u.ustuck = mtmp;
-	switch (levl[u.ux + u.dx][u.uy + u.dy].scrsym) {
-	    case '+':
-		pline("The door actually was a Mimic.");
-		break;
-	    case '$':
-		pline("The chest was a Mimic!");
-		break;
-	    default:
-		pline("Wait! That's a Mimic!");
-	}
-	wakeup(mtmp);	       // clears mtmp->mimic
-	return true;
-    }
     wakeup(mtmp);
 
     if (mtmp->mhide && mtmp->mundetected) {
@@ -301,7 +253,7 @@ int attack(struct monst *mtmp)
 	    pline("Wait! There's a %s hiding under %s!", mdat->mname, doname(obj));
 	return true;
     }
-    tmp = u.uluck + u.ulevel + mdat->ac + abon();
+    tmp = _u.uluck + _u.ulevel + mdat->ac + abon();
     if (uwep) {
 	if (uwep->olet == WEAPON_SYM || uwep->otyp == PICK_AXE)
 	    tmp += uwep->spe;
@@ -309,8 +261,6 @@ int attack(struct monst *mtmp)
 	    tmp -= 1;
 	else if (uwep->otyp == DAGGER)
 	    tmp += 2;
-	else if (uwep->otyp == CRYSKNIFE)
-	    tmp += 3;
 	else if (uwep->otyp == SPEAR && strchr("XDne", mdat->mlet))
 	    tmp += 2;
     }
@@ -325,13 +275,13 @@ int attack(struct monst *mtmp)
     }
     if (mtmp->mflee)
 	tmp += 2;
-    if (u.utrap)
+    if (_u.utrap)
 	tmp -= 3;
 
     // with a lot of luggage, your agility diminishes
     tmp -= (inv_weight() + 40) / 20;
 
-    if (tmp <= rnd(20) && !u.uswallow) {
+    if (tmp <= (int) rnd(20)) {
 	if (Blind)
 	    pline("You miss it.");
 	else
@@ -345,13 +295,7 @@ int attack(struct monst *mtmp)
 		mtmp->mflee = 1;
 		if (!rn2(3))
 		    mtmp->mfleetim = rnd(100);
-		if (u.ustuck == mtmp && !u.uswallow)
-		    u.ustuck = 0;
 	    }
-#ifndef NOWORM
-	    if (mtmp->wormno)
-		cutworm(mtmp, u.ux + u.dx, u.uy + u.dy, uwep ? uwep->otyp : 0);
-#endif				// NOWORM
 	}
 	if (mdat->mlet == 'a') {
 	    if (rn2(2)) {
@@ -368,12 +312,12 @@ int attack(struct monst *mtmp)
 	&& !mtmp->mcan && rn2(3)) {
 	if (mtmp->mcansee) {
 	    pline("You are frozen by the floating eye's gaze!");
-	    nomul((u.ulevel > 6 || rn2(4)) ? rn1(20, -21) : -200);
+	    nomul((_u.ulevel > 6 || rn2(4)) ? -21+(int)nrand(20) : -200);
 	} else {
 	    pline("The blinded floating eye cannot defend itself.");
 	    if (!rn2(500))
-		if ((int) u.uluck > LUCKMIN)
-		    u.uluck--;
+		if ((int) _u.uluck > LUCKMIN)
+		    --_u.uluck;
 	}
     }
     return true;

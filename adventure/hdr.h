@@ -18,8 +18,7 @@
 #include "vocab.h"
 #include <signal.h>
 
-#define ADVENTURE_SAVE_DIR	"%s/.local/share/"
-#define ADVENTURE_SAVE_NAME	ADVENTURE_SAVE_DIR "adventure.save"
+#define ADVENTURE_SAVE_NAME	_PATH_SAVED_GAMES "adventure.save"
 
 extern int datfd;		// message file descriptor
 extern volatile sig_atomic_t delhit;

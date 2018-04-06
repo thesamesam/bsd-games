@@ -18,8 +18,6 @@ struct worn {
     W_RINGL, &uleft}, {
     W_RINGR, &uright}, {
     W_WEP, &uwep}, {
-    W_BALL, &uball}, {
-    W_CHAIN, &uchain}, {
     0, 0}
 };
 
@@ -28,7 +26,7 @@ void setworn(struct obj *obj, long mask)
     struct worn *wp;
     struct obj *oobj;
 
-    for (wp = worn; wp->w_mask; wp++)
+    for (wp = worn; wp->w_mask; ++wp)
 	if (wp->w_mask & mask) {
 	    oobj = *(wp->w_obj);
 	    if (oobj && !(oobj->owornmask & wp->w_mask))
@@ -57,7 +55,7 @@ void setnotworn(struct obj *obj)
 {
     struct worn *wp;
 
-    for (wp = worn; wp->w_mask; wp++)
+    for (wp = worn; wp->w_mask; ++wp)
 	if (obj == *(wp->w_obj)) {
 	    *(wp->w_obj) = 0;
 	    obj->owornmask &= ~wp->w_mask;

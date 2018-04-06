@@ -20,10 +20,10 @@ void bhitm(struct monst *mtmp, struct obj *otmp)
     wakeup(mtmp);
     switch (otmp->otyp) {
 	case WAN_STRIKING:
-	    if (u.uswallow || rnd(20) < 10 + mtmp->data->ac) {
-		int tmp = d(2, 12);
-		hit("wand", mtmp, exclam(tmp));
-		mtmp->mhp -= tmp;
+	    if ((int) rnd(20) < mtmp->data->ac + 10) {
+		unsigned r = d(2, 12);
+		hit("wand", mtmp, exclam(r));
+		mtmp->mhp -= r;
 		if (mtmp->mhp < 1)
 		    killed(mtmp);
 	    } else
@@ -44,10 +44,6 @@ void bhitm(struct monst *mtmp, struct obj *otmp)
 		    mtmp->mflee = 1;
 	    }
 	    break;
-	case WAN_POLYMORPH:
-	    if (newcham(mtmp, &mons[rn2(CMNUM)]))
-		objects[otmp->otyp].oc_name_known = 1;
-	    break;
 	case WAN_CANCELLATION:
 	    mtmp->mcan = 1;
 	    break;
@@ -57,11 +53,6 @@ void bhitm(struct monst *mtmp, struct obj *otmp)
 	case WAN_MAKE_INVISIBLE:
 	    mtmp->minvis = 1;
 	    break;
-#ifdef WAN_PROBING
-	case WAN_PROBING:
-	    mstatusline(mtmp);
-	    break;
-#endif				// WAN_PROBING
 	default:
 	    impossible("What an interesting wand (%u)", otmp->otyp);
     }
@@ -72,54 +63,48 @@ void bhitm(struct monst *mtmp, struct obj *otmp)
 int bhito (struct obj *obj, struct obj *otmp)
 {
     int res = true;
-    if (obj == uball || obj == uchain)
-	res = false;
-    else
-	switch (otmp->otyp) {
-	    case WAN_POLYMORPH:
-		// preserve symbol and quantity, but turn rocks into gems
-		mkobj_at((obj->otyp == ROCK || obj->otyp == ENORMOUS_ROCK)
-			 ? GEM_SYM : obj->olet, obj->ox, obj->oy)->quan = obj->quan;
-		delobj(obj);
-		break;
-	    case WAN_STRIKING:
-		if (obj->otyp == ENORMOUS_ROCK)
-		    fracture_rock(obj);
-		else
-		    res = false;
-		break;
-	    case WAN_CANCELLATION:
-		if (obj->spe && obj->olet != AMULET_SYM) {
-		    obj->known = 0;
-		    obj->spe = 0;
-		}
-		break;
-	    case WAN_TELEPORTATION:
-		rloco(obj);
-		break;
-	    case WAN_MAKE_INVISIBLE:
-		obj->oinvis = 1;
-		break;
-	    case WAN_UNDEAD_TURNING:
-		res = revive(obj);
-		break;
-	    case WAN_SLOW_MONSTER:	// no effect on objects
-	    case WAN_SPEED_MONSTER:
-#ifdef WAN_PROBING
-	    case WAN_PROBING:
-#endif				// WAN_PROBING
+    switch (otmp->otyp) {
+	case WAN_POLYMORPH:
+	    // preserve symbol and quantity, but turn rocks into gems
+	    mkobj_at((obj->otyp == ROCK || obj->otyp == ENORMOUS_ROCK)
+		     ? GEM_SYM : obj->olet, obj->ox, obj->oy)->quan = obj->quan;
+	    delobj(obj);
+	    break;
+	case WAN_STRIKING:
+	    if (obj->otyp == ENORMOUS_ROCK)
+		fracture_rock(obj);
+	    else
 		res = false;
-		break;
-	    default:
-		impossible("What an interesting wand (%u)", otmp->otyp);
-	}
+	    break;
+	case WAN_CANCELLATION:
+	    if (obj->spe && obj->olet != AMULET_SYM) {
+		obj->known = 0;
+		obj->spe = 0;
+	    }
+	    break;
+	case WAN_TELEPORTATION:
+	    rloco(obj);
+	    break;
+	case WAN_MAKE_INVISIBLE:
+	    obj->oinvis = 1;
+	    break;
+	case WAN_UNDEAD_TURNING:
+	    res = revive(obj);
+	    break;
+	case WAN_SLOW_MONSTER:	// no effect on objects
+	case WAN_SPEED_MONSTER:
+	    res = false;
+	    break;
+	default:
+	    impossible("What an interesting wand (%u)", otmp->otyp);
+    }
     return res;
 }
 
 int dozap(void)
 {
     struct obj *obj;
-    xchar zx, zy;
+    int8_t zx, zy;
 
     obj = getobj("/", "zap");
     if (!obj)
@@ -130,20 +115,18 @@ int dozap(void)
     }
     if (obj->spe == 0)
 	pline("You wrest one more spell from the worn-out wand.");
-    if (!(objects[obj->otyp].bits & NODIR) && !getdir(1))
+    if (!(c_Objects[obj->otyp].bits & NODIR) && !getdir(1))
 	return 1;	       // make him pay for knowing !NODIR
-    obj->spe--;
-    if (objects[obj->otyp].bits & IMMEDIATE) {
-	if (u.uswallow)
-	    bhitm(u.ustuck, obj);
-	else if (u.dz) {
-	    if (u.dz > 0) {
-		struct obj *otmp = o_at(u.ux, u.uy);
+    --obj->spe;
+    if (c_Objects[obj->otyp].bits & IMMEDIATE) {
+	if (_u.dz) {
+	    if (_u.dz > 0) {
+		struct obj *otmp = o_at(_u.ux, _u.uy);
 		if (otmp)
-		    (void) bhito(otmp, obj);
+		    bhito(otmp, obj);
 	    }
 	} else
-	    (void) bhit(u.dx, u.dy, rn1(8, 6), 0, bhitm, bhito, obj);
+	    bhit(_u.dx, _u.dy, rn1(8, 6), 0, bhitm, bhito, obj);
     } else {
 	switch (obj->otyp) {
 	    case WAN_LIGHT:
@@ -155,28 +138,27 @@ int dozap(void)
 		break;
 	    case WAN_CREATE_MONSTER:
 		{
-		    int cnt = 1;
+		    unsigned cnt = 1;
 		    if (!rn2(23))
 			cnt += rn2(7) + 1;
 		    while (cnt--)
-			(void) makemon((struct permonst *) 0, u.ux, u.uy);
+			makemon (NULL, _u.ux, _u.uy);
 		}
 		break;
 	    case WAN_WISHING:
 		{
 		    char buf[BUFSZ];
-		    struct obj *otmp;
-		    if (u.uluck + rn2(5) < 0) {
+		    if (_u.uluck < -(int)rn2(5)) {
 			pline("Unfortunately, nothing happens.");
 			break;
 		    }
-		    pline("You may wish for an object. What do you want? ");
-		    getlin(buf);
+		    pline ("You may wish for an object. What do you want? ");
+		    getlin (buf);
 		    if (buf[0] == '\033')
 			buf[0] = 0;
-		    otmp = readobjnam(buf);
-		    otmp = addinv(otmp);
-		    prinv(otmp);
+		    struct obj* o = readobjnam(buf);
+		    o = addinv(o);
+		    prinv(o);
 		    break;
 		}
 	    case WAN_DIGGING:
@@ -188,40 +170,31 @@ int dozap(void)
 		{
 		    struct rm *room;
 		    int digdepth;
-		    if (u.uswallow) {
-			struct monst *mtmp = u.ustuck;
-
-			pline("You pierce %s's stomach wall!", monnam(mtmp));
-			mtmp->mhp = 1;	// almost dead
-			unstuck(mtmp);
-			mnexto(mtmp);
-			break;
-		    }
-		    if (u.dz) {
-			if (u.dz < 0) {
+		    if (_u.dz) {
+			if (_u.dz < 0) {
 			    pline("You loosen a rock from the ceiling.");
 			    pline("It falls on your head!");
 			    losehp(1, "falling rock");
-			    mksobj_at(ROCK, u.ux, u.uy);
-			    fobj->quan = 1;
-			    stackobj(fobj);
+			    mksobj_at(ROCK, _u.ux, _u.uy);
+			    _level->objects->quan = 1;
+			    stackobj(_level->objects);
 			    if (Invisible)
-				newsym(u.ux, u.uy);
+				newsym(_u.ux, _u.uy);
 			} else {
 			    dighole();
 			}
 			break;
 		    }
-		    zx = u.ux + u.dx;
-		    zy = u.uy + u.dy;
+		    zx = _u.ux + _u.dx;
+		    zy = _u.uy + _u.dy;
 		    digdepth = 8 + rn2(18);
 		    Tmp_at(-1, '*');	// open call
 		    while (--digdepth >= 0) {
 			if (!isok(zx, zy))
 			    break;
-			room = &levl[zx][zy];
+			room = &_level->l[zx][zy];
 			Tmp_at(zx, zy);
-			if (!xdnstair) {
+			if (!_level->stair.dn.x) {
 			    if (zx < 3 || zx > COLNO - 3 || zy < 3 || zy > ROWNO - 3)
 				break;
 			    if (room->typ == HWALL || room->typ == VWALL) {
@@ -233,22 +206,22 @@ int dozap(void)
 			    digdepth -= 2;
 			} else if (room->typ == SCORR || !room->typ) {
 			    room->typ = CORR;
-			    digdepth--;
+			    --digdepth;
 			}
 			mnewsym(zx, zy);
-			zx += u.dx;
-			zy += u.dy;
+			zx += _u.dx;
+			zy += _u.dy;
 		    }
 		    mnewsym(zx, zy);	// not always necessary
 		    Tmp_at(-1, -1);	// closing call
 		    break;
 		}
 	    default:
-		buzz((int) obj->otyp - WAN_MAGIC_MISSILE, u.ux, u.uy, u.dx, u.dy);
+		buzz((int) obj->otyp - WAN_MAGIC_MISSILE, _u.ux, _u.uy, _u.dx, _u.dy);
 		break;
 	}
-	if (!objects[obj->otyp].oc_name_known) {
-	    objects[obj->otyp].oc_name_known = 1;
+	if (!is_object_known (obj->otyp)) {
+	    set_object_known (obj->otyp);
 	    more_experienced(0, 10);
 	}
     }
@@ -287,7 +260,6 @@ void miss(const char *str, struct monst *mtmp)
 // the final position of the weapon thrown; the ray of a wand may affect
 // several objects and monsters on its path - for each of these an argument
 // function is called.
-// check !u.uswallow before calling bhit()
 // range - direction and range
 // sym - symbol displayed on path
 // obj - 2nd arg to fhitm/fhito
@@ -297,15 +269,15 @@ struct monst *bhit (int ddx, int ddy, int range, int sym, void (*fhitm) (struct 
     struct obj *otmp;
     int typ;
 
-    bhitpos.x = u.ux;
-    bhitpos.y = u.uy;
+    bhitpos.x = _u.ux;
+    bhitpos.y = _u.uy;
 
     if (sym)
 	tmp_at(-1, sym);       // open call
     while (range-- > 0) {
 	bhitpos.x += ddx;
 	bhitpos.y += ddy;
-	typ = levl[bhitpos.x][bhitpos.y].typ;
+	typ = _level->l[bhitpos.x][bhitpos.y].typ;
 	if ((mtmp = m_at(bhitpos.x, bhitpos.y)) != NULL) {
 	    if (sym) {
 		tmp_at(-1, -1);	// close call
@@ -316,7 +288,7 @@ struct monst *bhit (int ddx, int ddy, int range, int sym, void (*fhitm) (struct 
 	}
 	if (fhito && (otmp = o_at(bhitpos.x, bhitpos.y))) {
 	    if ((*fhito) (otmp, obj))
-		range--;
+		--range;
 	}
 	if (!ZAP_POS(typ)) {
 	    bhitpos.x -= ddx;
@@ -329,7 +301,7 @@ struct monst *bhit (int ddx, int ddy, int range, int sym, void (*fhitm) (struct 
 
     // leave last symbol unless in a pool
     if (sym)
-	tmp_at(-1, (levl[bhitpos.x][bhitpos.y].typ == POOL) ? -1 : 0);
+	tmp_at(-1, (_level->l[bhitpos.x][bhitpos.y].typ == POOL) ? -1 : 0);
     return 0;
 }
 
@@ -339,14 +311,14 @@ struct monst *boomhit(int dx, int dy)
     struct monst *mtmp;
     char sym = ')';
 
-    bhitpos.x = u.ux;
-    bhitpos.y = u.uy;
+    bhitpos.x = _u.ux;
+    bhitpos.y = _u.uy;
 
-    for (i = 0; i < 8; i++)
+    for (i = 0; i < 8; ++i)
 	if (xdir[i] == dx && ydir[i] == dy)
 	    break;
     tmp_at(-1, sym);	       // open call
-    for (ct = 0; ct < 10; ct++) {
+    for (ct = 0; ct < 10; ++ct) {
 	if (i == 8)
 	    i = 0;
 	sym = ')' + '(' - sym;
@@ -359,14 +331,14 @@ struct monst *boomhit(int dx, int dy)
 	    tmp_at(-1, -1);
 	    return mtmp;
 	}
-	if (!ZAP_POS(levl[bhitpos.x][bhitpos.y].typ)) {
+	if (!ZAP_POS(_level->l[bhitpos.x][bhitpos.y].typ)) {
 	    bhitpos.x -= dx;
 	    bhitpos.y -= dy;
 	    break;
 	}
-	if (bhitpos.x == u.ux && bhitpos.y == u.uy) {	// ct == 9
-	    if (rn2(20) >= 10 + u.ulevel) {	// we hit ourselves
-		(void) thitu(10, rnd(10), "boomerang");
+	if (bhitpos.x == _u.ux && bhitpos.y == _u.uy) {	// ct == 9
+	    if (rn2(20) >= _u.ulevel+10u) {	// we hit ourselves
+		thitu(10, rnd(10), "boomerang");
 		break;
 	    } else {	       // we catch it
 		tmp_at(-1, -1);
@@ -376,7 +348,7 @@ struct monst *boomhit(int dx, int dy)
 	}
 	tmp_at(bhitpos.x, bhitpos.y);
 	if (ct % 5 != 0)
-	    i++;
+	    ++i;
     }
     tmp_at(-1, -1);	       // do not leave last symbol
     return 0;
@@ -395,18 +367,9 @@ void buzz(int type, int sx, int sy, int dx, int dy)
     int abstype = abs(type);
     const char *fltxt = (type == -1) ? "blaze of fire" : fl[abstype];
     struct rm *lev;
-    xchar range;
+    int8_t range;
     struct monst *mon;
 
-    if (u.uswallow) {
-	int tmp;
-
-	if (type < 0)
-	    return;
-	tmp = zhit(u.ustuck, type);
-	pline("The %s rips into %s%s", fltxt, monnam(u.ustuck), exclam(tmp));
-	return;
-    }
     if (type < 0)
 	pru();
     range = rn1(7, 7);
@@ -414,15 +377,15 @@ void buzz(int type, int sx, int sy, int dx, int dy)
     while (range-- > 0) {
 	sx += dx;
 	sy += dy;
-	if ((lev = &levl[sx][sy])->typ)
+	if ((lev = &_level->l[sx][sy])->typ)
 	    Tmp_at(sx, sy);
 	else {
 	    int bounce = 0;
 	    if (cansee(sx - dx, sy - dy))
 		pline("The %s bounces!", fltxt);
-	    if (ZAP_POS(levl[sx][sy - dy].typ))
+	    if (ZAP_POS(_level->l[sx][sy - dy].typ))
 		bounce = 1;
-	    if (ZAP_POS(levl[sx - dx][sy].typ)) {
+	    if (ZAP_POS(_level->l[sx - dx][sy].typ)) {
 		if (!bounce || rn2(2))
 		    bounce = 2;
 	    }
@@ -454,7 +417,7 @@ void buzz(int type, int sx, int sy, int dx, int dy)
 	}
 	if ((mon = m_at(sx, sy)) && (type != -1 || mon->data->mlet != 'D')) {
 	    wakeup(mon);
-	    if (rnd(20) < 18 + mon->data->ac) {
+	    if ((int) rnd(20) < mon->data->ac+18) {
 		int tmp = zhit(mon, abstype);
 		if (mon->mhp < 1) {
 		    if (type < 0) {
@@ -468,9 +431,9 @@ void buzz(int type, int sx, int sy, int dx, int dy)
 		range -= 2;
 	    } else
 		miss(fltxt, mon);
-	} else if (sx == u.ux && sy == u.uy) {
+	} else if (sx == _u.ux && sy == _u.uy) {
 	    nomul(0);
-	    if (rnd(20) < 18 + u.uac) {
+	    if ((int) rnd(20) < _u.uac+18) {
 		int dam = 0;
 		range -= 2;
 		pline("The %s hits you!", fltxt);
@@ -496,7 +459,7 @@ void buzz(int type, int sx, int sy, int dx, int dy)
 			    dam = d(6, 6);
 			break;
 		    case 4:
-			u.uhp = -1;
+			_u.uhp = -1;
 		}
 		losehp(dam, fltxt);
 	    } else
@@ -507,14 +470,14 @@ void buzz(int type, int sx, int sy, int dx, int dy)
 	    int bounce = 0, rmn;
 	    if (cansee(sx, sy))
 		pline("The %s bounces!", fltxt);
-	    range--;
+	    --range;
 	    if (!dx || !dy || !rn2(20)) {
 		dx = -dx;
 		dy = -dy;
 	    } else {
-		if (ZAP_POS(rmn = levl[sx][sy - dy].typ) && (IS_ROOM(rmn) || ZAP_POS(levl[sx + dx][sy - dy].typ)))
+		if (ZAP_POS(rmn = _level->l[sx][sy - dy].typ) && (IS_ROOM(rmn) || ZAP_POS(_level->l[sx + dx][sy - dy].typ)))
 		    bounce = 1;
-		if (ZAP_POS(rmn = levl[sx - dx][sy].typ) && (IS_ROOM(rmn) || ZAP_POS(levl[sx - dx][sy + dy].typ)))
+		if (ZAP_POS(rmn = _level->l[sx - dx][sy].typ) && (IS_ROOM(rmn) || ZAP_POS(_level->l[sx - dx][sy + dy].typ)))
 		    if (!bounce || rn2(2))
 			bounce = 2;
 
@@ -628,7 +591,7 @@ void burn_scrolls(void)
     for (obj = invent; obj; obj = obj2) {
 	obj2 = obj->nobj;
 	if (obj->olet == SCROLL_SYM) {
-	    cnt++;
+	    ++cnt;
 	    useup(obj);
 	}
     }

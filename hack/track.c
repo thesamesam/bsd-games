@@ -7,7 +7,7 @@
 
 #define	UTSZ	50
 
-coord utrack[UTSZ];
+struct coord utrack[UTSZ];
 int utcnt = 0;
 int utpnt = 0;
 
@@ -20,20 +20,20 @@ void initrack(void)
 void settrack(void)
 {
     if (utcnt < UTSZ)
-	utcnt++;
+	++utcnt;
     if (utpnt == UTSZ)
 	utpnt = 0;
-    utrack[utpnt].x = u.ux;
-    utrack[utpnt].y = u.uy;
-    utpnt++;
+    utrack[utpnt].x = _u.ux;
+    utrack[utpnt].y = _u.uy;
+    ++utpnt;
 }
 
-coord *gettrack(int x, int y)
+struct coord *gettrack(int x, int y)
 {
     int i, cnt, dist;
-    coord tc;
+    struct coord tc;
     cnt = utcnt;
-    for (i = utpnt - 1; cnt--; i--) {
+    for (i = utpnt - 1; cnt--; --i) {
 	if (i == -1)
 	    i = UTSZ - 1;
 	tc = utrack[i];

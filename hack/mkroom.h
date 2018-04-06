@@ -5,17 +5,14 @@
 #pragma once
 
 struct mkroom {
-    schar lx, hx, ly, hy;	// usually xchar, but hx may be -1
-    schar rtype, rlit, doorct, fdoor;
+    int8_t lx, hx, ly, hy;	// usually int8_t, but hx may be -1
+    int8_t rtype, rlit, doorct, fdoor;
 };
 
 enum {
     MAXNROFROOMS = 15,
     DOORMAX = 100
 };
-
-extern struct mkroom rooms [MAXNROFROOMS+1];
-extern coord doors [DOORMAX];
 
 // various values of rtype
 // 0: ordinary room; 8-15: various shops

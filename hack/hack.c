@@ -5,38 +5,30 @@
 #include "hack.h"
 #include "extern.h"
 
-// called on movement: 1. when throwing ball+chain far away 2. when
-// teleporting 3. when walking out of a lit room
+// called when teleporting or when walking out of a lit room
 void unsee(void)
 {
-    int x, y;
-    struct rm *lev;
-
-    // if(u.udispl){
-    // u.udispl = 0;
-    // newsym(u.udisx, u.udisy);
-    // }
-#ifndef QUEST
-    if (seehx) {
+    if (seehx)
 	seehx = 0;
-    } else
-#endif				// QUEST
-	for (x = u.ux - 1; x < u.ux + 2; x++)
-	    for (y = u.uy - 1; y < u.uy + 2; y++) {
+    else {
+	for (int x = _u.ux - 1; x < _u.ux + 2; ++x) {
+	    for (int y = _u.uy - 1; y < _u.uy + 2; ++y) {
 		if (!isok(x, y))
 		    continue;
-		lev = &levl[x][y];
+		struct rm* lev = &_level->l[x][y];
 		if (!lev->lit && lev->scrsym == '.') {
 		    lev->scrsym = ' ';
 		    lev->new = 1;
 		    on_scr(x, y);
 		}
 	    }
+	}
+    }
 }
 
 // called: in hack.eat.c: seeoff(0) - blind after eating rotten food in
 // hack.mon.c: seeoff(0) - blinded by a yellow light in hack.mon.c: seeoff(1)
-// - swallowed in hack.do.c:  seeoff(0) - blind after drinking potion in
+// - seeoff(0) - blind after drinking potion in
 // hack.do.c:  seeoff(1) - go up or down the stairs in hack.trap.c:seeoff(1)
 // - fall through trapdoor
 // mode 1 to redo @, 0 to leave them
@@ -46,21 +38,18 @@ void seeoff (int mode)
     int x, y;
     struct rm *lev;
 
-    if (u.udispl && mode) {
-	u.udispl = 0;
-	levl[u.udisx][u.udisy].scrsym = news0(u.udisx, u.udisy);
+    if (_u.udispl && mode) {
+	_u.udispl = 0;
+	_level->l[_u.udisx][_u.udisy].scrsym = news0(_u.udisx, _u.udisy);
     }
-#ifndef QUEST
     if (seehx)
 	seehx = 0;
-    else
-#endif				// QUEST
-    if (!mode) {
-	for (x = u.ux - 1; x < u.ux + 2; x++)
-	    for (y = u.uy - 1; y < u.uy + 2; y++) {
+    else if (!mode) {
+	for (x = _u.ux - 1; x < _u.ux + 2; ++x)
+	    for (y = _u.uy - 1; y < _u.uy + 2; ++y) {
 		if (!isok(x, y))
 		    continue;
-		lev = &levl[x][y];
+		lev = &_level->l[x][y];
 		if (!lev->lit && lev->scrsym == '.')
 		    lev->seen = 0;
 	    }
@@ -69,7 +58,7 @@ void seeoff (int mode)
 
 void domove(void)
 {
-    xchar oldx, oldy;
+    int8_t oldx, oldy;
     struct monst *mtmp = NULL;
     struct rm *tmpr, *ust;
     struct trap *trap = NULL;
@@ -82,75 +71,55 @@ void domove(void)
 	nomul(0);
 	return;
     }
-    if (u.uswallow) {
-	u.dx = u.dy = 0;
-	u.ux = u.ustuck->mx;
-	u.uy = u.ustuck->my;
-    } else {
-	if (Confusion) {
-	    do {
-		confdir();
-	    } while (!isok(u.ux + u.dx, u.uy + u.dy) || IS_ROCK(levl[u.ux + u.dx][u.uy + u.dy].typ));
-	}
-	if (!isok(u.ux + u.dx, u.uy + u.dy)) {
-	    nomul(0);
-	    return;
-	}
+    if (Confusion) {
+	do {
+	    confdir();
+	} while (!isok(_u.ux + _u.dx, _u.uy + _u.dy) || IS_ROCK(_level->l[_u.ux + _u.dx][_u.uy + _u.dy].typ));
     }
-
-    ust = &levl[u.ux][u.uy];
-    oldx = u.ux;
-    oldy = u.uy;
-    if (!u.uswallow && (trap = t_at(u.ux + u.dx, u.uy + u.dy)) && trap->tseen)
+    if (!isok(_u.ux + _u.dx, _u.uy + _u.dy)) {
 	nomul(0);
-    if (u.ustuck && !u.uswallow && (u.ux + u.dx != u.ustuck->mx || u.uy + u.dy != u.ustuck->my)) {
-	if (dist(u.ustuck->mx, u.ustuck->my) > 2) {
-	    // perhaps it fled (or was teleported or ... )
-	    u.ustuck = 0;
-	} else {
-	    if (Blind)
-		pline("You cannot escape from it!");
-	    else
-		pline("You cannot escape from %s!", monnam(u.ustuck));
-	    nomul(0);
-	    return;
-	}
+	return;
     }
-    if (u.uswallow || (mtmp = m_at(u.ux + u.dx, u.uy + u.dy))) {
-	// attack monster
 
+    ust = &_level->l[_u.ux][_u.uy];
+    oldx = _u.ux;
+    oldy = _u.uy;
+    if ((trap = t_at(_u.ux + _u.dx, _u.uy + _u.dy)) && trap->tseen)
+	nomul(0);
+    if ((mtmp = m_at(_u.ux + _u.dx, _u.uy + _u.dy))) {
+	// attack monster
 	nomul(0);
 	gethungry();
 	if (multi < 0)
 	    return;	       // we just fainted
 
 	// try to attack; note that it might evade
-	if (attack(u.uswallow ? u.ustuck : mtmp))
+	if (attack (mtmp))
 	    return;
     }
     // not attacking an animal, so we try to move
-    if (u.utrap) {
-	if (u.utraptype == TT_PIT) {
+    if (_u.utrap) {
+	if (_u.utraptype == TT_PIT) {
 	    pline("You are still in a pit.");
-	    u.utrap--;
+	    --_u.utrap;
 	} else {
 	    pline("You are caught in a beartrap.");
-	    if ((u.dx && u.dy) || !rn2(5))
-		u.utrap--;
+	    if ((_u.dx && _u.dy) || !rn2(5))
+		--_u.utrap;
 	}
 	return;
     }
-    tmpr = &levl[u.ux + u.dx][u.uy + u.dy];
-    if (IS_ROCK(tmpr->typ) || (u.dx && u.dy && (tmpr->typ == DOOR || ust->typ == DOOR))) {
-	flags.move = 0;
+    tmpr = &_level->l[_u.ux + _u.dx][_u.uy + _u.dy];
+    if (IS_ROCK(tmpr->typ) || (_u.dx && _u.dy && (tmpr->typ == DOOR || ust->typ == DOOR))) {
+	_wflags.move = 0;
 	nomul(0);
 	return;
     }
-    while ((otmp = sobj_at(ENORMOUS_ROCK, u.ux + u.dx, u.uy + u.dy)) != NULL) {
-	xchar rx = u.ux + 2 * u.dx, ry = u.uy + 2 * u.dy;
+    while ((otmp = sobj_at(ENORMOUS_ROCK, _u.ux + _u.dx, _u.uy + _u.dy)) != NULL) {
+	int8_t rx = _u.ux + 2 * _u.dx, ry = _u.uy + 2 * _u.dy;
 	struct trap *ttmp;
 	nomul(0);
-	if (isok(rx, ry) && !IS_ROCK(levl[rx][ry].typ) && (levl[rx][ry].typ != DOOR || !(u.dx && u.dy)) && !sobj_at(ENORMOUS_ROCK, rx, ry)) {
+	if (isok(rx, ry) && !IS_ROCK(_level->l[rx][ry].typ) && (_level->l[rx][ry].typ != DOOR || !(_u.dx && _u.dy)) && !sobj_at(ENORMOUS_ROCK, rx, ry)) {
 	    if (m_at(rx, ry)) {
 		pline("You hear a monster behind the rock.");
 		pline("Perhaps that's why you cannot move it.");
@@ -169,8 +138,8 @@ void domove(void)
 			delobj(otmp);
 			continue;
 		}
-	    if (levl[rx][ry].typ == POOL) {
-		levl[rx][ry].typ = ROOM;
+	    if (_level->l[rx][ry].typ == POOL) {
+		_level->l[rx][ry].typ = ROOM;
 		mnewsym(rx, ry);
 		prl(rx, ry);
 		pline("You push the rock into the water.");
@@ -184,125 +153,98 @@ void domove(void)
 	    if (cansee(rx, ry))
 		atl(rx, ry, otmp->olet);
 	    if (Invisible)
-		newsym(u.ux + u.dx, u.uy + u.dy);
+		newsym(_u.ux + _u.dx, _u.uy + _u.dy);
 
 	    {
 		static long lastmovetime;
 		// note: this var contains garbage initially and after a restore
-		if (moves > lastmovetime + 2 || moves < lastmovetime)
+		if (_u.moves > lastmovetime + 2 || _u.moves < lastmovetime)
 		    pline("With great effort you move the enormous rock.");
-		lastmovetime = moves;
+		lastmovetime = _u.moves;
 	    }
 	} else {
 	    pline("You try to move the enormous rock, but in vain.");
 	  cannot_push:
-	    if ((!invent || inv_weight() + 90 <= 0) && (!u.dx || !u.dy || (IS_ROCK(levl[u.ux][u.uy + u.dy].typ)
-									   && IS_ROCK(levl[u.ux + u.dx][u.uy].typ)))) {
+	    if ((!invent || inv_weight() + 90 <= 0) && (!_u.dx || !_u.dy || (IS_ROCK(_level->l[_u.ux][_u.uy + _u.dy].typ)
+									   && IS_ROCK(_level->l[_u.ux + _u.dx][_u.uy].typ)))) {
 		pline("However, you can squeeze yourself into a small opening.");
 		break;
 	    } else
 		return;
 	}
     }
-    if (u.dx && u.dy && IS_ROCK(levl[u.ux][u.uy + u.dy].typ) && IS_ROCK(levl[u.ux + u.dx][u.uy].typ) && invent && inv_weight() + 40 > 0) {
+    if (_u.dx && _u.dy && IS_ROCK(_level->l[_u.ux][_u.uy + _u.dy].typ) && IS_ROCK(_level->l[_u.ux + _u.dx][_u.uy].typ) && invent && inv_weight() + 40 > 0) {
 	pline("You are carrying too much to get through.");
 	nomul(0);
 	return;
     }
-    if (Punished && DIST(u.ux + u.dx, u.uy + u.dy, uchain->ox, uchain->oy) > 2) {
-	if (carried(uball)) {
-	    movobj(uchain, u.ux, u.uy);
-	    goto nodrag;
-	}
-	if (DIST(u.ux + u.dx, u.uy + u.dy, uball->ox, uball->oy) < 3) {
-	    // leave ball, move chain under/over ball
-	    movobj(uchain, uball->ox, uball->oy);
-	    goto nodrag;
-	}
-	if (inv_weight() + (int) uball->owt / 2 > 0) {
-	    pline("You cannot %sdrag the heavy iron ball.", invent ? "carry all that and also " : "");
-	    nomul(0);
-	    return;
-	}
-	movobj(uball, uchain->ox, uchain->oy);
-	unpobj(uball);	       // BAH %%
-	uchain->ox = u.ux;
-	uchain->oy = u.uy;
-	nomul(-2);
-	nomovemsg = "";
-      nodrag:;
-    }
-    u.ux += u.dx;
-    u.uy += u.dy;
-    if (flags.run) {
-	if (tmpr->typ == DOOR || (xupstair == u.ux && yupstair == u.uy) || (xdnstair == u.ux && ydnstair == u.uy))
+    _u.ux += _u.dx;
+    _u.uy += _u.dy;
+    if (_wflags.run) {
+	if (tmpr->typ == DOOR || (_level->stair.up.x == _u.ux && _level->stair.up.y == _u.uy) || (_level->stair.dn.x == _u.ux && _level->stair.dn.y == _u.uy))
 	    nomul(0);
     }
     if (tmpr->typ == POOL && !Levitation)
 	drown();	       // not necessarily fatal
 
-    // if(u.udispl) {
-    // u.udispl = 0;
+    // if(_u.udispl) {
+    // _u.udispl = 0;
     // newsym(oldx,oldy);
     // }
     if (!Blind) {
-#ifdef QUEST
-	setsee();
-#else
 	if (ust->lit) {
 	    if (tmpr->lit) {
 		if (tmpr->typ == DOOR)
-		    prl1(u.ux + u.dx, u.uy + u.dy);
+		    prl1(_u.ux + _u.dx, _u.uy + _u.dy);
 		else if (ust->typ == DOOR)
-		    nose1(oldx - u.dx, oldy - u.dy);
+		    nose1(oldx - _u.dx, oldy - _u.dy);
 	    } else {
 		unsee();
-		prl1(u.ux + u.dx, u.uy + u.dy);
+		prl1(_u.ux + _u.dx, _u.uy + _u.dy);
 	    }
 	} else {
 	    if (tmpr->lit)
 		setsee();
 	    else {
-		prl1(u.ux + u.dx, u.uy + u.dy);
+		prl1(_u.ux + _u.dx, _u.uy + _u.dy);
 		if (tmpr->typ == DOOR) {
-		    if (u.dy) {
-			prl(u.ux - 1, u.uy);
-			prl(u.ux + 1, u.uy);
+		    if (_u.dy) {
+			prl(_u.ux - 1, _u.uy);
+			prl(_u.ux + 1, _u.uy);
 		    } else {
-			prl(u.ux, u.uy - 1);
-			prl(u.ux, u.uy + 1);
+			prl(_u.ux, _u.uy - 1);
+			prl(_u.ux, _u.uy + 1);
 		    }
 		}
 	    }
-	    nose1(oldx - u.dx, oldy - u.dy);
+	    nose1(oldx - _u.dx, oldy - _u.dy);
 	}
-#endif				// QUEST
     } else {
 	pru();
     }
-    if (!flags.nopick)
+    if (!_wflags.nopick)
 	pickup(1);
     if (trap)
 	dotrap(trap);	       // fall into pit, arrow trap, etc.
-    (void) inshop();
+    inshop();
     if (!Blind)
-	read_engr_at(u.ux, u.uy);
+	read_engr_at(_u.ux, _u.uy);
 }
 
-void movobj(struct obj *obj, int ox, int oy)
+void movobj (struct obj* o, int ox, int oy)
 {
     // Some dirty programming to get display right
-    freeobj(obj);
-    unpobj(obj);
-    obj->nobj = fobj;
-    fobj = obj;
-    obj->ox = ox;
-    obj->oy = oy;
+    freeobj (o);
+    unpobj (o);
+    o->nobj = _level->objects;
+    _level->objects = o;
+    o->ox = ox;
+    o->oy = oy;
 }
 
 int dopickup(void)
 {
-    if (!g_at(u.ux, u.uy) && !o_at(u.ux, u.uy)) {
+    if (!g_at(_u.ux, _u.uy) && !o_at(_u.ux, _u.uy)) {
 	pline("There is nothing here to pick up.");
 	return 0;
     }
@@ -322,39 +264,34 @@ void pickup(int all)
 
     if (Levitation)
 	return;
-    while ((gold = g_at(u.ux, u.uy)) != NULL) {
+    while ((gold = g_at(_u.ux, _u.uy)) != NULL) {
 	pline("%ld gold piece%s.", gold->amount, plur(gold->amount));
-	u.ugold += gold->amount;
-	flags.botl = 1;
+	_u.ugold += gold->amount;
+	_wflags.botl = 1;
 	freegold(gold);
-	if (flags.run)
+	if (_wflags.run)
 	    nomul(0);
 	if (Invisible)
-	    newsym(u.ux, u.uy);
+	    newsym(_u.ux, _u.uy);
     }
 
     // check for more than one object
     if (!all) {
 	int ct = 0;
 
-	for (obj = fobj; obj; obj = obj->nobj)
-	    if (obj->ox == u.ux && obj->oy == u.uy)
-		if (!Punished || obj != uchain)
-		    ct++;
+	for (obj = _level->objects; obj; obj = obj->nobj)
+	    if (obj->ox == _u.ux && obj->oy == _u.uy)
+		++ct;
 	if (ct < 2)
-	    all++;
+	    ++all;
 	else
 	    pline("There are several objects here.");
     }
-    for (obj = fobj; obj; obj = obj2) {
+    for (obj = _level->objects; obj; obj = obj2) {
 	obj2 = obj->nobj;      // perhaps obj will be picked up
-	if (obj->ox == u.ux && obj->oy == u.uy) {
-	    if (flags.run)
+	if (obj->ox == _u.ux && obj->oy == _u.uy) {
+	    if (_wflags.run)
 		nomul(0);
-
-	    // do not pick up uchain
-	    if (Punished && obj == uchain)
-		continue;
 
 	    if (!all) {
 		char c;
@@ -396,13 +333,13 @@ void pickup(int all)
 		    int savequan = obj->quan;
 		    int iw = inv_weight();
 		    int qq;
-		    for (qq = 1; qq < savequan; qq++) {
+		    for (qq = 1; qq < savequan; ++qq) {
 			obj->quan = qq;
 			if (iw + weight(obj) > 0)
 			    break;
 		    }
 		    obj->quan = savequan;
-		    qq--;
+		    --qq;
 		    // we can carry qq of them
 		    if (!qq)
 			goto too_heavy;
@@ -428,7 +365,7 @@ void pickup(int all)
 		pline("You have a little trouble lifting");
 	    freeobj(obj);
 	    if (Invisible)
-		newsym(u.ux, u.uy);
+		newsym(_u.ux, _u.uy);
 	    addtobill(obj);    // sets obj->unpaid if necessary
 	    {
 		int pickquan = obj->quan;
@@ -457,44 +394,40 @@ void lookaround(void)
     int x, y, i, x0 = 0, y0 = 0, m0 = 0, i0 = 9;
     int corrct = 0, noturn = 0;
     struct monst *mtmp;
-    if (Blind || flags.run == 0)
+    if (Blind || _wflags.run == 0)
 	return;
-    if (flags.run == 1 && levl[u.ux][u.uy].typ == ROOM)
+    if (_wflags.run == 1 && _level->l[_u.ux][_u.uy].typ == ROOM)
 	return;
-#ifdef QUEST
-    if (u.ux0 == u.ux + u.dx && u.uy0 == u.uy + u.dy)
-	goto stop;
-#endif				// QUEST
-    for (x = u.ux - 1; x <= u.ux + 1; x++)
-	for (y = u.uy - 1; y <= u.uy + 1; y++) {
-	    if (x == u.ux && y == u.uy)
+    for (x = _u.ux - 1; x <= _u.ux + 1; ++x)
+	for (y = _u.uy - 1; y <= _u.uy + 1; ++y) {
+	    if (x == _u.ux && y == _u.uy)
 		continue;
-	    if (!levl[x][y].typ)
+	    if (!_level->l[x][y].typ)
 		continue;
-	    if ((mtmp = m_at(x, y)) && !mtmp->mimic && (!mtmp->minvis || See_invisible)) {
-		if (!mtmp->mtame || (x == u.ux + u.dx && y == u.uy + u.dy))
+	    if ((mtmp = m_at(x, y)) && (!mtmp->minvis || See_invisible)) {
+		if (x == _u.ux + _u.dx && y == _u.uy + _u.dy)
 		    goto stop;
 	    } else
 		mtmp = 0;      // invisible M cannot
 			       // influence us
-	    if (x == u.ux - u.dx && y == u.uy - u.dy)
+	    if (x == _u.ux - _u.dx && y == _u.uy - _u.dy)
 		continue;
-	    switch (levl[x][y].scrsym) {
+	    switch (_level->l[x][y].scrsym) {
 		case '|':
 		case '-':
 		case '.':
 		case ' ':
 		    break;
 		case '+':
-		    if (x != u.ux && y != u.uy)
+		    if (x != _u.ux && y != _u.uy)
 			break;
-		    if (flags.run != 1)
+		    if (_wflags.run != 1)
 			goto stop;
 		    // fallthrough
 		case CORR_SYM:
 		  corr:
-		    if (flags.run == 1 || flags.run == 3) {
-			i = DIST(x, y, u.ux + u.dx, u.uy + u.dy);
+		    if (_wflags.run == 1 || _wflags.run == 3) {
+			i = DIST(x, y, _u.ux + _u.dx, _u.uy + _u.dy);
 			if (i > 2)
 			    break;
 			if (corrct == 1 && DIST(x, y, x0, y0) != 1)
@@ -506,16 +439,16 @@ void lookaround(void)
 			    m0 = mtmp ? 1 : 0;
 			}
 		    }
-		    corrct++;
+		    ++corrct;
 		    break;
 		case '^':
-		    if (flags.run == 1)
+		    if (_wflags.run == 1)
 			goto corr;	// if you must
-		    if (x == u.ux + u.dx && y == u.uy + u.dy)
+		    if (x == _u.ux + _u.dx && y == _u.uy + _u.dy)
 			goto stop;
 		    break;
 		default:      // e.g. objects or trap or stairs
-		    if (flags.run == 1)
+		    if (_wflags.run == 1)
 			goto corr;
 		    if (mtmp)
 			break; // d
@@ -524,34 +457,30 @@ void lookaround(void)
 		    return;
 	    }
 	}
-#ifdef QUEST
-    if (corrct > 0 && (flags.run == 4 || flags.run == 5))
+    if (corrct > 1 && _wflags.run == 2)
 	goto stop;
-#endif				// QUEST
-    if (corrct > 1 && flags.run == 2)
-	goto stop;
-    if ((flags.run == 1 || flags.run == 3) && !noturn && !m0 && i0 && (corrct == 1 || (corrct == 2 && i0 == 1))) {
+    if ((_wflags.run == 1 || _wflags.run == 3) && !noturn && !m0 && i0 && (corrct == 1 || (corrct == 2 && i0 == 1))) {
 	// make sure that we do not turn too far
 	if (i0 == 2) {
-	    if (u.dx == y0 - u.uy && u.dy == u.ux - x0)
+	    if (_u.dx == y0 - _u.uy && _u.dy == _u.ux - x0)
 		i = 2;	       // straight turn right
 	    else
 		i = -2;	       // straight turn left
-	} else if (u.dx && u.dy) {
-	    if ((u.dx == u.dy && y0 == u.uy) || (u.dx != u.dy && y0 != u.uy))
+	} else if (_u.dx && _u.dy) {
+	    if ((_u.dx == _u.dy && y0 == _u.uy) || (_u.dx != _u.dy && y0 != _u.uy))
 		i = -1;	       // half turn left
 	    else
 		i = 1;	       // half turn right
 	} else {
-	    if ((x0 - u.ux == y0 - u.uy && !u.dy) || (x0 - u.ux != y0 - u.uy && u.dy))
+	    if ((x0 - _u.ux == y0 - _u.uy && !_u.dy) || (x0 - _u.ux != y0 - _u.uy && _u.dy))
 		i = 1;	       // half turn right
 	    else
 		i = -1;	       // half turn left
 	}
-	i += u.last_str_turn;
+	i += _u.last_str_turn;
 	if (i <= 2 && i >= -2) {
-	    u.last_str_turn = i;
-	    u.dx = x0 - u.ux, u.dy = y0 - u.uy;
+	    _u.last_str_turn = i;
+	    _u.dx = x0 - _u.ux, _u.dy = y0 - _u.uy;
 	}
     }
 }
@@ -560,87 +489,39 @@ void lookaround(void)
 // react only to monsters that might hit us
 int monster_nearby(void)
 {
-    int x, y;
-    struct monst *mtmp;
-    if (!Blind)
-	for (x = u.ux - 1; x <= u.ux + 1; x++)
-	    for (y = u.uy - 1; y <= u.uy + 1; y++) {
-		if (x == u.ux && y == u.uy)
-		    continue;
-		if ((mtmp = m_at(x, y)) && !mtmp->mimic && !mtmp->mtame && !mtmp->mpeaceful && !strchr("Ea", mtmp->data->mlet) && !mtmp->mfroz && !mtmp->msleep &&	// aplvax!jcn
-		    (!mtmp->minvis || See_invisible))
-		    return 1;
-	    }
+    if (Blind)
+	return 0;
+    for (int x = _u.ux - 1; x <= _u.ux + 1; ++x) {
+	for (int y = _u.uy - 1; y <= _u.uy + 1; ++y) {
+	    if (x == _u.ux && y == _u.uy)
+		continue;
+	    struct monst* mtmp = m_at(x,y);
+	    if (mtmp && !mtmp->mpeaceful
+		&& !strchr("Ea", mtmp->data->mlet)
+		&& !mtmp->mfroz && !mtmp->msleep
+		&& (!mtmp->minvis || See_invisible))
+		return 1;
+	}
+    }
     return 0;
 }
 
-#ifdef QUEST
 int cansee(int x, int y)
 {
-    int dx, dy, adx, ady, sdx, sdy, dmax, d;
     if (Blind)
-	return 0;
-    if (!isok(x, y))
-	return 0;
-    d = dist(x, y);
-    if (d < 3)
-	return 1;
-    if (d > u.uhorizon * u.uhorizon)
-	return 0;
-    if (!levl[x][y].lit)
-	return 0;
-    dx = x - u.ux;
-    adx = abs(dx);
-    sdx = sgn(dx);
-    dy = y - u.uy;
-    ady = abs(dy);
-    sdy = sgn(dy);
-    if (dx == 0 || dy == 0 || adx == ady) {
-	dmax = (dx == 0) ? ady : adx;
-	for (d = 1; d <= dmax; d++)
-	    if (!rroom(sdx * d, sdy * d))
-		return 0;
-	return 1;
-    } else if (ady > adx) {
-	for (d = 1; d <= ady; d++) {
-	    if (!rroom(sdx * ((d * adx) / ady), sdy * d) || !rroom(sdx * ((d * adx - 1) / ady + 1), sdy * d))
-		return 0;
-	}
-	return 1;
-    } else {
-	for (d = 1; d <= adx; d++) {
-	    if (!rroom(sdx * d, sdy * ((d * ady) / adx)) || !rroom(sdx * d, sdy * ((d * ady - 1) / adx + 1)))
-		return 0;
-	}
-	return 1;
-    }
-}
-
-int rroom(int x, int y)
-{
-    return IS_ROOM(levl[u.ux + x][u.uy + y].typ);
-}
-
-#else
-
-int cansee(int x, int y)
-{
-    if (Blind || u.uswallow)
 	return 0;
     if (dist(x, y) < 3)
 	return 1;
-    if (levl[x][y].lit && seelx <= x && x <= seehx && seely <= y && y <= seehy)
+    if (_level->l[x][y].lit && seelx <= x && x <= seehx && seely <= y && y <= seehy)
 	return 1;
     return 0;
 }
-#endif				// QUEST
 
 int sgn(int a)
 {
     return (a > 0) ? 1 : (a == 0) ? 0 : -1;
 }
 
-#ifdef QUEST
 void setsee(void)
 {
     int x, y;
@@ -649,78 +530,60 @@ void setsee(void)
 	pru();
 	return;
     }
-    for (y = u.uy - u.uhorizon; y <= u.uy + u.uhorizon; y++)
-	for (x = u.ux - u.uhorizon; x <= u.ux + u.uhorizon; x++) {
-	    if (cansee(x, y))
-		prl(x, y);
-	}
-}
-
-#else
-
-void setsee(void)
-{
-    int x, y;
-
-    if (Blind) {
-	pru();
-	return;
-    }
-    if (!levl[u.ux][u.uy].lit) {
-	seelx = u.ux - 1;
-	seehx = u.ux + 1;
-	seely = u.uy - 1;
-	seehy = u.uy + 1;
+    if (!_level->l[_u.ux][_u.uy].lit) {
+	seelx = _u.ux - 1;
+	seehx = _u.ux + 1;
+	seely = _u.uy - 1;
+	seehy = _u.uy + 1;
     } else {
-	for (seelx = u.ux; levl[seelx - 1][u.uy].lit; seelx--);
-	for (seehx = u.ux; levl[seehx + 1][u.uy].lit; seehx++);
-	for (seely = u.uy; levl[u.ux][seely - 1].lit; seely--);
-	for (seehy = u.uy; levl[u.ux][seehy + 1].lit; seehy++);
+	for (seelx = _u.ux; _level->l[seelx - 1][_u.uy].lit; --seelx) {}
+	for (seehx = _u.ux; _level->l[seehx + 1][_u.uy].lit; ++seehx) {}
+	for (seely = _u.uy; _level->l[_u.ux][seely - 1].lit; --seely) {}
+	for (seehy = _u.uy; _level->l[_u.ux][seehy + 1].lit; ++seehy) {}
     }
-    for (y = seely; y <= seehy; y++)
-	for (x = seelx; x <= seehx; x++) {
+    for (y = seely; y <= seehy; ++y)
+	for (x = seelx; x <= seehx; ++x) {
 	    prl(x, y);
 	}
-    if (!levl[u.ux][u.uy].lit)
+    if (!_level->l[_u.ux][_u.uy].lit)
 	seehx = 0;	       // seems necessary elsewhere
     else {
-	if (seely == u.uy)
-	    for (x = u.ux - 1; x <= u.ux + 1; x++)
+	if (seely == _u.uy)
+	    for (x = _u.ux - 1; x <= _u.ux + 1; ++x)
 		prl(x, seely - 1);
-	if (seehy == u.uy)
-	    for (x = u.ux - 1; x <= u.ux + 1; x++)
+	if (seehy == _u.uy)
+	    for (x = _u.ux - 1; x <= _u.ux + 1; ++x)
 		prl(x, seehy + 1);
-	if (seelx == u.ux)
-	    for (y = u.uy - 1; y <= u.uy + 1; y++)
+	if (seelx == _u.ux)
+	    for (y = _u.uy - 1; y <= _u.uy + 1; ++y)
 		prl(seelx - 1, y);
-	if (seehx == u.ux)
-	    for (y = u.uy - 1; y <= u.uy + 1; y++)
+	if (seehx == _u.ux)
+	    for (y = _u.uy - 1; y <= _u.uy + 1; ++y)
 		prl(seehx + 1, y);
     }
 }
-#endif				// QUEST
 
 void nomul(int nval)
 {
     if (multi < 0)
 	return;
     multi = nval;
-    flags.mv = flags.run = 0;
+    _wflags.mv = _wflags.run = 0;
 }
 
 int abon(void)
 {
-    if (u.ustr == 3)
+    if (_u.ustr == 3)
 	return -3;
-    else if (u.ustr < 6)
+    else if (_u.ustr < 6)
 	return -2;
-    else if (u.ustr < 8)
+    else if (_u.ustr < 8)
 	return -1;
-    else if (u.ustr < 17)
+    else if (_u.ustr < 17)
 	return 0;
-    else if (u.ustr < 69)
+    else if (_u.ustr < 69)
 	return 1;	       // up to 18/50
-    else if (u.ustr < 118)
+    else if (_u.ustr < 118)
 	return 2;
     else
 	return 3;
@@ -728,19 +591,19 @@ int abon(void)
 
 int dbon(void)
 {
-    if (u.ustr < 6)
+    if (_u.ustr < 6)
 	return -1;
-    else if (u.ustr < 16)
+    else if (_u.ustr < 16)
 	return 0;
-    else if (u.ustr < 18)
+    else if (_u.ustr < 18)
 	return 1;
-    else if (u.ustr == 18)
+    else if (_u.ustr == 18)
 	return 2;	       // up to 18
-    else if (u.ustr < 94)
+    else if (_u.ustr < 94)
 	return 3;	       // up to 18/75
-    else if (u.ustr < 109)
+    else if (_u.ustr < 109)
 	return 4;	       // up to 18/90
-    else if (u.ustr < 118)
+    else if (_u.ustr < 118)
 	return 5;	       // up to 18/99
     else
 	return 6;
@@ -749,22 +612,22 @@ int dbon(void)
 void losestr(			// may kill you; cause may be poison or
 		int num		// monster like 'A'
     ) {
-    u.ustr -= num;
-    while (u.ustr < 3) {
-	u.ustr++;
-	u.uhp -= 6;
-	u.uhpmax -= 6;
+    _u.ustr -= num;
+    while (_u.ustr < 3) {
+	++_u.ustr;
+	_u.uhp -= 6;
+	_u.uhpmax -= 6;
     }
-    flags.botl = 1;
+    _wflags.botl = 1;
 }
 
 void losehp(int n, const char *knam)
 {
-    u.uhp -= n;
-    if (u.uhp > u.uhpmax)
-	u.uhpmax = u.uhp;      // perhaps n was negative
-    flags.botl = 1;
-    if (u.uhp < 1) {
+    _u.uhp -= n;
+    if (_u.uhp > _u.uhpmax)
+	_u.uhpmax = _u.uhp;      // perhaps n was negative
+    _wflags.botl = 1;
+    if (_u.uhp < 1) {
 	killer = knam;	       // the thing that killed you
 	done("died");
     }
@@ -772,9 +635,9 @@ void losehp(int n, const char *knam)
 
 void losehp_m(int n, struct monst *mtmp)
 {
-    u.uhp -= n;
-    flags.botl = 1;
-    if (u.uhp < 1)
+    _u.uhp -= n;
+    _wflags.botl = 1;
+    if (_u.uhp < 1)
 	done_in_by(mtmp);
 }
 
@@ -782,26 +645,26 @@ void losexp(void)
 {			       // hit by V or W
     int num;
 
-    if (u.ulevel > 1)
-	pline("Goodbye level %u.", u.ulevel--);
+    if (_u.ulevel > 1)
+	pline("Goodbye level %u.", _u.ulevel--);
     else
-	u.uhp = -1;
+	_u.uhp = -1;
     num = rnd(10);
-    u.uhp -= num;
-    u.uhpmax -= num;
-    u.uexp = newuexp();
-    flags.botl = 1;
+    _u.uhp -= num;
+    _u.uhpmax -= num;
+    _u.uexp = newuexp();
+    _wflags.botl = 1;
 }
 
 int inv_weight(void)
 {
     struct obj *otmp = invent;
-    int wt = (u.ugold + 500) / 1000;
+    int wt = (_u.ugold + 500) / 1000;
     int carrcap;
     if (Levitation)	       // pugh@cornell
 	carrcap = MAX_CARR_CAP;
     else {
-	carrcap = 5 * (((u.ustr > 18) ? 20 : u.ustr) + u.ulevel);
+	carrcap = 5 * (((_u.ustr > 18) ? 20 : _u.ustr) + _u.ulevel);
 	if (carrcap > MAX_CARR_CAP)
 	    carrcap = MAX_CARR_CAP;
 	if (Wounded_legs & LEFT_SIDE)
@@ -821,7 +684,7 @@ int inv_cnt(void)
     struct obj *otmp = invent;
     int ct = 0;
     while (otmp) {
-	ct++;
+	++ct;
 	otmp = otmp->nobj;
     }
     return ct;
@@ -829,5 +692,5 @@ int inv_cnt(void)
 
 long newuexp(void)
 {
-    return 10 * (1L << (u.ulevel - 1));
+    return 10 * (1L << (_u.ulevel - 1));
 }

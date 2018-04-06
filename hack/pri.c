@@ -5,28 +5,7 @@
 #include "hack.h"
 #include "extern.h"
 
-xchar scrlx, scrhx, scrly, scrhy;	// corners of new area on
-					// screen
-
-void swallowed(void)
-{
-    char ulook[] = "|@|";
-    ulook[1] = u.usym;
-
-    cls();
-    curs(u.ux - 1, u.uy + 1);
-    fputs("/-\\", stdout);
-    curx = u.ux + 2;
-    curs(u.ux - 1, u.uy + 2);
-    fputs(ulook, stdout);
-    curx = u.ux + 2;
-    curs(u.ux - 1, u.uy + 3);
-    fputs("\\-/", stdout);
-    curx = u.ux + 2;
-    u.udispl = 1;
-    u.udisx = u.ux;
-    u.udisy = u.uy;
-}
+int8_t scrlx, scrhx, scrly, scrhy;	// corners of new area on screen
 
 void panic (const char *fmt, ...)
 {
@@ -47,7 +26,7 @@ void panic (const char *fmt, ...)
 
 void atl(int x, int y, int ch)
 {
-    struct rm *crm = &levl[x][y];
+    struct rm *crm = &_level->l[x][y];
 
     if (x < 0 || x > COLNO - 1 || y < 0 || y > ROWNO - 1) {
 	impossible("atl(%d,%d,%c)", x, y, ch);
@@ -78,7 +57,7 @@ void on_scr(int x, int y)
 
 void tmp_at(int x, int y)
 {
-    static schar prevx, prevy;
+    static int8_t prevx, prevy;
     static char let;
     if ((int) x == -2) {       // change let call
 	let = y;
@@ -92,7 +71,7 @@ void tmp_at(int x, int y)
     if (prevx >= 0 && cansee(prevx, prevy)) {
 	delay_output();
 	prl(prevx, prevy);     // in case there was a monster
-	at(prevx, prevy, levl[prevx][prevy].scrsym);
+	at(prevx, prevy, _level->l[prevx][prevy].scrsym);
     }
     if (x >= 0) {	       // normal call
 	if (cansee(x, y))
@@ -109,10 +88,10 @@ void tmp_at(int x, int y)
 void Tmp_at(int x, int y)
 {
     static char let;
-    static xchar cnt;
-    static coord tc[COLNO];	// but watch reflecting beams!
+    static int8_t cnt;
+    static struct coord tc[COLNO];	// but watch reflecting beams!
     int xx, yy;
-    if ((int) x == -1) {
+    if (x == -1) {
 	if (y > 0) {	       // open call
 	    let = y;
 	    cnt = 0;
@@ -123,7 +102,7 @@ void Tmp_at(int x, int y)
 	    xx = tc[cnt].x;
 	    yy = tc[cnt].y;
 	    prl(xx, yy);
-	    at(xx, yy, levl[xx][yy].scrsym);
+	    at(xx, yy, _level->l[xx][yy].scrsym);
 	}
 	cnt = let = 0;	       // superfluous
 	return;
@@ -141,7 +120,7 @@ void Tmp_at(int x, int y)
 	tc[cnt].y = y;
 	if (++cnt >= COLNO)
 	    panic("Tmp_at overflow?");
-	levl[x][y].new = 0;    // prevent pline-nscr erasing ---
+	_level->l[x][y].new = 0;    // prevent pline-nscr erasing ---
     }
 }
 
@@ -152,27 +131,24 @@ void setclipped(void)
 
 void at(int x, int y, int ch)
 {
-#ifndef lint
-    // if xchar is unsigned, lint will complain about  if(x < 0)
     if (x < 0 || x > COLNO - 1 || y < 0 || y > ROWNO - 1) {
 	impossible("At gets 0%o at %d %d.", ch, x, y);
 	return;
     }
-#endif				// lint
     if (!ch) {
 	impossible("At gets null at %d %d.", x, y);
 	return;
     }
     y += 2;
     curs(x, y);
-    (void) putchar(ch);
-    curx++;
+    putchar(ch);
+    ++curx;
 }
 
 void prme(void)
 {
     if (!Invisible)
-	at(u.ux, u.uy, u.usym);
+	at(_u.ux, _u.uy, _u.usym);
 }
 
 int doredraw(void)
@@ -185,33 +161,28 @@ void docrt(void)
 {
     int x, y;
     struct rm *room;
-    struct monst *mtmp;
 
-    if (u.uswallow) {
-	swallowed();
-	return;
-    }
     cls();
 
     // Some ridiculous code to get display of @ and monsters (almost)
     // right
     if (!Invisible) {
-	levl[(u.udisx = u.ux)][(u.udisy = u.uy)].scrsym = u.usym;
-	levl[u.udisx][u.udisy].seen = 1;
-	u.udispl = 1;
+	_level->l[(_u.udisx = _u.ux)][(_u.udisy = _u.uy)].scrsym = _u.usym;
+	_level->l[_u.udisx][_u.udisy].seen = 1;
+	_u.udispl = 1;
     } else
-	u.udispl = 0;
+	_u.udispl = 0;
 
     seemons();		       // reset old positions
-    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
-	mtmp->mdispl = 0;
+    for (struct monst* m = _level->monsters; m; m = m->nmon)
+	m->mdispl = 0;
     seemons();		       // force new positions to be shown
     // This nonsense should disappear soon
     // ---------------------------------
 
-    for (y = 0; y < ROWNO; y++)
-	for (x = 0; x < COLNO; x++)
-	    if ((room = &levl[x][y])->new) {
+    for (y = 0; y < ROWNO; ++y)
+	for (x = 0; x < COLNO; ++x)
+	    if ((room = &_level->l[x][y])->new) {
 		room->new = 0;
 		at(x, y, room->scrsym);
 	    } else if (room->seen)
@@ -219,7 +190,7 @@ void docrt(void)
     scrlx = COLNO;
     scrly = ROWNO;
     scrhx = scrhy = 0;
-    flags.botlx = 1;
+    _wflags.botlx = 1;
     bot();
 }
 
@@ -227,26 +198,21 @@ void docorner(int xmin, int ymax)
 {
     int x, y;
     struct rm *room;
-    struct monst *mtmp;
 
-    if (u.uswallow) {	       // Can be done more efficiently
-	swallowed();
-	return;
-    }
     seemons();		       // reset old positions
-    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
-	if (mtmp->mx >= xmin && mtmp->my < ymax)
-	    mtmp->mdispl = 0;
+    for (struct monst* m = _level->monsters; m; m = m->nmon)
+	if (m->mx >= xmin && m->my < ymax)
+	    m->mdispl = 0;
     seemons();		       // force new positions to be shown
 
-    for (y = 0; y < ymax; y++) {
+    for (y = 0; y < ymax; ++y) {
 	if (y > ROWNO && CD)
 	    break;
 	curs(xmin, y + 2);
 	cl_end();
 	if (y < ROWNO) {
-	    for (x = xmin; x < COLNO; x++) {
-		if ((room = &levl[x][y])->new) {
+	    for (x = xmin; x < COLNO; ++x) {
+		if ((room = &_level->l[x][y])->new) {
 		    room->new = 0;
 		    at(x, y, room->scrsym);
 		} else if (room->seen)
@@ -265,30 +231,26 @@ void docorner(int xmin, int ymax)
 
 void curs_on_u(void)
 {
-    curs(u.ux, u.uy + 2);
+    curs(_u.ux, _u.uy + 2);
 }
 
 void pru(void)
 {
-    if (u.udispl && (Invisible || u.udisx != u.ux || u.udisy != u.uy))
-	// if(! levl[u.udisx][u.udisy].new)
-	if (!vism_at(u.udisx, u.udisy))
-	    newsym(u.udisx, u.udisy);
+    if (_u.udispl && (Invisible || _u.udisx != _u.ux || _u.udisy != _u.uy))
+	// if(! _level->l[_u.udisx][_u.udisy].new)
+	if (!vism_at(_u.udisx, _u.udisy))
+	    newsym(_u.udisx, _u.udisy);
     if (Invisible) {
-	u.udispl = 0;
-	prl(u.ux, u.uy);
-    } else if (!u.udispl || u.udisx != u.ux || u.udisy != u.uy) {
-	atl(u.ux, u.uy, u.usym);
-	u.udispl = 1;
-	u.udisx = u.ux;
-	u.udisy = u.uy;
+	_u.udispl = 0;
+	prl(_u.ux, _u.uy);
+    } else if (!_u.udispl || _u.udisx != _u.ux || _u.udisy != _u.uy) {
+	atl(_u.ux, _u.uy, _u.usym);
+	_u.udispl = 1;
+	_u.udisx = _u.ux;
+	_u.udisy = _u.uy;
     }
-    levl[u.ux][u.uy].seen = 1;
+    _level->l[_u.ux][_u.uy].seen = 1;
 }
-
-#ifndef NOWORM
-#include	"wseg.h"
-#endif				// NOWORM
 
 // print a position that is visible for @
 void prl(int x, int y)
@@ -297,22 +259,17 @@ void prl(int x, int y)
     struct monst *mtmp;
     struct obj *otmp;
 
-    if (x == u.ux && y == u.uy && (!Invisible)) {
+    if (x == _u.ux && y == _u.uy && (!Invisible)) {
 	pru();
 	return;
     }
     if (!isok(x, y))
 	return;
-    room = &levl[x][y];
-    if ((!room->typ) || (IS_ROCK(room->typ) && levl[u.ux][u.uy].typ == CORR))
+    room = &_level->l[x][y];
+    if ((!room->typ) || (IS_ROCK(room->typ) && _level->l[_u.ux][_u.uy].typ == CORR))
 	return;
     if ((mtmp = m_at(x, y)) && !mtmp->mhide && (!mtmp->minvis || See_invisible)) {
-#ifndef NOWORM
-	if (m_atseg)
-	    pwseg(m_atseg);
-	else
-#endif				// NOWORM
-	    pmon(mtmp);
+	pmon(mtmp);
     } else if ((otmp = o_at(x, y)) && room->typ != POOL)
 	atl(x, y, otmp->olet);
     else if (mtmp && (!mtmp->minvis || See_invisible)) {
@@ -336,7 +293,7 @@ char news0(int x, int y)
     struct rm *room;
     char tmp;
 
-    room = &levl[x][y];
+    room = &_level->l[x][y];
     if (!room->seen)
 	tmp = ' ';
     else if (room->typ == POOL)
@@ -345,9 +302,9 @@ char news0(int x, int y)
 	tmp = otmp->olet;
     else if (!Blind && g_at(x, y))
 	tmp = '$';
-    else if (x == xupstair && y == yupstair)
+    else if (x == _level->stair.up.x && y == _level->stair.up.y)
 	tmp = '<';
-    else if (x == xdnstair && y == ydnstair)
+    else if (x == _level->stair.dn.x && y == _level->stair.dn.y)
 	tmp = '>';
     else if ((ttmp = t_at(x, y)) && ttmp->tseen)
 	tmp = '^';
@@ -355,8 +312,7 @@ char news0(int x, int y)
 	switch (room->typ) {
 	    case SCORR:
 	    case SDOOR:
-		tmp = room->scrsym;	// %% wrong after killing
-					// mimic !
+		tmp = room->scrsym;
 		break;
 	    case HWALL:
 		tmp = '-';
@@ -399,7 +355,7 @@ void mnewsym(int x, int y)
     char newscrsym;
 
     if (!vism_at(x, y)) {
-	room = &levl[x][y];
+	room = &_level->l[x][y];
 	newscrsym = news0(x, y);
 	if (room->scrsym != newscrsym) {
 	    room->scrsym = newscrsym;
@@ -414,7 +370,7 @@ void nosee(int x, int y)
 
     if (!isok(x, y))
 	return;
-    room = &levl[x][y];
+    room = &_level->l[x][y];
     if (room->scrsym == '.' && !room->lit && !Blind) {
 	room->scrsym = ' ';
 	room->new = 1;
@@ -422,16 +378,15 @@ void nosee(int x, int y)
     }
 }
 
-#ifndef QUEST
 void prl1(int x, int y)
 {
-    if (u.dx) {
-	if (u.dy) {
-	    prl(x - (2 * u.dx), y);
-	    prl(x - u.dx, y);
+    if (_u.dx) {
+	if (_u.dy) {
+	    prl(x - (2 * _u.dx), y);
+	    prl(x - _u.dx, y);
 	    prl(x, y);
-	    prl(x, y - u.dy);
-	    prl(x, y - (2 * u.dy));
+	    prl(x, y - _u.dy);
+	    prl(x, y - (2 * _u.dy));
 	} else {
 	    prl(x, y - 1);
 	    prl(x, y);
@@ -446,13 +401,13 @@ void prl1(int x, int y)
 
 void nose1(int x, int y)
 {
-    if (u.dx) {
-	if (u.dy) {
-	    nosee(x, u.uy);
-	    nosee(x, u.uy - u.dy);
+    if (_u.dx) {
+	if (_u.dy) {
+	    nosee(x, _u.uy);
+	    nosee(x, _u.uy - _u.dy);
 	    nosee(x, y);
-	    nosee(u.ux - u.dx, y);
-	    nosee(u.ux, y);
+	    nosee(_u.ux - _u.dx, y);
+	    nosee(_u.ux, y);
 	} else {
 	    nosee(x, y - 1);
 	    nosee(x, y);
@@ -464,36 +419,15 @@ void nose1(int x, int y)
 	nosee(x + 1, y);
     }
 }
-#endif				// QUEST
 
 int vism_at(int x, int y)
 {
     struct monst *mtmp;
 
-    return (x == u.ux && y == u.uy && !Invisible)
+    return (x == _u.ux && y == _u.uy && !Invisible)
 	    ? 1 : (mtmp = m_at(x, y))
 	    ? ((Blind && Telepat) || canseemon(mtmp)) : 0;
 }
-
-#ifdef NEWSCR
-void pobj(struct obj *obj)
-{
-    int show = (!obj->oinvis || See_invisible) && cansee(obj->ox, obj->oy);
-    if (obj->odispl) {
-	if (obj->odx != obj->ox || obj->ody != obj->oy || !show)
-	    if (!vism_at(obj->odx, obj->ody)) {
-		newsym(obj->odx, obj->ody);
-		obj->odispl = 0;
-	    }
-    }
-    if (show && !vism_at(obj->ox, obj->oy)) {
-	atl(obj->ox, obj->oy, obj->olet);
-	obj->odispl = 1;
-	obj->odx = obj->ox;
-	obj->ody = obj->oy;
-    }
-}
-#endif				// NEWSCR
 
 void unpobj(struct obj *obj)
 {
@@ -506,29 +440,24 @@ void unpobj(struct obj *obj)
 void seeobjs(void)
 {
     struct obj *obj, *obj2;
-    for (obj = fobj; obj; obj = obj2) {
+    for (obj = _level->objects; obj; obj = obj2) {
 	obj2 = obj->nobj;
-	if (obj->olet == FOOD_SYM && obj->otyp >= CORPSE && obj->age + 250 < moves)
+	if (obj->olet == FOOD_SYM && obj->otyp >= CORPSE && obj->age + 250 < _u.moves)
 	    delobj(obj);
     }
     for (obj = invent; obj; obj = obj2) {
 	obj2 = obj->nobj;
-	if (obj->olet == FOOD_SYM && obj->otyp >= CORPSE && obj->age + 250 < moves)
+	if (obj->olet == FOOD_SYM && obj->otyp >= CORPSE && obj->age + 250 < _u.moves)
 	    useup(obj);
     }
 }
 
 void seemons(void)
 {
-    struct monst *mtmp;
-    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-	if (mtmp->data->mlet == ';')
-	    mtmp->minvis = (u.ustuck != mtmp && levl[mtmp->mx][mtmp->my].typ == POOL);
-	pmon(mtmp);
-#ifndef NOWORM
-	if (mtmp->wormno)
-	    wormsee(mtmp->wormno);
-#endif				// NOWORM
+    for (struct monst* m = _level->monsters; m; m = m->nmon) {
+	if (m->data->mlet == ';')
+	    m->minvis = (_level->l[m->mx][m->my].typ == POOL);
+	pmon(m);
     }
 }
 
@@ -540,7 +469,7 @@ void pmon(struct monst *mon)
 	    unpmon(mon);
     }
     if (show && !mon->mdispl) {
-	atl(mon->mx, mon->my, (!mon->mappearance || u.uprops[PROP(RIN_PROTECTION_FROM_SHAPE_CHANGERS)].p_flgs) ? mon->data->mlet : mon->mappearance);
+	atl(mon->mx, mon->my, (!mon->mappearance || _u.uprops[PROP(RIN_PROTECTION_FROM_SHAPE_CHANGERS)].p_flgs) ? mon->data->mlet : mon->mappearance);
 	mon->mdispl = 1;
 	mon->mdx = mon->mx;
 	mon->mdy = mon->my;
@@ -560,12 +489,12 @@ void nscr(void)
     int x, y;
     struct rm *room;
 
-    if (u.uswallow || u.ux == FAR || flags.nscrinh)
+    if (_u.ux == FAR || _wflags.nscrinh)
 	return;
     pru();
-    for (y = scrly; y <= scrhy; y++)
-	for (x = scrlx; x <= scrhx; x++)
-	    if ((room = &levl[x][y])->new) {
+    for (y = scrly; y <= scrhy; ++y)
+	for (x = scrlx; x <= scrhx; ++x)
+	    if ((room = &_level->l[x][y])->new) {
 		room->new = 0;
 		at(x, y, room->scrsym);
 	    }
@@ -580,7 +509,7 @@ void cornbot(int lth)
 {
     if (lth < (int) sizeof(oldbot)) {
 	oldbot[lth] = 0;
-	flags.botl = 1;
+	_wflags.botl = 1;
     }
 }
 
@@ -588,29 +517,21 @@ void bot(void)
 {
     char *ob = oldbot, *nb = newbot;
     int i;
-    if (flags.botlx)
+    if (_wflags.botlx)
 	*ob = 0;
-    flags.botl = flags.botlx = 0;
-#ifdef GOLD_ON_BOTL
-    (void) sprintf(newbot, "Level %-2d  Gold %-5lu  Hp %3d(%d)  Ac %-2d  Str ", dlevel, u.ugold, u.uhp, u.uhpmax, u.uac);
-#else
-    (void) sprintf(newbot, "Level %-2d   Hp %3d(%d)   Ac %-2d   Str ", dlevel, u.uhp, u.uhpmax, u.uac);
-#endif				// GOLD_ON_BOTL
-    if (u.ustr > 18) {
-	if (u.ustr > 117)
+    _wflags.botl = _wflags.botlx = 0;
+    sprintf(newbot, "Level %-2hhu  Gold %-5u  Hp %3d(%hu)  Ac %-2d  Str ", _u.dlevel, _u.ugold, _u.uhp, _u.uhpmax, _u.uac);
+    if (_u.ustr > 18) {
+	if (_u.ustr > 117)
 	    strcat(newbot, "18/**");
 	else
-	    sprintf(eos(newbot), "18/%02d", u.ustr - 18);
+	    sprintf(eos(newbot), "18/%02d", _u.ustr - 18);
     } else
-	(void) sprintf(eos(newbot), "%-2d   ", u.ustr);
-#ifdef EXP_ON_BOTL
-    (void) sprintf(eos(newbot), "  Exp %2d/%-5lu ", u.ulevel, u.uexp);
-#else
-    (void) sprintf(eos(newbot), "   Exp %2u  ", u.ulevel);
-#endif				// EXP_ON_BOTL
-    (void) strcat(newbot, hu_stat[u.uhs]);
-    if (flags.time)
-	(void) sprintf(eos(newbot), "  %ld", moves);
+	sprintf(eos(newbot), "%-2d   ", _u.ustr);
+    sprintf(eos(newbot), "  Exp %2hhu/%-5u ", _u.ulevel, _u.uexp);
+    strcat(newbot, hu_stat[_u.uhs]);
+    if (_wflags.time)
+	sprintf(eos(newbot), "  %u", _u.moves);
     if (strlen(newbot) >= COLNO) {
 	char *bp0, *bp1;
 	bp0 = bp1 = newbot;
@@ -619,35 +540,27 @@ void bot(void)
 		*bp1++ = *bp0;
 	} while (*bp0++);
     }
-    for (i = 1; i < COLNO; i++) {
+    for (i = 1; i < COLNO; ++i) {
 	if (*ob != *nb) {
 	    curs(i, ROWNO + 2);
-	    (void) putchar(*nb ? *nb : ' ');
-	    curx++;
+	    putchar(*nb ? *nb : ' ');
+	    ++curx;
 	}
 	if (*ob)
-	    ob++;
+	    ++ob;
 	if (*nb)
-	    nb++;
+	    ++nb;
     }
-    (void) strcpy(oldbot, newbot);
+    strcpy(oldbot, newbot);
 }
-
-#ifdef WAN_PROBING
-void mstatusline(struct monst *mtmp)
-{
-    pline("Status of %s: ", monnam(mtmp));
-    pline("Level %-2d  Gold %-5lu  Hp %3d(%d)  Ac %-2d  Dam %d", mtmp->data->mlevel, mtmp->mgold, mtmp->mhp, mtmp->mhpmax, mtmp->data->ac, (mtmp->data->damn + 1) * (mtmp->data->damd + 1));
-}
-#endif				// WAN_PROBING
 
 void cls(void)
 {
-    if (flags.toplin == 1)
+    if (_wflags.toplin == 1)
 	more();
-    flags.toplin = 0;
+    _wflags.toplin = 0;
 
     clear_screen();
 
-    flags.botlx = 1;
+    _wflags.botlx = 1;
 }

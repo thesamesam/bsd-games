@@ -4,47 +4,28 @@
 
 #include "hack.h"
 #include "extern.h"
-#ifdef QUEST
-void setgd(void)
-{			       // struct monst *mtmp;
-}
-
-int gd_move(void)
-{
-    return 2;
-}
-
-void gddead(void)
-{
-}
-
-void replgd(struct monst *mtmp, struct monst *mtmp2)
-{
-}
-
-void invault(void)
-{
-}
-
-#else
-
 #include "mkroom.h"
-#define	FCSIZ	(ROWNO+COLNO)
+
+enum { FCSIZ = ROWNO+COLNO };
 struct fakecorridor {
-    xchar fx, fy, ftyp;
+    int8_t fx;
+    int8_t fy;
+    int8_t ftyp;
 };
 
 struct egd {
-    int fcbeg, fcend;		// fcend: first unused pos
-    xchar gdx, gdy;		// goal of guard's walk
-    unsigned gddone:1;
-    struct fakecorridor fakecorr[FCSIZ];
+    int fcbeg;
+    int fcend;		// fcend: first unused pos
+    int8_t gdx;
+    int8_t gdy;		// goal of guard's walk
+    bool gddone:1;
+    struct fakecorridor fakecorr [FCSIZ];
 };
 
 static const struct permonst pm_guard = { "guard", '@', 12, 12, -1, 4, 10, sizeof(struct egd) };
 
-static struct monst *guard;
-static int gdlevel;
+static struct monst* _guard = NULL;
+static int _gdlevel = 0;
 
 static inline struct egd *GetEGD(void)
 {
@@ -52,7 +33,7 @@ static inline struct egd *GetEGD(void)
 	struct egd *pegd;
 	long *l;
     } cst;
-    cst.l = &(guard->mextra[0]);
+    cst.l = &(_guard->mextra[0]);
     return cst.pegd;
 }
 
@@ -69,64 +50,63 @@ static void restfakecorr(void)
     while ((fcbeg = EGD->fcbeg) < EGD->fcend) {
 	fcx = EGD->fakecorr[fcbeg].fx;
 	fcy = EGD->fakecorr[fcbeg].fy;
-	if ((u.ux == fcx && u.uy == fcy) || cansee(fcx, fcy) || m_at(fcx, fcy))
+	if ((_u.ux == fcx && _u.uy == fcy) || cansee(fcx, fcy) || m_at(fcx, fcy))
 	    return;
-	crm = &levl[fcx][fcy];
+	crm = &_level->l[fcx][fcy];
 	crm->typ = EGD->fakecorr[fcbeg].ftyp;
 	if (!crm->typ)
 	    crm->seen = 0;
 	newsym(fcx, fcy);
-	EGD->fcbeg++;
+	++EGD->fcbeg;
     }
     // it seems he left the corridor - let the guard disappear
-    mondead(guard);
-    guard = 0;
+    mondead(_guard);
+    _guard = NULL;
 }
 
 static int goldincorridor(void)
 {
-    int fci;
-
-    for (fci = EGD->fcbeg; fci < EGD->fcend; fci++)
+    for (int fci = EGD->fcbeg; fci < EGD->fcend; ++fci)
 	if (g_at(EGD->fakecorr[fci].fx, EGD->fakecorr[fci].fy))
 	    return 1;
     return 0;
 }
 
-void setgd(void)
+void setgd (void)
 {
-    struct monst *mtmp;
-    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
-	if (mtmp->isgd) {
-	    guard = mtmp;
-	    gdlevel = dlevel;
+    for (struct monst* m = _level->monsters; m; m = m->nmon) {
+	if (m->isgd) {
+	    _guard = m;
+	    _gdlevel = _u.dlevel;
 	    return;
 	}
-    guard = 0;
+    }
+    _guard = NULL;
 }
 
 void invault(void)
 {
-    int tmp = inroom(u.ux, u.uy);
-    if (tmp < 0 || rooms[tmp].rtype != VAULT) {
-	u.uinvault = 0;
+    int tmp = inroom(_u.ux, _u.uy);
+    if (tmp < 0 || _level->rooms[tmp].rtype != VAULT) {
+	_u.uinvault = 0;
 	return;
     }
-    if (++u.uinvault % 50 == 0 && (!guard || gdlevel != dlevel)) {
+    _u.uinvault = (_u.uinvault+1) % 50;
+    if (!_u.uinvault && (!_guard || _gdlevel != _u.dlevel)) {
 	char buf[BUFSZ];
 	int x, y, dd, gx, gy;
 
 	// first find the goal for the guard
-	for (dd = 1; (dd < ROWNO || dd < COLNO); dd++) {
-	    for (y = u.uy - dd; y <= u.uy + dd; y++) {
+	for (dd = 1; (dd < ROWNO || dd < COLNO); ++dd) {
+	    for (y = _u.uy - dd; y <= _u.uy + dd; ++y) {
 		if (y < 0 || y > ROWNO - 1)
 		    continue;
-		for (x = u.ux - dd; x <= u.ux + dd; x++) {
-		    if (y != u.uy - dd && y != u.uy + dd && x != u.ux - dd)
-			x = u.ux + dd;
+		for (x = _u.ux - dd; x <= _u.ux + dd; ++x) {
+		    if (y != _u.uy - dd && y != _u.uy + dd && x != _u.ux - dd)
+			x = _u.ux + dd;
 		    if (x < 0 || x > COLNO - 1)
 			continue;
-		    if (levl[x][y].typ == CORR)
+		    if (_level->l[x][y].typ == CORR)
 			goto fnd;
 		}
 	    }
@@ -139,9 +119,9 @@ void invault(void)
 	gy = y;
 
 	// next find a good place for a door in the wall
-	x = u.ux;
-	y = u.uy;
-	while (levl[x][y].typ == ROOM) {
+	x = _u.ux;
+	y = _u.uy;
+	while (_level->l[x][y].typ == ROOM) {
 	    int dx, dy;
 
 	    dx = (gx > x) ? 1 : (gx < x) ? -1 : 0;
@@ -153,18 +133,18 @@ void invault(void)
 	}
 
 	// make something interesting happen
-	if (!(guard = makemon(&pm_guard, x, y)))
+	if (!(_guard = makemon(&pm_guard, x, y)))
 	    return;
-	guard->isgd = guard->mpeaceful = 1;
+	_guard->isgd = _guard->mpeaceful = 1;
 	EGD->gddone = 0;
-	gdlevel = dlevel;
-	if (!cansee(guard->mx, guard->my)) {
-	    mondead(guard);
-	    guard = 0;
+	_gdlevel = _u.dlevel;
+	if (!cansee(_guard->mx, _guard->my)) {
+	    mondead(_guard);
+	    _guard = 0;
 	    return;
 	}
 	pline("Suddenly one of the Vault's guards enters!");
-	pmon(guard);
+	pmon(_guard);
 	do {
 	    pline("\"Hello stranger, who are you?\" - ");
 	    getlin(buf);
@@ -172,13 +152,13 @@ void invault(void)
 
 	if (!strcmp(buf, "Croesus") || !strcmp(buf, "Kroisos")) {
 	    pline("\"Oh, yes - of course. Sorry to have disturbed you.\"");
-	    mondead(guard);
-	    guard = 0;
+	    mondead(_guard);
+	    _guard = 0;
 	    return;
 	}
 	clrlin();
 	pline("\"I don't know you.\"");
-	if (!u.ugold)
+	if (!_u.ugold)
 	    pline("\"Please follow me.\"");
 	else {
 	    pline("\"Most likely all that gold was stolen from this vault.\"");
@@ -189,8 +169,8 @@ void invault(void)
 	EGD->fcbeg = 0;
 	EGD->fakecorr[0].fx = x;
 	EGD->fakecorr[0].fy = y;
-	EGD->fakecorr[0].ftyp = levl[x][y].typ;
-	levl[x][y].typ = DOOR;
+	EGD->fakecorr[0].ftyp = _level->l[x][y].typ;
+	_level->l[x][y].typ = DOOR;
 	EGD->fcend = 1;
     }
 }
@@ -200,30 +180,30 @@ int gd_move(void)
     int x, y, dx, dy, gx, gy, nx, ny, typ;
     struct fakecorridor *fcp;
     struct rm *crm;
-    if (!guard || gdlevel != dlevel) {
+    if (!_guard || _gdlevel != _u.dlevel) {
 	impossible("Where is the guard?");
 	return 2;	       // died
     }
-    if (u.ugold || goldincorridor())
+    if (_u.ugold || goldincorridor())
 	return 0;	       // didnt move
-    if (dist(guard->mx, guard->my) > 1 || EGD->gddone) {
+    if (dist(_guard->mx, _guard->my) > 1 || EGD->gddone) {
 	restfakecorr();
 	return 0;	       // didnt move
     }
-    x = guard->mx;
-    y = guard->my;
+    x = _guard->mx;
+    y = _guard->my;
     // look around (hor & vert only) for accessible places
-    for (nx = x - 1; nx <= x + 1; nx++)
-	for (ny = y - 1; ny <= y + 1; ny++) {
+    for (nx = x - 1; nx <= x + 1; ++nx)
+	for (ny = y - 1; ny <= y + 1; ++ny) {
 	    if (nx == x || ny == y)
 		if (nx != x || ny != y)
 		    if (isok(nx, ny))
-			if (!IS_WALL(typ = (crm = &levl[nx][ny])->typ) && typ != POOL) {
+			if (!IS_WALL(typ = (crm = &_level->l[nx][ny])->typ) && typ != POOL) {
 			    int i;
-			    for (i = EGD->fcbeg; i < EGD->fcend; i++)
+			    for (i = EGD->fcbeg; i < EGD->fcend; ++i)
 				if (EGD->fakecorr[i].fx == nx && EGD->fakecorr[i].fy == ny)
 				    goto nextnxy;
-			    if ((i = inroom(nx, ny)) >= 0 && rooms[i].rtype == VAULT)
+			    if ((i = inroom(nx, ny)) >= 0 && _level->rooms[i].rtype == VAULT)
 				goto nextnxy;
 			    // seems we found a good place to leave him alone
 			    EGD->gddone = 1;
@@ -245,9 +225,9 @@ int gd_move(void)
     else
 	ny += dy;
 
-    while ((typ = (crm = &levl[nx][ny])->typ) != 0) {
+    while ((typ = (crm = &_level->l[nx][ny])->typ) != 0) {
 	// in view of the above we must have IS_WALL(typ) or typ == POOL must be a wall here
-	if (isok(nx + nx - x, ny + ny - y) && typ != POOL && ZAP_POS(levl[nx + nx - x][ny + ny - y].typ)) {
+	if (isok(nx + nx - x, ny + ny - y) && typ != POOL && ZAP_POS(_level->l[nx + nx - x][ny + ny - y].typ)) {
 	    crm->typ = DOOR;
 	    goto proceed;
 	}
@@ -281,22 +261,20 @@ int gd_move(void)
   newpos:
     if (EGD->gddone)
 	nx = ny = 0;
-    guard->mx = nx;
-    guard->my = ny;
-    pmon(guard);
+    _guard->mx = nx;
+    _guard->my = ny;
+    pmon(_guard);
     restfakecorr();
     return 1;
 }
 
-void gddead(void)
+void gddead (void)
 {
-    guard = 0;
+    _guard = NULL;
 }
 
 void replgd(struct monst *mtmp, struct monst *mtmp2)
 {
-    if (mtmp == guard)
-	guard = mtmp2;
+    if (mtmp == _guard)
+	_guard = mtmp2;
 }
-
-#endif				// QUEST

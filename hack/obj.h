@@ -4,53 +4,47 @@
 
 #pragma once
 #include "config.h"
+#include "extern.h"
 
 struct obj {
-    struct obj *nobj;
-    unsigned o_id;
-    unsigned o_cnt_id;		// id of container object is in
-    xchar ox, oy;
-    xchar odx, ody;
-    uchar otyp;
-    uchar owt;
-    uchar quan;			// use oextra for tmp gold objects
-    schar spe;			// quality of weapon, armor or ring (+ or -)
-				// number of charges for wand ( >= -1 )
-				// special for uball and amulet %% BAH
-    char olet;
-    char invlet;
-    Bitfield(oinvis, 1);	// not yet implemented
-    Bitfield(odispl, 1);
-    Bitfield(known, 1);	// exact nature known
-    Bitfield(dknown, 1);	// color or text known
-    Bitfield(cursed, 1);
-    Bitfield(unpaid, 1);	// on some bill
-    Bitfield(rustfree, 1);
-    Bitfield(onamelth, 6);
-    long age;			// creation date
-    long owornmask;
-    long oextra[1];		// used for name of ordinary objects - length
-				// is flexible; amount for tmp gold objects
+    struct obj*	nobj;
+    unsigned	o_id;
+    unsigned	o_cnt_id;	// id of container object is in
+    unsigned	age;		// creation date
+    int8_t	ox;
+    int8_t	oy;
+    int8_t	odx;
+    int8_t	ody;
+    uint8_t	otyp;
+    uint8_t	owt;
+    uint8_t	quan;		// use oextra for tmp gold objects
+    int8_t	spe;		// quality of weapon, armor or ring (+/-), number of charges for wand (>= -1), special for amulet %% BAH
+    char	olet;
+    char	invlet;
+    uint8_t	owornmask;
+    uint8_t	oinvis:1;	// not yet implemented
+    uint8_t	odispl:1;
+    uint8_t	known:1;	// exact nature known
+    uint8_t	dknown:1;	// color or text known
+    uint8_t	cursed:1;
+    uint8_t	unpaid:1;	// on some bill
+    uint8_t	rustfree:1;
+    unsigned	ogold;		// gold value
 };
 
 // obj.owornmask values
 enum {
-    W_ARM	= 01,
-    W_ARM2	= 02,
-    W_ARMH	= 04,
-    W_ARMS	= 010,
-    W_ARMG	= 020,
+    W_ARM	= (1<<0),
+    W_ARM2	= (1<<1),
+    W_ARMH	= (1<<2),
+    W_ARMS	= (1<<3),
+    W_ARMG	= (1<<4),
+    W_WEP	= (1<<5),
+    W_RINGL	= (1<<6),	// make W_RINGL = RING_LEFT (see uprop)
+    W_RINGR	= (1<<7),
     W_ARMOR	= W_ARM| W_ARM2| W_ARMH| W_ARMS| W_ARMG,
-    W_RINGL	= 010000,	// make W_RINGL = RING_LEFT (see uprop)
-    W_RINGR	= 020000,
-    W_RING	= W_RINGL| W_RINGR,
-    W_WEP	= 01000,
-    W_BALL	= 02000,
-    W_CHAIN	= 04000
+    W_RING	= W_RINGL| W_RINGR
 };
 
-extern struct obj *fobj;
-
-#define newobj(xl)	(struct obj *) alloc((unsigned)(xl) + sizeof(struct obj))
-#define	ONAME(otmp)	((char *) otmp->oextra)
-#define	OGOLD(otmp)	(otmp->oextra[0])
+static inline struct obj* newobj (void)
+    { return alloc (sizeof(struct obj)); }

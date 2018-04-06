@@ -12,16 +12,11 @@
 #include <termios.h>
 #include <termcap.h>
 
-//
-// Some systems may have getchar() return EOF for various reasons, and
-// we should not quit before seeing at least NR_OF_EOFS consecutive EOFs.
-#ifndef BSD
-#define	NR_OF_EOFS	20
-#endif				// BSD
-
 static char erase_char, kill_char;
 static bool settty_needed = false;
 struct termios inittyb, curttyb;
+
+static void releasetty (void);
 
 //
 // Get initial state of terminal, set ospeed (for termcap routines)
@@ -43,21 +38,30 @@ void gettty(void)
 	setctty();
     }
     settty_needed = true;
+    atexit (releasetty);
+}
+
+static void releasetty (void)
+{
+    if (!settty_needed)
+	return;
+    clear_screen();
+    end_screen();
+    if (tcsetattr(0, TCSADRAIN, &inittyb) < 0)
+	perror("Hack (settty)");
+    _wflags.echo = (inittyb.c_lflag & ECHO) ? ON : OFF;
+    _wflags.cbreak = (inittyb.c_lflag & ICANON) ? OFF : ON;
+    setioctls();
+    settty_needed = false;
 }
 
 // reset terminal to original state
-void settty(const char *s)
+void settty (const char *s)
 {
-    clear_screen();
-    end_screen();
+    releasetty();
     if (s)
 	printf("%s", s);
-    (void) fflush(stdout);
-    if (tcsetattr(0, TCSADRAIN, &inittyb) < 0)
-	perror("Hack (settty)");
-    flags.echo = (inittyb.c_lflag & ECHO) ? ON : OFF;
-    flags.cbreak = (inittyb.c_lflag & ICANON) ? OFF : ON;
-    setioctls();
+    fflush(stdout);
 }
 
 void setctty(void)
@@ -69,19 +73,19 @@ void setctty(void)
 void setftty(void)
 {
     int change = 0;
-    flags.cbreak = ON;
-    flags.echo = OFF;
+    _wflags.cbreak = ON;
+    _wflags.echo = OFF;
     // Should use (ECHO|CRMOD) here instead of ECHO
     if (curttyb.c_lflag & ECHO) {
 	curttyb.c_lflag &= ~ECHO;
-	change++;
+	++change;
     }
     if (curttyb.c_lflag & ICANON) {
 	curttyb.c_lflag &= ~ICANON;
 	// be satisfied with one character; no timeout
 	curttyb.c_cc[VMIN] = 1;
 	curttyb.c_cc[VTIME] = 0;
-	change++;
+	++change;
     }
     if (change) {
 	setctty();
@@ -94,10 +98,9 @@ void setftty(void)
 void error(const char *fmt, ...)
 {
     va_list ap;
-
     va_start(ap, fmt);
     if (settty_needed)
-	settty((char *) 0);
+	settty (NULL);
     vprintf(fmt, ap);
     va_end(ap);
     putchar('\n');
@@ -114,9 +117,9 @@ void getlin(char *bufp)
     char *obufp = bufp;
     int c;
 
-    flags.toplin = 2;	       // nonempty, no --More-- required
+    _wflags.toplin = 2;	       // nonempty, no --More-- required
     for (;;) {
-	(void) fflush(stdout);
+	fflush(stdout);
 	if ((c = getchar()) == EOF) {
 	    *bufp = 0;
 	    return;
@@ -128,7 +131,7 @@ void getlin(char *bufp)
 	}
 	if (c == erase_char || c == '\b') {
 	    if (bufp != obufp) {
-		bufp--;
+		--bufp;
 		putstr("\b \b");	// putsym converts \b
 	    } else
 		bell();
@@ -142,11 +145,11 @@ void getlin(char *bufp)
 	    bufp[1] = 0;
 	    putstr(bufp);
 	    if (bufp - obufp < BUFSZ - 1 && bufp - obufp < COLNO)
-		bufp++;
+		++bufp;
 	} else if (c == kill_char || c == '\177') {	// Robert Viduya
 	    // this test last - @ might be the kill_char
 	    while (bufp != obufp) {
-		bufp--;
+		--bufp;
 		putstr("\b \b");
 	    }
 	} else
@@ -162,12 +165,12 @@ void getret(void)
 void cgetret(const char *s)
 {
     putsym('\n');
-    if (flags.standout)
+    if (_wflags.standout)
 	standoutbeg();
     putstr("Hit ");
-    putstr(flags.cbreak ? "space" : "return");
+    putstr(_wflags.cbreak ? "space" : "return");
     putstr(" to continue: ");
-    if (flags.standout)
+    if (_wflags.standout)
 	standoutend();
     xwaitforspace(s);
 }
@@ -182,7 +185,7 @@ void xwaitforspace(const char *s	// chars allowed besides space or return
     morc = 0;
 
     while ((c = readchar()) != '\n') {
-	if (flags.cbreak) {
+	if (_wflags.cbreak) {
 	    if (c == ' ')
 		break;
 	    if (s && strchr(s, c)) {
@@ -199,7 +202,7 @@ char *parse(void)
     static char inputline[COLNO];
     int foo;
 
-    flags.move = 1;
+    _wflags.move = 1;
     if (!Invisible)
 	curs_on_u();
     else
@@ -207,19 +210,14 @@ char *parse(void)
     while ((foo = readchar()) >= '0' && foo <= '9')
 	multi = 10 * multi + foo - '0';
     if (multi) {
-	multi--;
+	--multi;
 	save_cm = inputline;
     }
     inputline[0] = foo;
     inputline[1] = 0;
     if (foo == 'f' || foo == 'F') {
 	inputline[1] = getchar();
-#ifdef QUEST
-	if (inputline[1] == foo)
-	    inputline[2] = getchar();
-	else
-#endif				// QUEST
-	    inputline[2] = 0;
+	inputline[2] = 0;
     }
     if (foo == 'm' || foo == 'M') {
 	inputline[1] = getchar();
@@ -233,34 +231,16 @@ char readchar(void)
 {
     int sym;
 
-    (void) fflush(stdout);
+    fflush(stdout);
     if ((sym = getchar()) == EOF)
-#ifdef NR_OF_EOFS
-    {
-			       // Some SYSV systems seem to return EOFs for various reasons
-			       // (?like when one hits break or for interrupted systemcalls?),
-			       // and we must see several before we quit.
-	int cnt = NR_OF_EOFS;
-	while (cnt--) {
-	    clearerr(stdin);   // omit if clearerr is
-			       // undefined
-	    if ((sym = getchar()) != EOF)
-		goto noteof;
-	}
 	end_of_input();
-      noteof:;
-    }
-#else
-	end_of_input();
-#endif				// NR_OF_EOFS
-    if (flags.toplin == 1)
-	flags.toplin = 2;
+    if (_wflags.toplin == 1)
+	_wflags.toplin = 2;
     return (char) sym;
 }
 
 void end_of_input(void)
 {
     settty("End of input?\n");
-    clearlocks();
     exit(0);
 }

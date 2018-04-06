@@ -34,33 +34,32 @@ int main (int argc, const char* const* argv)
 	perror(argv[1]);
 	return EXIT_FAILURE;
     }
-    skipuntil("objects[] = {");
-    printf ("#pragma once\n");
+    skipuntil("c_Objects[] = {");
+    printf ("#pragma once\nenum {\n");
     while (getentry()) {
 	if (!*string) {
-	    i++;
+	    ++i;
 	    continue;
 	}
-	for (sp = string; *sp; sp++)
+	for (sp = string; *sp; ++sp)
 	    if (*sp == ' ' || *sp == '\t' || *sp == '-')
 		*sp = '_';
-	if (!strncmp(string, "RIN_", 4)) {
-	    capitalize(string + 4);
-	    printf("#define %s\t\tu.uprops[%d].p_flgs\n", string + 4, propct++);
+	if (!strncmp (string, "RIN_", 4)) {
+	    capitalize (string + 4);
+	    printf ("#define %s\t\t_u.uprops[%d].p_flgs\n", string + 4, ++propct);
 	}
-	for (sp = string; *sp; sp++)
+	for (sp = string; *sp; ++sp)
 	    capitalize(sp);
-	// avoid trouble with stupid C preprocessors
-	if (!strncmp(string, "WORTHLESS_PIECE_OF_", 19))
-	    printf("// #define %s\t%d\n", string, i);
+	if (i && !(i%10))
+	    printf ("    %s, // %d\n", string, i);
 	else
-	    printf("#define %s\t\t%d\n", string, i);
-	i++;
+	    printf ("    %s,\n", string);
+	++i;
     }
-    printf("\n#define CORPSE\tDEAD_HUMAN\n");
-    printf("#define LAST_GEM\t(JADE+1)\n");
-    printf("#define LAST_RING\t%d\n", propct);
-    printf("#define NROFOBJECTS\t%d\n", i - 1);
+    printf ("    NROFOBJECTS,\n\n");
+    printf ("    CORPSE\t= DEAD_HUMAN,\n");
+    printf ("    LAST_GEM\t= (JADE+1),\n");
+    printf ("    LAST_RING\t= %d,\n};\n", propct);
     fflush(stdout);
     if (ferror(stdout)) {
 	perror("standard output");
@@ -121,7 +120,7 @@ static int skipuntil (const char *s)
 	sp0 = s + 1;
 	sp1 = lp;
 	while (*sp0 && *sp0 == *sp1)
-	    sp0++, sp1++;
+	    ++sp0, ++sp1;
 	if (!*sp0) {
 	    lp = sp1;
 	    return 1;
@@ -165,18 +164,18 @@ static int getentry(void)
 			ch = nextchar();
 		goto swi;
 	    case '{':
-		inbraces++;
+		++inbraces;
 		break;
 	    case '(':
-		inparens++;
+		++inparens;
 		break;
 	    case '}':
-		inbraces--;
+		--inbraces;
 		if (inbraces < 0)
 		    return 0;
 		break;
 	    case ')':
-		inparens--;
+		--inparens;
 		if (inparens < 0) {
 		    printf("too many ) ?");
 		    exit(1);
@@ -203,7 +202,7 @@ static int getentry(void)
 		    printf("unexpected ,\n");
 		    exit(1);
 		}
-		commaseen++;
+		++commaseen;
 		break;
 	    case '\'':
 		if ((ch = nextchar()) == '\\')

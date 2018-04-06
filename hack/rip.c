@@ -26,20 +26,20 @@ void outrip(void)
     cls();
     curs(1, 8);
     puts(riptop);
-    (void) strcpy(buf, plname);
+    strcpy(buf, plname);
     buf[16] = 0;
     center(6, buf);
-    (void) sprintf(buf, "%ld AU", u.ugold);
+    sprintf(buf, "%u AU", _u.ugold);
     center(7, buf);
-    (void) sprintf(buf, "killed by%s", !strncmp(killer, "the ", 4) ? "" : !strcmp(killer, "starvation") ? "" : strchr(vowels, *killer) ? " an" : " a");
+    sprintf(buf, "killed by%s", !strncmp(killer, "the ", 4) ? "" : !strcmp(killer, "starvation") ? "" : strchr(vowels, *killer) ? " an" : " a");
     center(8, buf);
-    (void) strcpy(buf, killer);
+    strcpy(buf, killer);
     {
 	int i1;
 	if ((i1 = strlen(buf)) > 16) {
 	    int i, i0;
 	    i0 = i1 = 0;
-	    for (i = 0; i <= 16; i++)
+	    for (i = 0; i <= 16; ++i)
 		if (buf[i] == ' ')
 		    i0 = i, i1 = i + 1;
 	    if (!i0)
@@ -50,7 +50,7 @@ void outrip(void)
 	center(9, buf);
 	center(10, buf + i1);
     }
-    (void) sprintf(buf, "%4d", getyear());
+    sprintf(buf, "%4d", getyear());
     center(11, buf);
     puts(ripbot);
     getret();

@@ -2,6 +2,7 @@
 // This file is free software, distributed under the MIT license.
 
 #include "../config.h"
+#include <sys/stat.h>
 
 // The standard bsd checksum, summing with right rotation
 uint16_t bsdsum (const void* v, size_t n, uint16_t sum)
@@ -39,4 +40,19 @@ uint64_t time_ms (void)
     struct timespec now;
     clock_gettime (CLOCK_REALTIME, &now);
     return now.tv_sec*1000 + now.tv_nsec/1000000;
+}
+
+// Creates all directories in path
+int mkpath (const char* path, mode_t mode)
+{
+    char pbuf [PATH_MAX], *pbe = pbuf;
+    do {
+	if (*path == '/' || !*path) {
+	    *pbe = '\0';
+	    if (pbuf[0] && 0 > mkdir (pbuf, mode) && errno != EEXIST)
+		return -1;
+	}
+	*pbe++ = *path;
+    } while (*path++);
+    return 0;
 }

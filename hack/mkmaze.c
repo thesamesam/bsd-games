@@ -11,92 +11,92 @@ void makemaz(void)
 {
     int x, y;
     int zx, zy;
-    coord mm;
-    bool al = (dlevel >= 30 && !flags.made_amulet);
+    struct coord mm;
+    bool al = (_u.dlevel >= 30 && !_wflags.made_amulet);
 
-    for (x = 2; x < COLNO - 1; x++)
-	for (y = 2; y < ROWNO - 1; y++)
-	    levl[x][y].typ = (x % 2 && y % 2) ? 0 : HWALL;
+    for (x = 2; x < COLNO - 1; ++x)
+	for (y = 2; y < ROWNO - 1; ++y)
+	    _level->l[x][y].typ = (x % 2 && y % 2) ? 0 : HWALL;
     if (al) {
 	struct monst *mtmp;
 
 	zx = 2 * (COLNO / 4) - 1;
 	zy = 2 * (ROWNO / 4) - 1;
-	for (x = zx - 2; x < zx + 4; x++)
-	    for (y = zy - 2; y <= zy + 2; y++) {
-		levl[x][y].typ = (y == zy - 2 || y == zy + 2 || x == zx - 2 || x == zx + 3) ? POOL : (y == zy - 1 || y == zy + 1 || x == zx - 1 || x == zx + 2) ? HWALL : ROOM;
+	for (x = zx - 2; x < zx + 4; ++x)
+	    for (y = zy - 2; y <= zy + 2; ++y) {
+		_level->l[x][y].typ = (y == zy - 2 || y == zy + 2 || x == zx - 2 || x == zx + 3) ? POOL : (y == zy - 1 || y == zy + 1 || x == zx - 1 || x == zx + 2) ? HWALL : ROOM;
 	    }
-	(void) mkobj_at(AMULET_SYM, zx, zy);
-	flags.made_amulet = 1;
+	mkobj_at(AMULET_SYM, zx, zy);
+	_wflags.made_amulet = 1;
 	walkfrom(zx + 4, zy);
 	if ((mtmp = makemon(&hell_hound, zx, zy)) != NULL)
 	    mtmp->msleep = 1;
 	if ((mtmp = makemon(PM_WIZARD, zx + 1, zy)) != NULL) {
 	    mtmp->msleep = 1;
-	    flags.no_of_wizards = 1;
+	    _wflags.no_of_wizards = 1;
 	}
     } else {
 	mm = mazexy();
 	zx = mm.x;
 	zy = mm.y;
 	walkfrom(zx, zy);
-	(void) mksobj_at(WAN_WISHING, zx, zy);
-	(void) mkobj_at(ROCK_SYM, zx, zy);	// put a rock on top of
+	mksobj_at(WAN_WISHING, zx, zy);
+	mkobj_at(ROCK_SYM, zx, zy);	// put a rock on top of
 						// it
     }
 
-    for (x = 2; x < COLNO - 1; x++)
-	for (y = 2; y < ROWNO - 1; y++) {
-	    switch (levl[x][y].typ) {
+    for (x = 2; x < COLNO - 1; ++x)
+	for (y = 2; y < ROWNO - 1; ++y) {
+	    switch (_level->l[x][y].typ) {
 		case HWALL:
-		    levl[x][y].scrsym = '-';
+		    _level->l[x][y].scrsym = '-';
 		    break;
 		case ROOM:
-		    levl[x][y].scrsym = '.';
+		    _level->l[x][y].scrsym = '.';
 		    break;
 	    }
 	}
-    for (x = rn1(8, 11); x; x--) {
+    for (x = rn1(8, 11); x; --x) {
 	mm = mazexy();
-	(void) mkobj_at(rn2(2) ? GEM_SYM : 0, mm.x, mm.y);
+	mkobj_at(rn2(2) ? GEM_SYM : 0, mm.x, mm.y);
     }
-    for (x = rn1(10, 2); x; x--) {
+    for (x = rn1(10, 2); x; --x) {
 	mm = mazexy();
-	(void) mkobj_at(ROCK_SYM, mm.x, mm.y);
+	mkobj_at(ROCK_SYM, mm.x, mm.y);
     }
     mm = mazexy();
-    (void) makemon(PM_MINOTAUR, mm.x, mm.y);
-    for (x = rn1(5, 7); x; x--) {
+    makemon(PM_MINOTAUR, mm.x, mm.y);
+    for (x = rn1(5, 7); x; --x) {
 	mm = mazexy();
-	(void) makemon((struct permonst *) 0, mm.x, mm.y);
+	makemon(NULL, mm.x, mm.y);
     }
-    for (x = rn1(6, 7); x; x--) {
+    for (x = rn1(6, 7); x; --x) {
 	mm = mazexy();
 	mkgold(0L, mm.x, mm.y);
     }
-    for (x = rn1(6, 7); x; x--)
-	mktrap(0, 1, (struct mkroom *) 0);
+    for (x = rn1(6, 7); x; --x)
+	mktrap(0, 1, NULL);
     mm = mazexy();
-    levl[(xupstair = mm.x)][(yupstair = mm.y)].scrsym = '<';
-    levl[xupstair][yupstair].typ = STAIRS;
-    xdnstair = ydnstair = 0;
+    _level->l[(_level->stair.up.x = mm.x)][(_level->stair.up.y = mm.y)].scrsym = '<';
+    _level->l[_level->stair.up.x][_level->stair.up.y].typ = STAIRS;
+    _level->stair.dn.x = _level->stair.dn.y = 0;
 }
 
 void walkfrom(int x, int y)
 {
     int q, a, dir;
     int dirs[4];
-    levl[x][y].typ = ROOM;
+    _level->l[x][y].typ = ROOM;
     while (1) {
 	q = 0;
-	for (a = 0; a < 4; a++)
+	for (a = 0; a < 4; ++a)
 	    if (okay(x, y, a))
 		dirs[q++] = a;
 	if (!q)
 	    return;
 	dir = dirs[rn2(q)];
 	move(&x, &y, dir);
-	levl[x][y].typ = ROOM;
+	_level->l[x][y].typ = ROOM;
 	move(&x, &y, dir);
 	walkfrom(x, y);
     }
@@ -109,10 +109,10 @@ void move(int *x, int *y, int dir)
 	    --(*y);
 	    break;
 	case 1:
-	    (*x)++;
+	    ++(*x);
 	    break;
 	case 2:
-	    (*y)++;
+	    ++(*y);
 	    break;
 	case 3:
 	    --(*x);
@@ -124,15 +124,15 @@ int okay(int x, int y, int dir)
 {
     move(&x, &y, dir);
     move(&x, &y, dir);
-    if (x < 3 || y < 3 || x > COLNO - 3 || y > ROWNO - 3 || levl[x][y].typ != 0)
+    if (x < 3 || y < 3 || x > COLNO - 3 || y > ROWNO - 3 || _level->l[x][y].typ != 0)
 	return 0;
     else
 	return 1;
 }
 
-coord mazexy(void)
+struct coord mazexy(void)
 {
-    coord mm;
+    struct coord mm;
     mm.x = 3 + 2 * rn2(COLNO / 2 - 2);
     mm.y = 3 + 2 * rn2(ROWNO / 2 - 2);
     return mm;

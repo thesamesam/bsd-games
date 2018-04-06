@@ -9,36 +9,15 @@
 #include "hack.h"
 #include "extern.h"
 #include <termios.h>
+
 struct termios termios;
 
 void getioctls(void)
 {
-    tcgetattr (fileno(stdin), &termios);
+    tcgetattr (STDIN_FILENO, &termios);
 }
 
 void setioctls(void)
 {
-    tcsetattr (fileno(stdin), TCSADRAIN, &termios);
+    tcsetattr (STDIN_FILENO, TCSADRAIN, &termios);
 }
-
-#ifdef SUSPEND		       // implies BSD
-#include <signal.h>
-int dosuspend()
-{
-#ifdef SIGTSTP
-    if (signal(SIGTSTP, SIG_IGN) == SIG_DFL) {
-	settty((char *) 0);
-	(void) signal(SIGTSTP, SIG_DFL);
-	(void) kill(0, SIGTSTP);
-	gettty();
-	setftty();
-	docrt();
-    } else {
-	pline("I don't think your shell has job control.");
-    }
-#else				// SIGTSTP
-    pline("Sorry, it seems we have no SIGTSTP here. Try ! or S.");
-#endif				// SIGTSTP
-    return 0;
-}
-#endif				// SUSPEND
