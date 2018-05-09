@@ -24,7 +24,7 @@ static inline char* newstring (size_t sz)
 
 enum {
     BUFSZ	= 256,	       // for getlin buffers
-    PL_NSIZ	= 32	       // name of player, ghost, shopkeeper
+    PL_NSIZ	= 16	       // name of player, ghost, shopkeeper
 };
 
 #include "rm.h"

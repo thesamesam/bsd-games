@@ -9,8 +9,8 @@
 //----------------------------------------------------------------------
 
 enum {
-    DTHSZ	= 40,
-    NAMSZ	= 64-(DTHSZ+11),
+    NAMSZ	= PL_NSIZ,
+    DTHSZ	= 64-(NAMSZ+11),
     POINTSMIN	= 1,	// must be > 0
     MAXSCORES	= 10	// must be >= 10
 };
@@ -224,8 +224,7 @@ void savescore (void)
 	nsc->hp = _u.uhp < 0 ? 0 : _u.uhp;
 	nsc->maxhp = _u.uhpmax;
 	nsc->plchar = pl_character[0];
-	nsc->name[sizeof(nsc->name)-1] = 0;
-	strncpy (nsc->name, plname, sizeof(nsc->name)-1);
+	snprintf (ArrayBlock(nsc->name), "%s", plname);
 	snprintf (ArrayBlock(nsc->death), "%s", killer);
 	// Resort into correct position
 	qsort (ArrayBlock(scores), sizeof(*nsc), compare_scores);
