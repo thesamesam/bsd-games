@@ -439,27 +439,22 @@ static inline bool turnfirst (const char* x)
 
 static void acceptmove(void)
 {
-    int ta;
-    int ma;
-    char af;
-    int moved = 0;
-    int vma, dir;
-    char prompt[60];
-    char buf[60], last = '\0';
-    char *p;
-
     if (!_ms->specs.crew[2] || snagged(_ms) || !_windspeed) {
 	Msg("Unable to move");
 	return;
     }
-
-    ta = maxturns(_ms, &af);
-    ma = maxmove(_ms, _ms->status.dir, 0);
-    sprintf(prompt, "move (%d,%c%d): ", ma, af ? '\'' : ' ', ta);
-    sgetstr(prompt, buf, sizeof buf);
-    dir = _ms->status.dir;
-    vma = ma;
-    for (p = buf; *p; ++p)
+    char af;
+    short ta = maxturns(_ms, &af);
+    short ma = maxmove(_ms, _ms->status.dir, 0);
+    char prompt[32];
+    sprintf (prompt, "move (%hd,%c%hd): ", ma, af ? '\'' : ' ', ta);
+    char buf[sizeof(_ms->status.movebuf)];
+    sgetstr (prompt, buf, sizeof(buf));
+    int dir = _ms->status.dir;
+    int vma = ma;
+    char last = '\0';
+    bool moved = false;
+    for (char* p = buf; *p; ++p)
 	switch (*p) {
 	    case 'l':
 		dir -= 2;
@@ -477,14 +472,14 @@ static void acceptmove(void)
 		--ma;
 		--ta;
 		vma = min_i (ma, maxmove(_ms, dir, 0));
-		if ((ta < 0 && moved) || (vma < 0 && moved))
+		if (moved && (ta < 0 || vma < 0))
 		    *p-- = '\0';
 		break;
 	    case 'b':
 		--ma;
 		--vma;
 		last = 'b';
-		if ((ta < 0 && moved) || (vma < 0 && moved))
+		if (moved && (ta < 0 || vma < 0))
 		    *p-- = '\0';
 		break;
 	    case '0':
@@ -506,10 +501,10 @@ static void acceptmove(void)
 		    *p-- = '\0';
 		}
 		last = '0';
-		moved = 1;
+		moved = true;
 		ma -= *p - '0';
 		vma -= *p - '0';
-		if ((ta < 0 && moved) || (vma < 0 && moved))
+		if (moved && (ta < 0 || vma < 0))
 		    *p-- = '\0';
 		break;
 	    default:
@@ -518,9 +513,9 @@ static void acceptmove(void)
 		    *p-- = '\0';
 		}
 	}
-    if ((ta < 0 && moved) || (vma < 0 && moved) || (af && turnfirst(buf) && moved)) {
+    if (moved && (ta < 0 || vma < 0 || (af && turnfirst(buf)))) {
 	Msg("Movement error.");
-	if (ta < 0 && moved) {
+	if (ta < 0) {
 	    if (_ms->status.FS == 1) {
 		_ms->status.FS = 0;
 		Msg("No hands to set full sails.");

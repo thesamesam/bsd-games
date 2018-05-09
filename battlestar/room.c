@@ -79,32 +79,31 @@ const char* truedirec (int way, char option)
 		case SOUTH: return option == '+' ? "behind you" : "back";
 		case EAST: return "left";
 		case WEST: return "right";
-	    }
+	    }; break;
 	case SOUTH:
 	    switch (direction) {
 		case NORTH: return option == '+' ? "behind you" : "back";
 		case SOUTH: return "ahead";
 		case EAST: return "right";
 		case WEST: return "left";
-	    }
+	    }; break;
 	case EAST:
 	    switch (direction) {
 		case NORTH: return "right";
 		case SOUTH: return "left";
 		case EAST: return "ahead";
 		case WEST: return option == '+' ? "behind you" : "back";
-	    }
+	    }; break;
 	case WEST:
 	    switch (direction) {
 		case NORTH: return "left";
 		case SOUTH: return "right";
 		case EAST: return option == '+' ? "behind you" : "back";
 		case WEST: return "ahead";
-	    }
-	default:
-	    printf("Error: room %d.  More than four directions wanted.", position);
-	    return "!!";
+	    }; break;
     }
+    printf("Error: room %d.  More than four directions wanted.", position);
+    return "!!";
 }
 
 void newway (int thisway)

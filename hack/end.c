@@ -224,7 +224,8 @@ void savescore (void)
 	nsc->hp = _u.uhp < 0 ? 0 : _u.uhp;
 	nsc->maxhp = _u.uhpmax;
 	nsc->plchar = pl_character[0];
-	snprintf (ArrayBlock(nsc->name), "%s", plname);
+	nsc->name[sizeof(nsc->name)-1] = 0;
+	strncpy (nsc->name, plname, sizeof(nsc->name)-1);
 	snprintf (ArrayBlock(nsc->death), "%s", killer);
 	// Resort into correct position
 	qsort (ArrayBlock(scores), sizeof(*nsc), compare_scores);
