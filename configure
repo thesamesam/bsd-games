@@ -16,13 +16,17 @@ COMPONENTS='
 name=[with-debug]
 desc=[	compile for debugging]
 seds=[s/^#\(DEBUG\)/\1/]
+}{
+name=[with-native]
+desc=[	Use -march=native]
+seds=[s/ -std=c/ -march=native -std=c/]
 }';
 
 # Header files
 HEADERS="ncurses.h"
 
 # Libraries
-LIBS="ncurses m"
+LIBS="ncurses"
 
 # First pair is used if nothing matches
 PROGS="CC=gcc CC=clang AR=ar RANLIB=ranlib RANLIB=touch INSTALL=install PAGER=less PAGER=more"

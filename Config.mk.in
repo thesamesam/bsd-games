@@ -23,7 +23,6 @@ BINDIR		:= @bindir@
 MANDIR		:= @mandir@
 STATEDIR	:= @localstatedir@/${NAME}
 DATADIR		:= @datadir@/${NAME}
-
 WORDLIST	:= @wordlist@
 
 ################ Compiler options ####################################
@@ -34,7 +33,6 @@ CFLAGS		:= -Wall -Wextra -Wstrict-prototypes -Wpointer-arith \
 		   -std=c11 @CUSTOMINCDIR@
 LDFLAGS		:= @CUSTOMLIBDIR@
 CURSES_LIBS	:= -lncurses
-MATH_LIBS	:= -lm
 ifdef DEBUG
     CFLAGS	+= -O0 -ggdb3
 else

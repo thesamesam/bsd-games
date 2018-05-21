@@ -115,7 +115,7 @@ void parse(void)
 		wordtype[n + 1] = wordtype[n - 1];
 		wordtype[n - 1] = OBJECT;
 		strcpy(tmpword, words[n - 1]);
-		strcpy(words[n - 1], words[n + 1]);
+		memcpy(words[n - 1], words[n + 1], sizeof(words[n-1]));
 		strcpy(words[n + 1], tmpword);
 		flag = 1;
 	    }
