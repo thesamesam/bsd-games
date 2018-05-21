@@ -89,7 +89,7 @@ static void initialize(void)
     draw_screen();
 }
 
-void play(void)
+_Noreturn void play(void)
 {
     for (;;) {
 	draw_screen();

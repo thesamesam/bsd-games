@@ -389,7 +389,7 @@ void badmove(void)
     rspeak(spk);
 }
 
-void bug(int n)
+_Noreturn void bug(int n)
 {
     printf("Please tell jim@rand.org that fatal bug %d happened.\n", n);
     exit(1);

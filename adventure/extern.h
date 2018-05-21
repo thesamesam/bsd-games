@@ -5,7 +5,7 @@
 
 // done.c
 int score(void);
-void done(int) NORETURN;
+_Noreturn void done(int);
 void die(int);
 
 // init.c
@@ -44,7 +44,7 @@ int mback(void);
 int specials(void);
 int trbridge(void);
 void badmove(void);
-void bug(int) NORETURN;
+_Noreturn void bug(int);
 void checkhints(void);
 int trsay(void);
 int trtake(void);

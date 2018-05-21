@@ -292,7 +292,7 @@ void sgetstr (const char *pr, char *buf, int n)
     }
 }
 
-void leave (int conditions)
+_Noreturn void leave (int conditions)
 {
     Msg("It looks like you've had it!");
     switch (conditions) {

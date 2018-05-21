@@ -179,7 +179,7 @@ int getAChar(void)
     }
 }
 
-void loser (const struct Plane* p, const char* msg, ...)
+_Noreturn void loser (const struct Plane* p, const char* msg, ...)
 {
     werase (_winput);
     wprintw (_winput, "Plane %c ", plane_name(p));
@@ -193,7 +193,7 @@ void loser (const struct Plane* p, const char* msg, ...)
     quitter();
 }
 
-void quitter (void)
+_Noreturn void quitter (void)
 {
     cleanup_curses();
     save_score (true);

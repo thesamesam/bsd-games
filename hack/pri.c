@@ -7,7 +7,7 @@
 
 int8_t scrlx, scrhx, scrly, scrhy;	// corners of new area on screen
 
-void panic (const char *fmt, ...)
+_Noreturn void panic (const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -124,7 +124,7 @@ void Tmp_at(int x, int y)
     }
 }
 
-void setclipped(void)
+_Noreturn void setclipped(void)
 {
     error("Hack needs a screen of size at least %d by %d.\n", ROWNO + 2, COLNO);
 }

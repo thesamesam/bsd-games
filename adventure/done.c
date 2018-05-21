@@ -57,7 +57,7 @@ int score(void)
 }
 
 // entry=2 means goto 20000, 3=19000
-void done (int entry)
+_Noreturn void done (int entry)
 {
     // Player class descriptions
     static const struct {

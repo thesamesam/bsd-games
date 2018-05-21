@@ -28,7 +28,6 @@
 // Common function and variable attributes
 #if __GNUC__ && !defined(UNUSED)
     #define UNUSED		__attribute__((unused))
-    #define NORETURN		__attribute__((noreturn))
     #define PRINTFLIKE(f,a)	__attribute__((__format__(__printf__,f,a)))
     #ifndef __cplusplus
 	#define noexcept	__attribute__((nothrow))
@@ -48,7 +47,10 @@
 // Curses transparent color
 enum { COLOR_DEFAULT = -1 };
 // Escape key
-enum { KEY_ESCAPE = '\033' };
+enum {
+    KEY_ESCAPE = '\e',
+    KEY_BKSPACE = '~'+1
+};
 // Color pair definitions array
 struct color_pair {
     int8_t	fg:4;

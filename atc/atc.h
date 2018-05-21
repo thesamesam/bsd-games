@@ -120,8 +120,8 @@ extern char _errtext [64];
 void init_gr (void);
 void draw_all (void);
 int getAChar (void);
-void loser (const struct Plane* p, const char* s, ...) NORETURN;
-void quitter (void) NORETURN;
+_Noreturn void loser (const struct Plane* p, const char* s, ...);
+_Noreturn void quitter (void);
 
 // input.c
 void getcommand(void);

@@ -19,7 +19,7 @@ enum {
     exitcode_SignalBase = 128
 };
 
-static __attribute__((noreturn)) void on_fatal_signal (int sig)
+static _Noreturn void on_fatal_signal (int sig)
 {
     static volatile _Atomic(bool) s_bOnce = false;
     int exitcode = exitcode_SignalBase+sig;

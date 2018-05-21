@@ -15,7 +15,7 @@ int dosave (void)
     return 0;
 }
 
-void hangup (int n UNUSED)
+_Noreturn void hangup (int n UNUSED)
 {
     dosave0 (false);
     exit (EXIT_FAILURE);

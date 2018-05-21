@@ -116,7 +116,6 @@ int dodone(void);
 void done1(int);
 void done_in_by(struct monst *);
 void done (const char *) __attribute__((noreturn));
-void hangup(int) NORETURN;
 char *eos(char *);
 void savescore (void);
 
@@ -331,12 +330,12 @@ int dodip(void);
 void ghost_from_bottle(void);
 
 // pri.c
-void panic (const char* msg, ...) NORETURN PRINTFLIKE(1,2);
+_Noreturn void panic (const char* msg, ...) PRINTFLIKE(1,2);
 void atl(int, int, int);
 void on_scr(int, int);
 void tmp_at(int, int);
 void Tmp_at(int, int);
-void setclipped(void) NORETURN;
+_Noreturn void setclipped(void);
 void at(int, int, int);
 void prme(void);
 int doredraw(void);
@@ -378,6 +377,7 @@ void center(int, char *);
 void print_rumor (void);
 
 // save.c
+_Noreturn void hangup(int);
 int dosave (void);
 bool dosave0 (bool failok);
 bool dorecover (void);
@@ -484,14 +484,14 @@ void gettty(void);
 void settty(const char *);
 void setctty(void);
 void setftty(void);
-void error(const char *, ...) PRINTFLIKE(1,2) NORETURN;
+_Noreturn void error(const char *, ...) PRINTFLIKE(1,2);
 void getlin(char *);
 void getret(void);
 void cgetret(const char *);
 void xwaitforspace(const char *);
 char *parse(void);
 char readchar(void);
-void end_of_input(void) NORETURN;
+_Noreturn void end_of_input(void);
 
 // u_init.c
 void u_init(void);

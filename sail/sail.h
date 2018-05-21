@@ -222,11 +222,11 @@ int dr_turn (void);
 
 // player.c
 int pl_main(void);
-void play(void) NORETURN;
+_Noreturn void play(void);
 
 // display.c
 void initscreen(void);
-void leave(int) NORETURN;
+_Noreturn void leave(int);
 void Signal (const char* fmt, const struct Ship* s, ...) PRINTFLIKE(1,3);
 void makesignal (const struct Ship *from, const char *fmt, const struct Ship *ship, ...) PRINTFLIKE(2,4);
 void makemsg (const struct Ship *from, const char *fmt, ...) PRINTFLIKE(2,3);

@@ -37,14 +37,14 @@ int land(void)
     return 0;
 }
 
-void die(void)
+_Noreturn void die(void)
 {			       // endgame
     printf ("bye.\nYour rating was %s.\n", rate());
     post (' ');
     exit (EXIT_SUCCESS);
 }
 
-void live (void)
+_Noreturn void live (void)
 {
     puts ("\nYou win!");
     post ('!');

@@ -95,7 +95,7 @@ void setftty(void)
 
 // fatal error
 // VARARGS1
-void error(const char *fmt, ...)
+_Noreturn void error(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -239,7 +239,7 @@ char readchar(void)
     return (char) sym;
 }
 
-void end_of_input(void)
+_Noreturn void end_of_input(void)
 {
     settty("End of input?\n");
     exit(0);
