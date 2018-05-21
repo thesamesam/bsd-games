@@ -32,7 +32,8 @@ void mkshop(void)
 
     if (i < 0) {	// shoptype not yet determined
 	static const uint8_t c_ShopTypeProb[] = { 3, 3, 5, 5, 10, 10, 14, 50 };
-	for (int j = rn2(100), i = 0; (j -= c_ShopTypeProb[i]) >= 0; ++i)
+	i = 0;
+	for (int j = rn2(100); (j -= c_ShopTypeProb[i]) >= 0; ++i)
 	    if (!shtypes[i])
 		break;	       // superfluous
 	if (isbig(sroom) && i + SHOPBASE == WANDSHOP)

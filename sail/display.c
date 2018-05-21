@@ -357,7 +357,7 @@ static void draw_stat(void)
     wprintw(_stat_w, "   %c(%c)\n", maxmove(_ms, _winddir, -1) + '0', maxmove(_ms, _winddir, 1) + '0');
 
     wmove(_stat_w, STAT_3, 0);
-    wprintw(_stat_w, "Load  %c%c %c%c\n", c_LoadName[_ms->status.load.l], readyname(_ms->status.ready.l), c_LoadName[_ms->status.load.r], readyname(_ms->status.ready.r));
+    wprintw(_stat_w, "Load  %c%c %c%c\n", c_LoadLetter[_ms->status.load.l], readyname(_ms->status.ready.l), c_LoadLetter[_ms->status.load.r], readyname(_ms->status.ready.r));
     wprintw(_stat_w, "Hull %2d\n", _ms->specs.hull);
     wprintw(_stat_w, "Crew %2d %2d %2d\n", _ms->specs.crew[0], _ms->specs.crew[1], _ms->specs.crew[2]);
     wprintw(_stat_w, "Guns %2d %2d\n", _ms->specs.gun.l, _ms->specs.gun.r);

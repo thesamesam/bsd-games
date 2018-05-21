@@ -192,7 +192,7 @@ extern const char c_CountryName [NNATION][9];
 extern const char* const c_ClassName [7];
 extern const char* const c_DirectionName [9];
 extern const char c_QualityName [6][9];
-extern const char c_LoadName[];
+extern const char c_LoadLetter[];
 
 extern const char c_ShotRange[];
 

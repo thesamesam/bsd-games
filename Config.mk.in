@@ -30,7 +30,8 @@ WORDLIST	:= @wordlist@
 
 CFLAGS		:= -Wall -Wextra -Wstrict-prototypes -Wpointer-arith \
 		   -Wcast-align -Wmissing-prototypes -Wwrite-strings \
-		   -Wcast-qual -std=c11 @CUSTOMINCDIR@
+		   -Wcast-qual -Wshadow -Wredundant-decls \
+		   -std=c11 @CUSTOMINCDIR@
 LDFLAGS		:= @CUSTOMLIBDIR@
 CURSES_LIBS	:= -lncurses
 MATH_LIBS	:= -lm

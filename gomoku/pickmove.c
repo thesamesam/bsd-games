@@ -442,10 +442,10 @@ static void addframes (unsigned level)
 	// open and closed ended frames.
 	int d = _dd[r];
 	struct spotstr* sp = fsp + d;
-	for (unsigned i = 1; i < 5; ++i, sp += d) {
+	for (unsigned j = 1; j < 5; ++j, sp += d) {
 	    if (sp->s_occ != EMPTY)
 		continue;
-	    makecombo(cbp, sp, i, fcb.s);
+	    makecombo(cbp, sp, j, fcb.s);
 	}
     } while ((cbp = cbp->c_next) != ecbp);
 
@@ -617,7 +617,7 @@ static void makeempty (struct combostr *ocbp)
     ep->e_emask = cbp->c_emask[0];
 
     // now update the emask info
-    unsigned s = 0;
+    unsigned nloops = 0;
     ep += 2;
     for (unsigned i = 2; i < nframes; ++i, ++ep) {
 	cbp = ep->e_combo;
@@ -626,7 +626,7 @@ static void makeempty (struct combostr *ocbp)
 	nep->e_emask = cbp->c_emask[0];
 
 	if (cbp->c_flg & C_LOOP) {
-	    ++s;
+	    ++nloops;
 	    // Account for the fact that this frame connects
 	    // to a previous one (thus forming a loop).
 	    nep = &einfo[cbp->c_dir];
@@ -639,7 +639,7 @@ static void makeempty (struct combostr *ocbp)
 
     // We only need to update the emask values of "complete" loops
     // to include the intersection spots.
-    if (s && ocbp->c_combo.c.a == 2) {
+    if (nloops && ocbp->c_combo.c.a == 2) {
 	// process loops from the top down
 	ep = &einfo[nframes];
 	do {

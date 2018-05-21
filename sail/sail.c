@@ -836,7 +836,7 @@ const char* const c_DirectionName[9] = {
 
 const char c_QualityName[6][9] = { "dead", "mutinous", "green", "mundane", "crack", "elite" };
 
-const char c_LoadName[] = "-GCRDE";
+const char c_LoadLetter[] = "-GCRDE";
 
 const char c_dc[] = { 0, 0,-1,-1,-1, 0, 1, 1, 1 };
 const char c_dr[] = { 0, 1, 1, 0,-1,-1,-1, 0, 1 };
