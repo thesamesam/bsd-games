@@ -20,7 +20,7 @@ int main (int argc, const char* const* argv)
     initoptions();
     // Set player name if not set in options
     if (!*plname) {
-	const char* pln = getlogin();
+	const char* pln = getenv ("USER");
 	if (pln && *pln)
 	    snprintf (ArrayBlock(plname), "%s", pln);
 	else

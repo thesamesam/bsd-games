@@ -41,18 +41,17 @@ struct coord getpos(int force, const char *goal)
     return cc;
 }
 
-const char *const ghostnames[] = {	// these names should have length < PL_NSIZ
-    "adri", "andries", "andreas", "bert", "david", "dirk", "emile",
-    "frans", "fred", "greg", "hether", "jay", "john", "jon", "kay",
-    "kenny", "maud", "michiel", "mike", "peter", "robert", "ron",
-    "tom", "wilmar"
-};
-
-char *xmonnam(struct monst *mtmp, int vb)
+char* xmonnam (struct monst* mtmp, int vb)
 {
-    static char buf[BUFSZ];	// %%
+    static const char ghostnames[][8] = {	// these names should have length < PL_NSIZ
+	"adri", "andries", "andreas", "bert", "david", "dirk", "emile",
+	"frans", "fred", "greg", "hether", "jay", "john", "jon", "kay",
+	"kenny", "maud", "michiel", "mike", "peter", "robert", "ron",
+	"tom", "wilmar"
+    };
+    static char buf[BUFSZ];
     if (mtmp->mnamelth && !vb) {
-	strcpy(buf, NAME(mtmp));
+	snprintf (ArrayBlock(buf), "%s", NAME(mtmp));
 	return buf;
     }
     switch (mtmp->data->mlet) {
@@ -64,17 +63,17 @@ char *xmonnam(struct monst *mtmp, int vb)
 		    if (!rn2(2))
 			strcpy((char *) mtmp->mextra, !rn2(5) ? plname : gn);
 		}
-		sprintf(buf, "%s's ghost", gn);
+		snprintf (ArrayBlock(buf), "%s's ghost", gn);
 	    }
 	    break;
 	case '@':
 	    if (mtmp->isshk) {
-		strcpy(buf, shkname(mtmp));
+		snprintf (ArrayBlock(buf), "%s", shkname(mtmp));
 		break;
 	    }
 	    // fallthrough
 	default:
-	    sprintf(buf, "the %s%s", mtmp->minvis ? "invisible " : "", mtmp->data->mname);
+	    snprintf (ArrayBlock(buf), "the %s%s", mtmp->minvis ? "invisible " : "", mtmp->data->mname);
     }
     if (vb && mtmp->mnamelth) {
 	strcat(buf, " called ");
@@ -101,21 +100,19 @@ char *Monnam(struct monst *mtmp)
     return bp;
 }
 
-char *amonnam(struct monst *mtmp, const char *adj)
+char* amonnam (struct monst *mtmp, const char *adj)
 {
-    char *bp = monnam(mtmp);
-    static char buf[BUFSZ];	// %%
-
-    if (!strncmp(bp, "the ", 4))
-	bp += 4;
-    sprintf(buf, "the %s %s", adj, bp);
+    const char* bp = monnam(mtmp);
+    if (!strncmp(bp, "the ", strlen("the ")))
+	bp += strlen("the ");
+    static char buf [BUFSZ];
+    snprintf (ArrayBlock(buf), "the %s %s", adj, bp);
     return buf;
 }
 
 char *Amonnam(struct monst *mtmp, const char *adj)
 {
     char *bp = amonnam(mtmp, adj);
-
     *bp = 'T';
     return bp;
 }

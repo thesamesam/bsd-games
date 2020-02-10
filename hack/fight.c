@@ -28,11 +28,9 @@ int hitmm(struct monst *magr, struct monst *mdef)
     if (hit)
 	mdef->msleep = 0;
     vis = (cansee(magr->mx, magr->my) && cansee(mdef->mx, mdef->my));
-    if (vis) {
-	char buf[BUFSZ];
-	sprintf(buf, "%s %s", Monnam(magr), hit ? "hits" : "misses");
-	pline("%s %s.", buf, monnam(mdef));
-    } else {
+    if (vis)
+	pline ("%s %s %s.", Monnam(magr), hit ? "hits" : "misses", monnam(mdef));
+    else {
 	bool far = (dist(magr->mx, magr->my) > 15);
 	if (far != far_noise || _u.moves - noisetime > 10) {
 	    far_noise = far;
@@ -96,10 +94,13 @@ int fightm (struct monst* fm)
 }
 
 // u is hit by sth, but not a monster
-int thitu(int tlev, int dam, const char *name)
+int thitu (int tlev, int dam, const char *name)
 {
-    char buf[BUFSZ];
-    setan(name, buf);
+    char buf [BUFSZ];
+    if (strchr (vowels, name[0]))
+	snprintf (ArrayBlock(buf), "an %s", name);
+    else
+	snprintf (ArrayBlock(buf), "a %s", name);
     if (_u.uac + tlev <= (int) rnd(20)) {
 	if (Blind)
 	    pline("It misses.");
@@ -116,7 +117,7 @@ int thitu(int tlev, int dam, const char *name)
     }
 }
 
-char mlarge[] = "bCDdegIlmnoPSsTUwY',&";
+const char mlarge[] = "bCDdegIlmnoPSsTUwY',&";
 
 bool hmon(			// return true if mon still alive
 		struct monst *mon, struct obj *obj, int thrown)

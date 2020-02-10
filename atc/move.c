@@ -125,24 +125,20 @@ void update_planes (void)
 const char* command (const struct Plane* pp)
 {
     static char buf[50] = "";
-    char* bp = buf;
-    sprintf (bp, "%c%d%c%c%d: ", plane_name(pp), pp->altitude, (pp->fuel < LOWFUEL) ? '*' : ' ', (pp->dest_type == T_AIRPORT) ? 'A' : 'E', pp->dest_no);
+    struct StringBuilder sb = StringBuilder_new (buf);
+    StringBuilder_appendf (&sb, "%c%d%c%c%d: ", plane_name(pp), pp->altitude, (pp->fuel < LOWFUEL) ? '*' : ' ', (pp->dest_type == T_AIRPORT) ? 'A' : 'E', pp->dest_no);
 
-    char* comm_start = bp = strchr(buf, '\0');
+    const char* comm_start = StringBuilder_ptr (&sb);
     if (!pp->altitude)
-	sprintf (bp, "Holding @ A%d", pp->orig_no);
+	StringBuilder_appendf (&sb, "Holding @ A%d", pp->orig_no);
     else if (pp->new_dir >= MAXDIR)
-	strcpy (bp, "Circle");
+	StringBuilder_append (&sb, "Circle");
     else if (pp->new_dir != pp->dir)
-	sprintf (bp, "%d", dir_deg(pp->new_dir));
-
-    bp = strchr (buf, '\0');
+	StringBuilder_appendf (&sb, "%d", dir_deg(pp->new_dir));
     if (pp->delayd)
-	sprintf (bp, " @ B%u", pp->delayd_no);
-
-    bp = strchr (buf, '\0');
+	StringBuilder_appendf (&sb, " @ B%u", pp->delayd_no);
     if (*comm_start == '\0' && (pp->status == S_UNMARKED || pp->status == S_IGNORED))
-	strcpy (bp, "---------");
+	StringBuilder_append (&sb, "---------");
     return buf;
 }
 

@@ -139,7 +139,7 @@ void vpline(const char *line, va_list ap)
     if (!strchr(line, '%'))
 	strcpy(pbuf, line);
     else
-	vsprintf(pbuf, line, ap);
+	vsnprintf (ArrayBlock(pbuf), line, ap);
     if (_wflags.toplin == 1 && !strcmp(pbuf, toplines))
 	return;
     nscr();		       // %%

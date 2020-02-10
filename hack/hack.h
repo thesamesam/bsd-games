@@ -179,7 +179,7 @@ extern const char *occtxt;
 extern char *save_cm;
 extern const char *killer;
 extern const char *const traps[];
-extern char mlarge[];
+extern const char mlarge[];
 extern char morc;
 extern char plname[PL_NSIZ], pl_character[PL_CSIZ];
 extern const char quitchars[];

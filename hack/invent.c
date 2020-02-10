@@ -526,10 +526,10 @@ void prinv(struct obj *obj)
     pline(xprname(obj, obj_to_let(obj)));
 }
 
-static char *xprname (struct obj *obj, char let)
+static char* xprname (struct obj* obj, char let)
 {
-    static char li[BUFSZ];
-    sprintf(li, "%c - %s.", _wflags.invlet_not_constant ? let : obj->invlet, doname(obj));
+    static char li [BUFSZ];
+    snprintf (ArrayBlock(li), "%c - %s.", _wflags.invlet_not_constant ? let : obj->invlet, doname(obj));
     return li;
 }
 
@@ -681,9 +681,8 @@ int dolook(void)
     }
 
     if (gold) {
-	char gbuf[30];
-
-	sprintf(gbuf, "%ld gold piece%s", gold->amount, plur(gold->amount));
+	char gbuf [30];
+	snprintf (ArrayBlock(gbuf), "%ld gold piece%s", gold->amount, plur(gold->amount));
 	if (!ct++)
 	    pline("You %s here %s.", verb, gbuf);
 	else

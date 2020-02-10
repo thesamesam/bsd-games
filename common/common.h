@@ -25,7 +25,7 @@
 #include <unistd.h>
 #include <time.h>
 
-// Common function and variable attributes
+//{{{ Common function and variable attributes --------------------------
 #if __GNUC__ && !defined(UNUSED)
     #define UNUSED		__attribute__((unused))
     #define PRINTFLIKE(f,a)	__attribute__((__format__(__printf__,f,a)))
@@ -34,15 +34,19 @@
 	#define constexpr	__attribute__((const))
     #endif
 #endif
-
-// Various clang quirks
+//}}}-------------------------------------------------------------------
+//{{{ clang quirks
 #if __clang__
     #define atomic_exchange(o,v)	__c11_atomic_exchange(o,v,__ATOMIC_SEQ_CST)
 #else
     #include <stdatomic.h>
 #endif
 
+//}}}-------------------------------------------------------------------
+
 #include "vector.h"
+
+//{{{ Types and constants ----------------------------------------------
 
 // Curses transparent color
 enum { COLOR_DEFAULT = -1 };
@@ -57,6 +61,15 @@ struct color_pair {
     int8_t	bg:4;
 };
 
+// For building string with multiple append calls
+struct StringBuilder {
+    char*	s;
+    size_t	n;
+};
+
+//}}}-------------------------------------------------------------------
+//{{{ Extern prototypes from common/*.c
+
 // Common utility functions
 #ifdef __cplusplus
 extern "C" {
@@ -68,6 +81,7 @@ unsigned nrand (unsigned r);
 void srandrand (void);
 uint64_t time_ms (void);
 int mkpath (const char* path, mode_t mode);
+void StringBuilder_skip (struct StringBuilder* sb, ssize_t n);
 
 // ui.c
 void initialize_curses (void);
@@ -78,7 +92,9 @@ void init_pairs (const struct color_pair* cps, size_t ncps);
 bool read_score_file (const char* filename, const char* magic, void* scores, size_t scoresSize);
 void write_score_file (const char* filename, const char* magic, const void* scores, size_t scoresSize);
 
-// inlines
+//}}}-------------------------------------------------------------------
+//{{{ Inline utility functions
+
 inline static uint32_t ror32 (uint32_t v, unsigned n)
     { return (v >> n)|(v << (32-n)); }
 inline static uint16_t ror16 (uint16_t v, unsigned n)
@@ -114,6 +130,9 @@ static inline void iota_u8 (uint8_t* v, size_t n)
 static inline void random_shuffle_u8 (uint8_t* v, size_t n)
     { for (; n; --n,++v) swap_u8 (v, v+nrand(n)); }
 
+//}}}-------------------------------------------------------------------
+//{{{ x86 string functions
+
 static inline const char* scasb (const char* p, size_t* n, char c)
 {
 #if __i386__ || __x86_64__
@@ -134,6 +153,26 @@ static inline const char* zstrn (const char* strs, unsigned n, unsigned nstrs)
     return strs;
 }
 
+//}}}-------------------------------------------------------------------
+//{{{ StringBuilder
+
+#define StringBuilder_new(buf)	{ &buf[0], ArraySize(buf) }
+
+static inline const char* StringBuilder_ptr (const struct StringBuilder* sb)
+    { return sb->s; }
+static inline size_t StringBuilder_remaining (const struct StringBuilder* sb)
+    { return sb->n; }
+static inline const char* StringBuilder_end (const struct StringBuilder* sb)
+    { return StringBuilder_ptr(sb) + StringBuilder_remaining(sb); }
+static inline void StringBuilder_append (struct StringBuilder* sb, const char* s)
+    { StringBuilder_skip (sb, snprintf (sb->s, sb->n, "%s", s)); }
+#define StringBuilder_appendf(sb,fmt,...)\
+    StringBuilder_skip ((sb), snprintf ((sb)->s, (sb)->n, (fmt), __VA_ARGS__))
+static inline void StringBuilder_backspace (struct StringBuilder* sb)
+    { *--sb->s = 0; --sb->n; }
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
+
+//}}}-------------------------------------------------------------------

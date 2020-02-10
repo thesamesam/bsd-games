@@ -504,7 +504,9 @@ void nscr(void)
 }
 
 // 100 suffices for bot(); no relation with COLNO
-char oldbot[100], newbot[100];
+static char oldbot [100];
+static char newbot [100];
+
 void cornbot(int lth)
 {
     if (lth < (int) sizeof(oldbot)) {
@@ -513,25 +515,26 @@ void cornbot(int lth)
     }
 }
 
-void bot(void)
+void bot (void)
 {
     char *ob = oldbot, *nb = newbot;
     int i;
     if (_wflags.botlx)
 	*ob = 0;
     _wflags.botl = _wflags.botlx = 0;
-    sprintf(newbot, "Level %-2hhu  Gold %-5u  Hp %3d(%hu)  Ac %-2d  Str ", _u.dlevel, _u.ugold, _u.uhp, _u.uhpmax, _u.uac);
+    struct StringBuilder sb = StringBuilder_new (newbot);
+    StringBuilder_appendf (&sb, "Level %-2hhu  Gold %-5u  Hp %3d(%hu)  Ac %-2d  Str ", _u.dlevel, _u.ugold, _u.uhp, _u.uhpmax, _u.uac);
     if (_u.ustr > 18) {
 	if (_u.ustr > 117)
-	    strcat(newbot, "18/**");
+	    StringBuilder_append (&sb, "18/**");
 	else
-	    sprintf(eos(newbot), "18/%02d", _u.ustr - 18);
+	    StringBuilder_appendf (&sb, "18/%02d", _u.ustr - 18);
     } else
-	sprintf(eos(newbot), "%-2d   ", _u.ustr);
-    sprintf(eos(newbot), "  Exp %2hhu/%-5u ", _u.ulevel, _u.uexp);
-    strcat(newbot, hu_stat[_u.uhs]);
+	StringBuilder_appendf (&sb, "%-2d   ", _u.ustr);
+    StringBuilder_appendf (&sb, "  Exp %2hhu/%-5u ", _u.ulevel, _u.uexp);
+    StringBuilder_append (&sb, hu_stat[_u.uhs]);
     if (_wflags.time)
-	sprintf(eos(newbot), "  %u", _u.moves);
+	StringBuilder_appendf (&sb, "  %u", _u.moves);
     if (strlen(newbot) >= COLNO) {
 	char *bp0, *bp1;
 	bp0 = bp1 = newbot;

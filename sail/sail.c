@@ -447,7 +447,7 @@ static void acceptmove(void)
     short ta = maxturns(_ms, &af);
     short ma = maxmove(_ms, _ms->status.dir, 0);
     char prompt[32];
-    sprintf (prompt, "move (%hd,%c%hd): ", ma, af ? '\'' : ' ', ta);
+    snprintf (ArrayBlock(prompt), "move (%hd,%c%hd): ", ma, af ? '\'' : ' ', ta);
     char buf[sizeof(_ms->status.movebuf)];
     sgetstr (prompt, buf, sizeof(buf));
     int dir = _ms->status.dir;

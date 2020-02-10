@@ -5,35 +5,33 @@
 #include "hack.h"
 #include "extern.h"
 
-static const char *riptop = "\
-                       ----------\n\
-                      /          \\\n\
-                     /    REST    \\\n\
-                    /      IN      \\\n\
-                   /     PEACE      \\\n\
-                  /                  \\";
+static const char riptop[] =
+	"                       ----------\n"
+	"                      /          \\\n"
+	"                     /    REST    \\\n"
+	"                    /      IN      \\\n"
+	"                   /     PEACE      \\\n"
+	"                  /                  \\";
+static const char ripmid[] =
+	"                  | %*s%*s |\n";
+static const char ripbot[] =
+	"                 *|     *  *  *      | *\n"
+	"        _________)/\\\\_//(\\/(/\\)/\\//\\/|_)_______";
 
-static const char *ripmid = "                  | %*s%*s |\n";
-
-static const char *ripbot = "\
-                 *|     *  *  *      | *\n\
-        _________)/\\\\_//(\\/(/\\)/\\//\\/|_)_______";
-
-void outrip(void)
+void outrip (void)
 {
-    char buf[BUFSZ];
-
     cls();
     curs(1, 8);
     puts(riptop);
-    strcpy(buf, plname);
+    char buf [BUFSZ];
+    snprintf (ArrayBlock(buf), plname);
     buf[16] = 0;
     center(6, buf);
-    sprintf(buf, "%u AU", _u.ugold);
+    snprintf (ArrayBlock(buf), "%u AU", _u.ugold);
     center(7, buf);
-    sprintf(buf, "killed by%s", !strncmp(killer, "the ", 4) ? "" : !strcmp(killer, "starvation") ? "" : strchr(vowels, *killer) ? " an" : " a");
+    snprintf (ArrayBlock(buf), "killed by%s", !strncmp(killer, "the ", 4) ? "" : !strcmp(killer, "starvation") ? "" : strchr(vowels, *killer) ? " an" : " a");
     center(8, buf);
-    strcpy(buf, killer);
+    snprintf (ArrayBlock(buf), killer);
     {
 	int i1;
 	if ((i1 = strlen(buf)) > 16) {
@@ -50,7 +48,7 @@ void outrip(void)
 	center(9, buf);
 	center(10, buf + i1);
     }
-    sprintf(buf, "%4d", getyear());
+    snprintf (ArrayBlock(buf), "%4d", getyear());
     center(11, buf);
     puts(ripbot);
     getret();

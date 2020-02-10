@@ -244,8 +244,8 @@ int doeat(void)
     }
   eatx:
     if (multi < 0 && !nomovemsg) {
-	static char msgbuf[BUFSZ];
-	sprintf(msgbuf, "You finished eating the %s.", ftmp->oc_name);
+	static char msgbuf [BUFSZ];
+	snprintf (ArrayBlock(msgbuf), "You finished eating the %s.", ftmp->oc_name);
 	nomovemsg = msgbuf;
     }
     useup(otmp);

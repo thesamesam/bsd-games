@@ -77,18 +77,18 @@ static void done_hangup(int n)
     done_intr(n);
 }
 
-void done_in_by(struct monst *mtmp)
+void done_in_by (struct monst* mtmp)
 {
-    static char buf[BUFSZ];
-    pline("You die ...");
+    static char buf [BUFSZ];
+    pline ("You die ...");
     if (mtmp->data->mlet == ' ') {
-	sprintf(buf, "the ghost of %s", (char *) mtmp->mextra);
+	snprintf (ArrayBlock(buf), "the ghost of %s", (const char*) mtmp->mextra);
 	killer = buf;
     } else if (mtmp->mnamelth) {
-	sprintf(buf, "%s called %s", mtmp->data->mname, NAME(mtmp));
+	snprintf (ArrayBlock(buf), "%s called %s", mtmp->data->mname, NAME(mtmp));
 	killer = buf;
     } else if (mtmp->minvis) {
-	sprintf(buf, "invisible %s", mtmp->data->mname);
+	snprintf (ArrayBlock(buf), "invisible %s", mtmp->data->mname);
 	killer = buf;
     } else
 	killer = mtmp->data->mname;
@@ -253,71 +253,61 @@ static void outheader (void)
 static void outentry (unsigned rank, const struct score* t1, int so)
 {
     bool quit = false, killed = false, starv = false;
-    char linebuf[BUFSZ];
-    linebuf[0] = 0;
+    char linebuf [BUFSZ];
+    struct StringBuilder sb = StringBuilder_new (linebuf);
     if (rank)
-	sprintf(eos(linebuf), "%3d", rank);
+	StringBuilder_appendf (&sb, "%3d", rank);
     else
-	sprintf(eos(linebuf), "   ");
-    sprintf(eos(linebuf), " %6u %8s", t1->points, t1->name);
+	StringBuilder_append (&sb, "   ");
+    StringBuilder_appendf (&sb, " %6u %8s", t1->points, t1->name);
     if (t1->plchar == 'X')
-	sprintf(eos(linebuf), " ");
+	StringBuilder_append (&sb, " ");
     else
-	sprintf(eos(linebuf), "-%c ", t1->plchar);
+	StringBuilder_appendf (&sb, "-%c ", t1->plchar);
     if (!strncmp("escaped", t1->death, 7)) {
 	if (!strcmp(" (with amulet)", t1->death + 7))
-	    sprintf(eos(linebuf), "escaped the dungeon with amulet");
+	    StringBuilder_append (&sb, "escaped the dungeon with amulet");
 	else
-	    sprintf(eos(linebuf), "escaped the dungeon [max level %d]", t1->maxlevel);
+	    StringBuilder_appendf (&sb, "escaped the dungeon [max level %d]", t1->maxlevel);
     } else {
 	if (!strncmp(t1->death, "quit", 4)) {
 	    quit = true;
 	    if (t1->maxhp < 3 * t1->hp && t1->maxlevel < 4)
-		sprintf(eos(linebuf), "cravenly gave up");
+		StringBuilder_append (&sb, "cravenly gave up");
 	    else
-		sprintf(eos(linebuf), "quit");
+		StringBuilder_append (&sb, "quit");
 	} else if (!strcmp(t1->death, "choked"))
-	    sprintf(eos(linebuf), "choked on food");
+	    StringBuilder_append (&sb, "choked on food");
 	else if (!strncmp(t1->death, "starv", 5))
-	    sprintf(eos(linebuf), "starved to death"), starv = true;
+	    StringBuilder_append (&sb, "starved to death"), starv = true;
 	else
-	    sprintf(eos(linebuf), "was killed"), killed = true;
-	sprintf(eos(linebuf), " on%s level %d", (killed || starv) ? "" : " dungeon", t1->level);
+	    StringBuilder_append (&sb, "was killed"), killed = true;
+	StringBuilder_appendf (&sb, " on%s level %d", (killed || starv) ? "" : " dungeon", t1->level);
 	if (t1->maxlevel != t1->level)
-	    sprintf(eos(linebuf), " [max %d]", t1->maxlevel);
+	    StringBuilder_appendf (&sb, " [max %d]", t1->maxlevel);
 	if (quit && t1->death[4])
-	    sprintf(eos(linebuf), t1->death + 4);
+	    StringBuilder_appendf (&sb, "%s", t1->death + 4);
     }
     if (killed)
-	sprintf(eos(linebuf), " by %s%s", (!strncmp(t1->death, "trick", 5) || !strncmp(t1->death, "the ", 4))
+	StringBuilder_appendf (&sb, " by %s%s", (!strncmp(t1->death, "trick", 5) || !strncmp(t1->death, "the ", 4))
 		? "" : strchr(vowels, *t1->death) ? "an " : "a ", t1->death);
-    sprintf(eos(linebuf), ".");
+    StringBuilder_append (&sb, ".");
     if (t1->maxhp) {
-	char *bp = eos(linebuf);
-	char hpbuf[10];
-	int hppos;
-	sprintf(hpbuf, (t1->hp > 0) ? itoa(t1->hp) : "-");
-	hppos = COLNO - 7 - strlen(hpbuf);
-	if (bp <= linebuf + hppos) {
-	    while (bp < linebuf + hppos)
-		*bp++ = ' ';
-	    strcpy(bp, hpbuf);
-	    sprintf(eos(bp), " [%d]", t1->maxhp);
+	char hpbuf [10];
+	snprintf (ArrayBlock(hpbuf), (t1->hp > 0) ? itoa(t1->hp) : "-");
+	int hppos = COLNO - 7 - strlen(hpbuf);
+	if (StringBuilder_ptr(&sb) <= &linebuf[hppos]) {
+	    while (StringBuilder_ptr(&sb) < &linebuf[hppos])
+		StringBuilder_append (&sb, " ");
+	    StringBuilder_appendf (&sb, "%s [%d]", hpbuf, t1->maxhp);
 	}
     }
     if (so == 0)
-	puts(linebuf);
+	puts (linebuf);
     else if (so > 0) {
-	char *bp = eos(linebuf);
-	if (so >= COLNO)
-	    so = COLNO - 1;
-	while (bp < linebuf + so)
-	    *bp++ = ' ';
-	*bp = 0;
 	standoutbeg();
-	fputs(linebuf, stdout);
+	puts (linebuf);
 	standoutend();
-	putchar('\n');
     }
 }
 

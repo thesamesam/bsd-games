@@ -131,34 +131,30 @@ void parseoptions (char *opts, bool from_env)
 
 int doset(void)
 {
-    char buf[BUFSZ];
-
-    pline("What options do you want to set? ");
-    getlin(buf);
+    char buf [BUFSZ];
+    pline ("What options do you want to set? ");
+    getlin (buf);
     if (!buf[0] || buf[0] == '\033') {
-	strcpy(buf, "HACKOPTIONS=");
+	struct StringBuilder sb = StringBuilder_new (buf);
+	StringBuilder_append (&sb, "HACKOPTIONS=");
 	if (_wflags.standout)
-	    strcat(buf, "standout,");
+	    StringBuilder_append (&sb, "standout,");
 	if (_wflags.nonull)
-	    strcat(buf, "nonull,");
+	    StringBuilder_append (&sb, "nonull,");
 	if (_wflags.time)
-	    strcat(buf, "time,");
+	    StringBuilder_append (&sb, "time,");
 	if (_wflags.notombstone)
-	    strcat(buf, "notombstone,");
+	    StringBuilder_append (&sb, "notombstone,");
 	if (_wflags.no_rest_on_space)
-	    strcat(buf, "!rest_on_space,");
+	    StringBuilder_append (&sb, "!rest_on_space,");
 	if (_wflags.end_top != 5 || _wflags.end_around != 4 || _wflags.end_own) {
-	    sprintf(eos(buf), "endgame: %u topscores/%u around me", _wflags.end_top, _wflags.end_around);
+	    StringBuilder_appendf (&sb, "endgame: %u topscores/%u around me", _wflags.end_top, _wflags.end_around);
 	    if (_wflags.end_own)
-		strcat(buf, "/own scores");
-	} else {
-	    char *eop = eos(buf);
-	    if (*--eop == ',')
-		*eop = 0;
-	}
+		StringBuilder_append (&sb, "/own scores");
+	} else if (StringBuilder_ptr(&sb) > &buf[0] && StringBuilder_ptr(&sb)[-1] == ',')
+	    StringBuilder_backspace (&sb);
 	pline(buf);
     } else
 	parseoptions(buf, false);
-
     return 0;
 }

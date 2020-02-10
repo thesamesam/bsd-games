@@ -200,8 +200,8 @@ void Signal (const char* fmt, const struct Ship* ship, ...)
     va_start(ap, ship);
     char msgbuf [256];
     fmtship (ArrayBlock(msgbuf), fmt, ship);
-    strcat (msgbuf, "\n");
     vwprintw (_scroll_w, msgbuf, ap);
+    waddch (_scroll_w, '\n');
     va_end (ap);
 }
 

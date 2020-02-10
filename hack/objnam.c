@@ -22,56 +22,54 @@ char *strprepend(char *s, char *pref)
 char *sitoa(int a)
 {
     static char buf[13];
-    sprintf(buf, (a < 0) ? "%d" : "+%d", a);
+    snprintf (ArrayBlock(buf), "%+d", a);
     return buf;
 }
 
 char *typename(int otyp)
 {
-    static char buf[BUFSZ];
+    static char buf [BUFSZ];
+    buf[0] = 0;
+    struct StringBuilder sb = StringBuilder_new (buf);
     const struct objclass *ocl = &c_Objects[otyp];
     const char *an = ocl->oc_name;
     const char *dn = object_description(otyp);
     bool nn = is_object_known(otyp);
     switch (ocl->oc_olet) {
-	case POTION_SYM:
-	    strcpy(buf, "potion");
-	    break;
-	case SCROLL_SYM:
-	    strcpy(buf, "scroll");
-	    break;
-	case WAND_SYM:
-	    strcpy(buf, "wand");
-	    break;
-	case RING_SYM:
-	    strcpy(buf, "ring");
-	    break;
+	case POTION_SYM: StringBuilder_append (&sb, "potion"); break;
+	case SCROLL_SYM: StringBuilder_append (&sb, "scroll"); break;
+	case WAND_SYM:	 StringBuilder_append (&sb, "wand"); break;
+	case RING_SYM:	 StringBuilder_append (&sb, "ring"); break;
 	default:
 	    if (nn) {
-		strcpy(buf, an);
+		StringBuilder_append (&sb, an);
 		if (otyp >= TURQUOISE && otyp <= JADE)
-		    strcat(buf, " stone");
+		    StringBuilder_append (&sb, " stone");
 		if (dn)
-		    sprintf(eos(buf), " (%s)", dn);
+		    StringBuilder_appendf (&sb, " (%s)", dn);
 	    } else {
-		strcpy(buf, dn ? dn : an);
+		StringBuilder_append (&sb, dn ? dn : an);
 		if (ocl->oc_olet == GEM_SYM)
-		    strcat(buf, " gem");
+		    StringBuilder_append (&sb, " gem");
 	    }
 	    return buf;
     }
     // here for ring/scroll/potion/wand
     if (nn)
-	sprintf(eos(buf), " of %s", an);
+	StringBuilder_appendf (&sb, " of %s", an);
     if (dn)
-	sprintf(eos(buf), " (%s)", dn);
+	StringBuilder_appendf (&sb, " (%s)", dn);
     return buf;
 }
 
-char *xname(struct obj *obj)
+char* xname (struct obj *obj)
 {
-    static char bufr[BUFSZ];
-    char *buf = &(bufr[PREFIX]);	// leave room for "17 -3 "
+    static struct {
+	char prefix [PREFIX];	// leave room for "17 -3 "
+	char bufr [BUFSZ];
+    } buf = { "", "" };
+    buf.bufr[0] = 0;
+    struct StringBuilder sb = StringBuilder_new (buf.bufr);
     const char *an = c_Objects[obj->otyp].oc_name;
     const char *dn = object_description(obj->otyp);
     bool nn = is_object_known(obj->otyp);
@@ -80,21 +78,21 @@ char *xname(struct obj *obj)
 	obj->dknown = 1;       // %% doesnt belong here
     switch (obj->olet) {
 	case AMULET_SYM:
-	    strcpy(buf, (obj->spe < 0 && obj->known)
-		   ? "cheap plastic imitation of the " : "");
-	    strcat(buf, "Amulet of Yendor");
+	    if (obj->spe < 0 && obj->known)
+		StringBuilder_append (&sb, "cheap plastic imitation of the ");
+	    StringBuilder_append (&sb, "Amulet of Yendor");
 	    break;
 	case TOOL_SYM:
 	    if (!nn) {
-		strcpy(buf, dn);
+		StringBuilder_append (&sb, dn);
 		break;
 	    }
-	    strcpy(buf, an);
+	    StringBuilder_append (&sb, an);
 	    break;
 	case FOOD_SYM:
 	    if (obj->otyp == DEAD_HOMUNCULUS && pl) {
 		pl = 0;
-		strcpy(buf, "dead homunculi");
+		StringBuilder_append (&sb, "dead homunculi");
 		break;
 	    }
 	    // fungis ?
@@ -102,190 +100,172 @@ char *xname(struct obj *obj)
 	case WEAPON_SYM:
 	case ARMOR_SYM:
 	case ROCK_SYM:
-	    strcpy(buf, an);
+	    StringBuilder_append (&sb, an);
 	    break;
 	case POTION_SYM:
 	    if (nn || !obj->dknown) {
-		strcpy(buf, "potion");
+		StringBuilder_append (&sb, "potion");
 		if (pl) {
 		    pl = 0;
-		    strcat(buf, "s");
+		    StringBuilder_append (&sb, "s");
 		}
 		if (!obj->dknown)
 		    break;
-		strcat (buf, " of ");
-		strcat (buf, an);
-	    } else {
-		strcpy (buf, dn);
-		strcat (buf, " potion");
-	    }
+		StringBuilder_appendf (&sb, " of %s", an);
+	    } else
+		StringBuilder_appendf (&sb, "%s potion", dn);
 	    break;
 	case SCROLL_SYM:
-	    strcpy(buf, "scroll");
+	    StringBuilder_append (&sb, "scroll");
 	    if (pl) {
 		pl = 0;
-		strcat(buf, "s");
+		StringBuilder_append (&sb, "s");
 	    }
 	    if (!obj->dknown)
 		break;
-	    if (nn) {
-		strcat(buf, " of ");
-		strcat(buf, an);
-	    } else {
-		strcat(buf, " labeled ");
-		strcat(buf, dn);
-	    }
+	    if (nn)
+		StringBuilder_appendf (&sb, " of %s", an);
+	    else
+		StringBuilder_appendf (&sb, " labeled %s", dn);
 	    break;
 	case WAND_SYM:
 	    if (!obj->dknown)
-		sprintf(buf, "wand");
+		StringBuilder_append (&sb, "wand");
 	    else if (nn)
-		sprintf(buf, "wand of %s", an);
+		StringBuilder_appendf (&sb, "wand of %s", an);
 	    else
-		sprintf(buf, "%s wand", dn);
+		StringBuilder_appendf (&sb, "%s wand", dn);
 	    break;
 	case RING_SYM:
 	    if (!obj->dknown)
-		sprintf(buf, "ring");
+		StringBuilder_append (&sb, "ring");
 	    else if (nn)
-		sprintf(buf, "ring of %s", an);
+		StringBuilder_appendf (&sb, "ring of %s", an);
 	    else
-		sprintf(buf, "%s ring", dn);
+		StringBuilder_appendf (&sb, "%s ring", dn);
 	    break;
 	case GEM_SYM:
 	    if (!obj->dknown) {
-		strcpy(buf, "gem");
+		StringBuilder_append (&sb, "gem");
 		break;
 	    }
 	    if (!nn) {
-		sprintf(buf, "%s gem", dn);
+		StringBuilder_appendf (&sb, "%s gem", dn);
 		break;
 	    }
-	    strcpy(buf, an);
+	    StringBuilder_append (&sb, an);
 	    if (obj->otyp >= TURQUOISE && obj->otyp <= JADE)
-		strcat(buf, " stone");
+		StringBuilder_append (&sb, " stone");
 	    break;
 	default:
-	    sprintf(buf, "glorkum %c (0%o) %u %d", obj->olet, obj->olet, obj->otyp, obj->spe);
+	    StringBuilder_appendf (&sb, "glorkum %c (0%o) %u %d", obj->olet, obj->olet, obj->otyp, obj->spe);
     }
-    if (pl) {
+    // Multiples are done by direct replacement
+    if (pl && StringBuilder_remaining(&sb) > 2*strlen("ies")) {
 	char *p;
-
-	for (p = buf; *p; ++p) {
+	for (p = buf.bufr; *p; ++p) {
 	    if (!strncmp(" of ", p, 4)) {
 		// pieces of, cloves of, lumps of
-		int c1, c2 = 's';
-
+		char c1, c2 = 's';
 		do {
 		    c1 = c2;
 		    c2 = *p;
 		    *p++ = c1;
 		} while (c1);
-		goto nopl;
+		return buf.bufr;
 	    }
 	}
-	p = eos(buf) - 1;
+	p = eos(buf.bufr) - 1;
 	if (*p == 's' || *p == 'z' || *p == 'x' || (*p == 'h' && p[-1] == 's'))
-	    strcat(buf, "es"); // boxes
+	    strcat (buf.bufr, "es"); // boxes
 	else if (*p == 'y' && !strchr(vowels, p[-1]))
-	    strcpy(p, "ies");  // rubies, zruties
+	    strcpy (p, "ies");  // rubies, zruties
 	else
-	    strcat(buf, "s");
+	    strcat (buf.bufr, "s");
     }
-  nopl:
-    return buf;
+    return buf.bufr;
 }
 
-char *doname(struct obj *obj)
+char* doname (struct obj *obj)
 {
-    char prefix[PREFIX];
-    char *bp = xname(obj);
+    // FIXME: This relies on xname's buffer being BUFSZ bytes
+    char* namebaseptr = xname(obj);
+    const char* bp = namebaseptr;
+    struct StringBuilder sb = { namebaseptr, BUFSZ };
+    StringBuilder_skip (&sb, strlen(bp));
+    char prefix [PREFIX];
     if (obj->quan != 1)
-	sprintf(prefix, "%u ", obj->quan);
+	snprintf (ArrayBlock(prefix), "%u ", obj->quan);
     else
-	strcpy(prefix, "a ");
+	snprintf (ArrayBlock(prefix), "a ");
     switch (obj->olet) {
 	case AMULET_SYM:
-	    if (strncmp(bp, "cheap ", 6))
-		strcpy(prefix, "the ");
+	    if (strncmp (bp, "cheap ", strlen("cheap ")))
+		snprintf (ArrayBlock(prefix), "the ");
 	    break;
 	case ARMOR_SYM:
 	    if (obj->owornmask & W_ARMOR)
-		strcat(bp, " (being worn)");
+		StringBuilder_append (&sb, " (being worn)");
 	    // fallthrough
 	case WEAPON_SYM:
-	    if (obj->known) {
-		strcat(prefix, sitoa(obj->spe));
-		strcat(prefix, " ");
-	    }
+	    if (obj->known)
+		snprintf (ArrayBlock(prefix), "%s ", sitoa(obj->spe));
 	    break;
 	case WAND_SYM:
 	    if (obj->known)
-		sprintf(eos(bp), " (%d)", obj->spe);
+		StringBuilder_appendf (&sb, " (%d)", obj->spe);
 	    break;
 	case RING_SYM:
 	    if (obj->owornmask & W_RINGR)
-		strcat(bp, " (on right hand)");
-	    if (obj->owornmask & W_RINGL)
-		strcat(bp, " (on left hand)");
-	    if (obj->known && (c_Objects[obj->otyp].bits & SPEC)) {
-		strcat(prefix, sitoa(obj->spe));
-		strcat(prefix, " ");
-	    }
+		StringBuilder_append (&sb, " (on right hand)");
+	    else if (obj->owornmask & W_RINGL)
+		StringBuilder_append (&sb, " (on left hand)");
+	    if (obj->known && (c_Objects[obj->otyp].bits & SPEC))
+		snprintf (ArrayBlock(prefix), "%s ", sitoa(obj->spe));
 	    break;
     }
     if (obj->owornmask & W_WEP)
-	strcat(bp, " (weapon in hand)");
+	StringBuilder_append (&sb, " (weapon in hand)");
     if (obj->unpaid)
-	strcat(bp, " (unpaid)");
+	StringBuilder_append (&sb, " (unpaid)");
     if (!strcmp(prefix, "a ") && strchr(vowels, *bp))
-	strcpy(prefix, "an ");
-    bp = strprepend(bp, prefix);
-    return bp;
+	snprintf (ArrayBlock(prefix), "an ");
+    // FIXME: this relies on xname returning a buffer with PREFIX bytes of free space before it
+    return strprepend (namebaseptr, prefix);
 }
 
-// used only in hack.fight.c (thitu)
-void setan(const char *str, char *buf)
+char* aobjnam (struct obj *otmp, const char *verb)
 {
-    if (strchr(vowels, *str))
-	sprintf(buf, "an %s", str);
-    else
-	sprintf(buf, "a %s", str);
-}
-
-char *aobjnam(struct obj *otmp, const char *verb)
-{
-    char *bp = xname(otmp);
-    char prefix[PREFIX];
-    if (otmp->quan != 1) {
-	sprintf(prefix, "%u ", otmp->quan);
-	bp = strprepend(bp, prefix);
-    }
+    // FIXME: This relies on xname's buffer being BUFSZ bytes
+    char* namebaseptr = xname(otmp);
+    struct StringBuilder sb = { namebaseptr, BUFSZ };
+    StringBuilder_skip (&sb, strlen(namebaseptr));
+    char prefix [PREFIX] = "";
+    if (otmp->quan != 1)
+	snprintf (ArrayBlock(prefix), "%u ", otmp->quan);
     if (verb) {
 	// verb is given in plural (i.e., without trailing s)
-	strcat(bp, " ");
+	StringBuilder_append (&sb, " ");
 	if (otmp->quan != 1)
-	    strcat(bp, verb);
+	    StringBuilder_append (&sb, verb);
 	else if (!strcmp(verb, "are"))
-	    strcat(bp, "is");
-	else {
-	    strcat(bp, verb);
-	    strcat(bp, "s");
-	}
+	    StringBuilder_append (&sb, "is");
+	else
+	    StringBuilder_appendf (&sb, "%ss", verb);
     }
-    return bp;
+    // FIXME: this relies on xname returning a buffer with PREFIX bytes of free space before it
+    return strprepend (namebaseptr, prefix);
 }
 
 char *Doname(struct obj *obj)
 {
     char *s = doname(obj);
-
     if ('a' <= *s && *s <= 'z')
 	*s -= ('a' - 'A');
     return s;
 }
 
-const char *const wrp[] = { "wand", "ring", "potion", "scroll", "gem" };
+const char wrp[][8] = { "wand", "ring", "potion", "scroll", "gem" };
 const char wrpsym[] = { WAND_SYM, RING_SYM, POTION_SYM, SCROLL_SYM, GEM_SYM };
 
 struct obj *readobjnam(char *bp)

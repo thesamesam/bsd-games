@@ -56,3 +56,15 @@ int mkpath (const char* path, mode_t mode)
     } while (*path++);
     return 0;
 }
+
+void StringBuilder_skip (struct StringBuilder* sb, ssize_t n) {
+    if (n < 0) {
+	sb->s[0] = 0; // snprintf error - ensure terminator is restored
+	return;
+    }
+    assert (n <= sb->n && "StringBuilder buffer full");
+    if ((size_t) n > sb->n)
+	n = sb->n;
+    sb->s += n;
+    sb->n -= n;
+}

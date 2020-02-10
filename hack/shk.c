@@ -569,7 +569,6 @@ int doinvbill (int mode)
     struct bill_x *bp;
     struct obj *obj;
     long totused, thisused;
-    char buf[BUFSZ];
 
     if (mode == 0) {
 	int cnt = 0;
@@ -585,41 +584,43 @@ int doinvbill (int mode)
 	return 0;
     }
     set_pager(0);
-    if (page_line("Unpaid articles already used up:") || page_line(""))
-	goto quit;
+    if (page_line("Unpaid articles already used up:") || page_line("")) {
+	set_pager(2);
+	return 0;
+    }
 
     totused = 0;
     for (bp = bill; bp - bill < ESHK(shopkeeper)->billct; ++bp) {
 	obj = bp_to_obj(bp);
 	if (!obj) {
 	    impossible("Bad shopkeeper administration.");
-	    goto quit;
+	    set_pager(2);
+	    return 0;
 	}
 	if (bp->useup || bp->bquan > obj->quan) {
-	    int cnt, oquan, uquan;
-
-	    oquan = obj->quan;
-	    uquan = (bp->useup ? bp->bquan : bp->bquan - oquan);
+	    int oquan = obj->quan;
+	    int uquan = (bp->useup ? bp->bquan : bp->bquan - oquan);
 	    thisused = bp->price * uquan;
 	    totused += thisused;
+	    char buf [BUFSZ];
+	    struct StringBuilder sb = StringBuilder_new (buf);
 	    obj->quan = uquan; // cheat doname
-	    sprintf(buf, "x -  %s", doname(obj));
+	    StringBuilder_appendf (&sb, "x -  %-45s", doname(obj));
 	    obj->quan = oquan; // restore value
-	    for (cnt = 0; buf[cnt]; ++cnt);
-	    while (cnt < 50)
-		buf[cnt++] = ' ';
-	    sprintf(&buf[cnt], " %5ld zorkmids", thisused);
-	    if (page_line(buf))
-		goto quit;
+	    StringBuilder_appendf (&sb, " %5ld zorkmids", thisused);
+	    if (page_line (buf)) {
+		set_pager(2);
+		return 0;
+	    }
 	}
     }
-    sprintf(buf, "Total:%50ld zorkmids", totused);
-    if (page_line("") || page_line(buf))
-	goto quit;
+    char buf [BUFSZ];
+    snprintf (ArrayBlock(buf), "Total:%50ld zorkmids", totused);
+    if (page_line("") || page_line(buf)) {
+	set_pager(2);
+	return 0;
+    }
     set_pager(1);
-    return 0;
-  quit:
-    set_pager(2);
     return 0;
 }
 
