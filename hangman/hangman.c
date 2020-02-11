@@ -221,7 +221,7 @@ static void getword (void)
     static off_t _dict_size = 0;
     if (!_dictfp) {
 	if (!(_dictfp = fopen (_dict_name, "r"))) {
-	    endwin();
+	    cleanup_curses();
 	    printf ("Error: unable to open dictionary file %s\n", _dict_name);
 	    exit (EXIT_FAILURE);
 	}

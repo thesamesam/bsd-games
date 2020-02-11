@@ -171,15 +171,13 @@ int main (int argc, const char* const* argv)
 	    winnings (cashvalue());
 	} else if (same (&_you, &_finish)) {
 	    win (&_finish);
-	    flushinp();
-	    endwin();
+	    cleanup_curses();
 	    printf ("You have won with $%d.\n", cashvalue());
 	    save_score (cashvalue(), true);
 	    break;
 	} else if (stepped_on_snake()) {
 	    be_eaten();
-	    flushinp();
-	    endwin();
+	    cleanup_curses();
 	    if (_loot >= _penalty)
 		printf("You and your $%d have been eaten\n", cashvalue());
 	    else
@@ -187,8 +185,6 @@ int main (int argc, const char* const* argv)
 	    break;
 	}
     }
-    flushinp();
-    endwin();
     return EXIT_SUCCESS;
 }
 

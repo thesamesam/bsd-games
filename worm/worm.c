@@ -79,7 +79,7 @@ int main (int argc, char **argv)
     life();		       // Create the worm
     prize();		       // Put up a goal
     play();
-    endwin();
+    cleanup_curses();
     printf("Your final score before quitting was %u\n", score);
     return EXIT_SUCCESS;
 }
@@ -210,7 +210,7 @@ static void prize (void)
 {
     unsigned value = nrand(9) + 1;
     if (visible_len == max_length()) {
-	endwin();
+	cleanup_curses();
 	printf("\nYou won!\nYour final score was %u\n\n", score);
 	exit (EXIT_SUCCESS);
     }
@@ -221,7 +221,7 @@ static void prize (void)
 
 static void crash (void)
 {
-    endwin();
+    cleanup_curses();
     printf("Well, you ran into something and the game is over.\n"
 	    "Your final score was %u\n", score);
     exit (EXIT_SUCCESS);
