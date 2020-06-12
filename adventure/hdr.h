@@ -59,8 +59,8 @@ struct MapEntry {
     const char*	ldesc;		// long loc description
     const struct MapDestEntry* dest;// list of where each command takes you from here
 };
-const struct MapEntry c_Map [LOCSIZ];	// game map
-const struct MapDestEntry* tkk;
+extern const struct MapEntry c_Map [LOCSIZ];	// game map
+extern const struct MapDestEntry* tkk;
 
 extern int atloc[LOCSIZ];
 

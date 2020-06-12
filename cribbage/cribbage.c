@@ -485,7 +485,7 @@ static void print_msg (const char* msg, ...)
 {
     va_list args;
     va_start (args, msg);
-    vwprintw (_wmsg, msg, args);
+    vw_printw (_wmsg, msg, args);
     va_end (args);
     wnoutrefresh (_wmsg);
 }

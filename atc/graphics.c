@@ -185,7 +185,7 @@ _Noreturn void loser (const struct Plane* p, const char* msg, ...)
     wprintw (_winput, "Plane %c ", plane_name(p));
     va_list args;
     va_start (args, msg);
-    vwprintw (_winput, msg, args);
+    vw_printw (_winput, msg, args);
     va_end (args);
     waddstr (_winput, "\n\nHit space for top players list...");
     wtimeout (_winput, -1);
