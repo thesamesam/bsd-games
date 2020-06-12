@@ -228,13 +228,6 @@ void bell(void)
     fflush(stdout);
 }
 
-void delay_output(void)
-{
-    // delay 50 ms - could also use a 'nap'-system call
-    // or the usleep call like this :-)
-    usleep(50000);
-}
-
 // free after Robert Viduya must only be called with curx = 1
 void cl_eos(void)
 {

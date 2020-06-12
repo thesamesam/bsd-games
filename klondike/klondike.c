@@ -1,15 +1,7 @@
 #include "../config.h"
-#include <curses.h>
 
 //----------------------------------------------------------------------
 
-typedef uint8_t card_t;
-enum { suit_Spades, suit_Diamonds, suit_Clubs, suit_Hearts, NSUITS };
-enum {
-    rank_Ace, rank_2, rank_3, rank_4, rank_5,
-    rank_6, rank_7, rank_8, rank_9, rank_Ten,
-    rank_Jack, rank_Queen, rank_King, NRANKS
-};
 enum {
     NCARDS	= NSUITS*NRANKS,
     NSORTING	= 7,
@@ -61,8 +53,8 @@ static void initialize_window (void);
 static void move_cards (unsigned f, unsigned c, unsigned t);
 static void deal_one_card (void);
 static void deal_cards (void);
-static unsigned card_rank (card_t c);
-static unsigned card_suit (card_t c);
+static enum CardRank card_rank (card_t c);
+static enum CardSuit card_suit (card_t c);
 static card_t selected_card (unsigned p, unsigned c);
 static bool update_move_targets (struct Selection *m);
 static void find_moveable_cards (void);
@@ -142,9 +134,9 @@ static void deal_cards (void)
 //----------------------------------------------------------------------
 // Selection and movement
 
-static unsigned card_rank (card_t c)
+static enum CardRank card_rank (card_t c)
     { return c/NSUITS; }
-static unsigned card_suit (card_t c)
+static enum CardSuit card_suit (card_t c)
     { return c%NSUITS; }
 static card_t selected_card (unsigned p, unsigned c)
     { return _pile[p].c[_pile[p].sz-1-c]; }
@@ -240,14 +232,14 @@ static bool has_won (void)
 
 static void draw_card (unsigned l, unsigned c, card_t v, bool selected)
 {
-    unsigned rank = v/NSUITS, suit = v%NSUITS;
+    unsigned rank = v/NSUITS, suit = v%NSUITS, color = color_BlackSuit + suit%2 + selected*2;
     if (selected)
 	mvwaddch (_w, l, c+2, A_BOLD| COLOR_PAIR(color_HiddenCard)|'*');
-    wattrset (_w, COLOR_PAIR(color_BlackSuit + suit%2 + selected*2));
+    wattr_set (_w, A_NORMAL, color, NULL);
     mvwaddch (_w, l, c, rank < NRANKS ? "A23456789TJQK"[rank] : (int)ACS_CKBOARD);
     mvwaddch (_w, l, c+1, ' ');
     mvwaddch (_w, l+1, c, ' ');
-    mvwaddch (_w, l+1, c+1, "SDCH"[suit]);
+    mvwadd_wchw (_w, l+1, c+1, get_card_suit_char (suit), A_NORMAL, color);
 }
 
 static void draw_hidden_card (unsigned l, unsigned c)

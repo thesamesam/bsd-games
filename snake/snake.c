@@ -8,7 +8,6 @@
 // arrow keys. You can leave at the exit any time.
 
 #include "../config.h"
-#include <curses.h>
 
 #define _PATH_SCOREFILE	_PATH_GAME_STATE "snake.scores"
 #define SCOREFILE_MAGIC	"snake"

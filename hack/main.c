@@ -125,7 +125,7 @@ int main (int argc, const char* const* argv)
 	    }
 	    if (Glib)
 		glibr();
-	    timeout();
+	    do_timed_tasks();
 	    ++_u.moves;
 	    if (_wflags.time)
 		_wflags.botl = 1;

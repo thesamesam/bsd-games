@@ -2,7 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "atc.h"
-#include <curses.h>
 
 //{{{ Constants and types ----------------------------------------------
 

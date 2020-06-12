@@ -2,7 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "extern.h"
-#include <curses.h>
 
 static int checkout(const char *);
 static const char *getutmp(void);

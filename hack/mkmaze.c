@@ -4,8 +4,13 @@
 
 #include "hack.h"
 #include "extern.h"
-#include "mkroom.h"	       // not really used
-const struct permonst hell_hound = { "hell hound", 'd', 12, 14, 2, 3, 6, 0 };
+
+//----------------------------------------------------------------------
+
+static const struct permonst hell_hound = { "hell hound", 'd', 12, 14, 2, 3, 6, 0 };
+static void movept (int *x, int *y, int dir);
+
+//----------------------------------------------------------------------
 
 void makemaz(void)
 {
@@ -95,14 +100,14 @@ void walkfrom(int x, int y)
 	if (!q)
 	    return;
 	dir = dirs[rn2(q)];
-	move(&x, &y, dir);
+	movept(&x, &y, dir);
 	_level->l[x][y].typ = ROOM;
-	move(&x, &y, dir);
+	movept(&x, &y, dir);
 	walkfrom(x, y);
     }
 }
 
-void move(int *x, int *y, int dir)
+static void movept(int *x, int *y, int dir)
 {
     switch (dir) {
 	case 0:
@@ -122,8 +127,8 @@ void move(int *x, int *y, int dir)
 
 int okay(int x, int y, int dir)
 {
-    move(&x, &y, dir);
-    move(&x, &y, dir);
+    movept(&x, &y, dir);
+    movept(&x, &y, dir);
     if (x < 3 || y < 3 || x > COLNO - 3 || y > ROWNO - 3 || _level->l[x][y].typ != 0)
 	return 0;
     else

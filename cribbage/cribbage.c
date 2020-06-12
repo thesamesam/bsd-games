@@ -1,5 +1,5 @@
+#define _XOPEN_SOURCE_EXTENDED 1
 #include "../config.h"
-#include <curses.h>
 
 //{{{ Constants and types ----------------------------------------------
 
@@ -7,12 +7,6 @@ enum {
     HUMAN,
     COMPUTER,
     NPLAYERS
-};
-enum { suit_Spades, suit_Diamonds, suit_Clubs, suit_Hearts, NSUITS };
-enum {
-    rank_Ace, rank_2, rank_3, rank_4, rank_5,
-    rank_6, rank_7, rank_8, rank_9, rank_Ten,
-    rank_Jack, rank_Queen, rank_King, NRANKS
 };
 enum {
     NCARDS	= NRANKS*NSUITS,
@@ -40,8 +34,6 @@ enum {
     color_SelectedBlackSuit,
     color_SelectedRedSuit
 };
-
-typedef uint8_t	card_t;
 
 struct Hand {
     uint8_t	sz;
@@ -73,8 +65,8 @@ static uint8_t		_curcard = 0;
 //}}}-------------------------------------------------------------------
 //{{{ Prototypes
 
-static unsigned card_rank(card_t c);
-static unsigned card_suit(card_t c);
+static enum CardRank card_rank(card_t c);
+static enum CardSuit card_suit (card_t c);
 static unsigned card_value(card_t c);
 static unsigned n_permutations(unsigned handsz);
 static void swap_cards(card_t *c1, card_t *c2);
@@ -114,9 +106,9 @@ static bool run_play(void);
 //}}}-------------------------------------------------------------------
 //{{{ Card operations
 
-static unsigned card_rank (card_t c)
+static enum CardRank card_rank (card_t c)
     { return c/NSUITS; }
-static unsigned card_suit (card_t c)
+static enum CardSuit card_suit (card_t c)
     { return c%NSUITS; }
 static unsigned card_value (card_t c)
     { return min_u (card_rank(c)+1, 10); }
@@ -435,12 +427,12 @@ static void draw_board (void)
 
 static void draw_card (unsigned l, unsigned c, card_t v, bool selected)
 {
-    unsigned rank = v/NSUITS, suit = v%NSUITS;
-    wattrset (_wtable, COLOR_PAIR(color_BlackSuit + suit%2 + selected*2));
+    unsigned rank = v/NSUITS, suit = v%NSUITS, color = color_BlackSuit + suit%2 + selected*2;
+    wattr_set (_wtable, A_NORMAL, color, NULL);
     mvwaddch (_wtable, l, c, rank < NRANKS ? "A23456789TJQK"[rank] : (int)ACS_CKBOARD);
     mvwaddch (_wtable, l, c+1, ' ');
     mvwaddch (_wtable, l+1, c, " ."[selected]);
-    mvwaddch (_wtable, l+1, c+1, "SDCH"[suit]);
+    mvwadd_wchw (_wtable, l+1, c+1, get_card_suit_char (suit), A_NORMAL, color);
 }
 
 static void draw_hidden_card (unsigned l, unsigned c)

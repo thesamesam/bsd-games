@@ -2,9 +2,15 @@
 // Copyright (c) 1982 Jay Fenlason <hack@gnu.org>
 // This file is free software, distributed under the BSD license.
 
-#include	"hack.h"
-#include	"extern.h"
-#include	"func_tab.h"
+#include "hack.h"
+#include "extern.h"
+#include "func_tab.h"
+
+//----------------------------------------------------------------------
+
+static char unctrlc(int sym);
+
+//----------------------------------------------------------------------
 
 const struct func_tab cmdlist[] = {
     {'\020', doredotopl},
@@ -68,6 +74,8 @@ const struct ext_func_tab extcmdlist[] = {
     {NULL, donull}
 };
 
+//----------------------------------------------------------------------
+
 void rhack(const char *cmd)
 {
     const struct func_tab *tlist = cmdlist;
@@ -103,7 +111,7 @@ void rhack(const char *cmd)
 	domove();
 	return;
     }
-    if ((*cmd == 'f' && movecmd(cmd[1])) || movecmd(unctrl(*cmd))) {
+    if ((*cmd == 'f' && movecmd(cmd[1])) || movecmd(unctrlc(*cmd))) {
 	_wflags.run = 2;
 	goto rush;
     }
@@ -174,7 +182,7 @@ char lowc(int sym)
     return (sym >= 'A' && sym <= 'Z') ? sym + 'a' - 'A' : sym;
 }
 
-char unctrl(int sym)
+static char unctrlc(int sym)
 {
     return (sym >= ('A' & 037) && sym <= ('Z' & 037)) ? sym + 0140 : sym;
 }

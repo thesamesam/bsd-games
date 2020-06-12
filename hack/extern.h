@@ -48,7 +48,6 @@ long newuexp(void);
 void rhack(const char *);
 int doextcmd(void);
 char lowc(int);
-char unctrl(int);
 int movecmd(int);
 int getdir(bool);
 void confdir(void);
@@ -229,7 +228,6 @@ void mktrap(int, int, struct mkroom *);
 // mkmaze.c
 void makemaz(void);
 void walkfrom(int, int);
-void move(int *, int *, int);
 int okay(int, int, int);
 struct coord mazexy(void);
 
@@ -438,11 +436,10 @@ void standoutbeg(void);
 void standoutend(void);
 void backsp(void);
 void bell(void);
-void delay_output(void);
 void cl_eos(void);
 
 // timeout.c
-void timeout(void);
+void do_timed_tasks (void);
 void stoned_dialogue(void);
 
 // topl.c

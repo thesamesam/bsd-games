@@ -4,7 +4,6 @@
 // Worm.  Written by Michael Toy UCSC
 
 #include "../config.h"
-#include <curses.h>
 #include <signal.h>
 
 enum {

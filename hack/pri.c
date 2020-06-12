@@ -24,6 +24,13 @@ _Noreturn void panic (const char *fmt, ...)
     done("panicked");
 }
 
+static void short_sleep (void)
+{
+    // delay 50 ms - could also use a 'nap'-system call
+    // or the usleep call like this :-)
+    usleep(50000);
+}
+
 void atl(int x, int y, int ch)
 {
     struct rm *crm = &_level->l[x][y];
@@ -69,7 +76,7 @@ void tmp_at(int x, int y)
 	return;
     }
     if (prevx >= 0 && cansee(prevx, prevy)) {
-	delay_output();
+	short_sleep();
 	prl(prevx, prevy);     // in case there was a monster
 	at(prevx, prevy, _level->l[prevx][prevy].scrsym);
     }
@@ -114,7 +121,7 @@ void Tmp_at(int x, int y)
     // normal call
     if (cansee(x, y)) {
 	if (cnt)
-	    delay_output();
+	    short_sleep();
 	at(x, y, let);
 	tc[cnt].x = x;
 	tc[cnt].y = y;

@@ -55,7 +55,6 @@
 // the first cited paragraph of the ruling and is non-infringing.
 
 #include "../config.h"
-#include <curses.h>
 
 //----------------------------------------------------------------------
 // Definitions for Drop4.

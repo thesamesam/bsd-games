@@ -5,7 +5,7 @@
 #include "hack.h"
 #include "extern.h"
 
-void timeout(void)
+void do_timed_tasks (void)
 {
     struct prop *upp;
     if (Stoned)

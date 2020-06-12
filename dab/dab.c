@@ -7,7 +7,6 @@
 // Copyright (c) 2003 The NetBSD Foundation, Inc.
 
 #include "../config.h"
-#include <curses.h>
 
 //----------------------------------------------------------------------
 

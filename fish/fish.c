@@ -3,7 +3,6 @@
 
 #include "../config.h"
 #include <sys/wait.h>
-#include <curses.h>
 
 #define	_PATH_INSTR	_PATH_GAME_DATA "fish.instr"
 

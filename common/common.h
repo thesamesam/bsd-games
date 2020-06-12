@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <time.h>
+#include <curses.h>
 
 //{{{ Common function and variable attributes --------------------------
 #if __GNUC__ && !defined(UNUSED)
@@ -67,6 +68,15 @@ struct StringBuilder {
     size_t	n;
 };
 
+// For card games
+enum CardSuit { suit_Spades, suit_Diamonds, suit_Clubs, suit_Hearts, NSUITS };
+enum CardRank {
+    rank_Ace, rank_2, rank_3, rank_4, rank_5,
+    rank_6, rank_7, rank_8, rank_9, rank_Ten,
+    rank_Jack, rank_Queen, rank_King, NRANKS
+};
+typedef uint8_t card_t;
+
 //}}}-------------------------------------------------------------------
 //{{{ Extern prototypes from common/*.c
 
@@ -87,6 +97,8 @@ void StringBuilder_skip (struct StringBuilder* sb, ssize_t n);
 void initialize_curses (void);
 void cleanup_curses (void);
 void init_pairs (const struct color_pair* cps, size_t ncps);
+void mvwadd_wchw (WINDOW* w, int l, int c, wchar_t wch, attr_t a, short color);
+wchar_t get_card_suit_char (enum CardSuit suit);
 
 // scores.c
 bool read_score_file (const char* filename, const char* magic, void* scores, size_t scoresSize);

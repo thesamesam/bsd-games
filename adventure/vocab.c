@@ -15,18 +15,18 @@ static const struct vocmap s_Vocab [VOCABSZ];
 
 void dstroy (int object)
 {
-    move (object, 0);
+    domove (object, 0);
 }
 
 void juggle (int object)
 {
     int i = place[object];
     int j = fixed[object];
-    move(object, i);
-    move(object + 100, j);
+    domove(object, i);
+    domove(object + 100, j);
 }
 
-void move (int object, int where)
+void domove (int object, int where)
 {
     int from = (object <= 100 ? place[object] : fixed[object - 100]);
     if (from > 0 && from <= 300)
@@ -36,7 +36,7 @@ void move (int object, int where)
 
 int put (int object, int where, int pval)
 {
-    move (object, where);
+    domove (object, where);
     return -1 - pval;
 }
 

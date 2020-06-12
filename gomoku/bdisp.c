@@ -2,7 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "gomoku.h"
-#include <curses.h>
 
 enum {
     color_None,

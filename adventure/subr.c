@@ -145,8 +145,8 @@ int fdwarf(void)
 	    continue;	       // to 6030
 	  l6022:rspeak(128);
 	    if (place[messag] == 0)
-		move(chest, chloc);
-	    move(messag, chloc2);
+		domove(chest, chloc);
+	    domove(messag, chloc2);
 	    for (j = 50; j <= maxtrs; j++) {	// loop to 6023
 		if (j == pyram && (loc == plac[pyram]
 				   || loc == plac[emrald]))
@@ -160,8 +160,8 @@ int fdwarf(void)
 	    dseen[6] = false;
 	    continue;
 	  l6025:rspeak(186);
-	    move(chest, chloc);
-	    move(messag, chloc2);
+	    domove(chest, chloc);
+	    domove(messag, chloc2);
 	    goto l6024;
 	}
 	dtotal++;	       // 6027
@@ -344,10 +344,10 @@ int trbridge(void)
     if (prop[troll] == 1) {
 	pspeak(troll, 1);
 	prop[troll] = 0;
-	move(troll2, 0);
-	move(troll2 + 100, 0);
-	move(troll, plac[troll]);
-	move(troll + 100, fixd[troll]);
+	domove(troll2, 0);
+	domove(troll2 + 100, 0);
+	domove(troll, plac[troll]);
+	domove(troll + 100, fixd[troll]);
 	juggle(chasm);
 	newloc = loc;
 	return 2;
@@ -554,10 +554,10 @@ int trdrop(void)
     }
     if (obj == bear && at(troll)) {	// 9026
 	rspeak(163);
-	move(troll, 0);
-	move(troll + 100, 0);
-	move(troll2, plac[troll]);
-	move(troll2 + 100, fixd[troll]);
+	domove(troll, 0);
+	domove(troll + 100, 0);
+	domove(troll2, plac[troll]);
+	domove(troll2 + 100, fixd[troll]);
 	juggle(chasm);
 	prop[troll] = 2;
 	return dropper();
@@ -719,13 +719,13 @@ int trkill(void)
     prop[dragon] = 2;
     prop[rug] = 0;
     k = (plac[dragon] + fixd[dragon]) / 2;
-    move(dragon + 100, -1);
-    move(rug + 100, 0);
-    move(dragon, k);
-    move(rug, k);
+    domove(dragon + 100, -1);
+    domove(rug + 100, 0);
+    domove(dragon, k);
+    domove(rug, k);
     for (obj = 1; obj <= 100; obj++)
 	if (place[obj] == plac[dragon] || place[obj] == fixd[dragon])
-	    move(obj, k);
+	    domove(obj, k);
     loc = k;
     k = null;
     return 8;
@@ -741,8 +741,8 @@ int trtoss(void)
     if (obj >= 50 && obj <= maxtrs && at(troll)) {
 	spk = 159;	       // 9178
 	drop(obj, 0);
-	move(troll, 0);
-	move(troll + 100, 0);
+	domove(troll, 0);
+	domove(troll + 100, 0);
 	drop(troll2, plac[troll]);
 	drop(troll2 + 100, fixd[troll]);
 	juggle(chasm);
@@ -878,10 +878,10 @@ void closing(void)
 	dseen[i] = false;
 	dloc[i] = 0;
     }
-    move(troll, 0);
-    move(troll + 100, 0);
-    move(troll2, plac[troll]);
-    move(troll2 + 100, fixd[troll]);
+    domove(troll, 0);
+    domove(troll + 100, 0);
+    domove(troll2, plac[troll]);
+    domove(troll2 + 100, fixd[troll]);
     juggle(chasm);
     if (prop[bear] != 3)
 	dstroy(bear);

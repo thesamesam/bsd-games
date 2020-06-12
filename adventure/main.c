@@ -364,7 +364,7 @@ int main (void)
 		    k = 1;
 		if (loc == plac[eggs])
 		    k = 0;
-		move(eggs, plac[eggs]);
+		domove(eggs, plac[eggs]);
 		pspeak(eggs, k);
 		goto l2012;
 	    case 26:	       // brief=8260

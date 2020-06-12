@@ -7,7 +7,6 @@
 // originally written at University of California in 1980.
 
 #include "../config.h"
-#include <curses.h>
 
 //----------------------------------------------------------------------
 

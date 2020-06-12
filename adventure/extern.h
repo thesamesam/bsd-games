@@ -61,7 +61,7 @@ void caveclose(void);
 // vocab.c
 void dstroy(int);
 void juggle(int);
-void move(int, int);
+void domove(int, int);
 int put(int, int, int);
 void carry(int, int);
 void drop(int, int);
