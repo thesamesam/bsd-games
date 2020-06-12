@@ -215,7 +215,7 @@ static bool has_won (void)
     // Animate the great achievement
     for (unsigned t = 0; t < 9; ++t) {
 	draw_window();
-	wattrset (_w, A_BOLD| COLOR_PAIR(color_HiddenCard));
+	wattr_set (_w, A_BOLD, color_HiddenCard, NULL);
 	if (!(t%2))
 	    mvwaddstr (_w, getmaxy(_w)-1, 1, "*** YOU WON! ***");
 	wrefresh (_w);
@@ -244,7 +244,7 @@ static void draw_card (unsigned l, unsigned c, card_t v, bool selected)
 
 static void draw_hidden_card (unsigned l, unsigned c)
 {
-    wattrset (_w, COLOR_PAIR(color_HiddenCard));
+    wattr_set (_w, A_NORMAL, color_HiddenCard, NULL);
     mvwaddch (_w, l, c, ACS_ULCORNER);
     mvwaddch (_w, l, c+1, ACS_URCORNER);
     mvwaddch (_w, l+1, c, ACS_LLCORNER);
@@ -253,7 +253,7 @@ static void draw_hidden_card (unsigned l, unsigned c)
 
 static void draw_empty_target (unsigned l, unsigned c)
 {
-    wattrset (_w, COLOR_PAIR(color_HiddenCard));
+    wattr_set (_w, A_NORMAL, color_HiddenCard, NULL);
     mvwaddch (_w, l, c, ACS_CKBOARD);
     mvwaddch (_w, l, c+1, ACS_CKBOARD);
     mvwaddch (_w, l+1, c, ACS_CKBOARD);
@@ -262,7 +262,7 @@ static void draw_empty_target (unsigned l, unsigned c)
 
 static void draw_window (void)
 {
-    wattrset (_w, 0);
+    wattr_set (_w, A_NORMAL, color_None, NULL);
     werase (_w);
 
     // Draw title
@@ -291,8 +291,9 @@ static void draw_window (void)
 	else
 	    draw_card (l, c, p->c[p->sz-1], sel->p == PFINAL+i);
 	if (sel->dest[2] == PFINAL+i) {
-	    wattrset (_w, 0);
-	    mvwaddch (_w, l+1, c-1, A_BOLD|'f');
+	    wattr_on (_w, A_BOLD, NULL);
+	    mvwaddch (_w, l+1, c-1, 'f');
+	    wattr_off (_w, A_BOLD, NULL);
 	}
     }
 
@@ -310,7 +311,7 @@ static void draw_window (void)
 		    draw_card (l, c, p->c[j], sel->p == PSORTING+i && sel-> c == p->sz-1-j);
 	    }
 	}
-	wattrset (_w, 0);
+	wattr_set (_w, A_NORMAL, color_None, NULL);
 	if (sel->dest[0] == PSORTING+i)
 	    mvwaddch (_w, l, c-1, A_BOLD|'s');
 	if (sel->dest[1] == PSORTING+i)

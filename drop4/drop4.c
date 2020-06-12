@@ -417,16 +417,16 @@ static void scr_drawbar (unsigned y, unsigned x, unsigned h, unsigned w)
 static void scr_update(void)
 {
     werase (_win);
-    wattrset (_win, COLOR_PAIR(color_Background));
+    wattr_set (_win, A_NORMAL, color_Background, NULL);
     scr_drawbar (0, 0, S_ROWS, S_COLS);
 
     // Explicitly draw black boxes under
-    wattrset (_win, COLOR_PAIR(color_Shapes));
+    wcolor_set (_win, color_Shapes, NULL);
     scr_drawbar (0, BOARD_COL, B_ROWS, B_COLS*2);
     scr_drawbar (1, SCORE_COL, SCORE_ROWS, SCORE_COLS);
 
     // Draw score and level
-    wattrset (_win, COLOR_PAIR(color_Text));
+    wcolor_set (_win, color_Text, NULL);
     mvwprintw (_win, 2, SCORE_COL+2, "Score: %d", _score);
     mvwprintw (_win, 3, SCORE_COL+2, "Level: %u", get_level());
 
@@ -434,7 +434,7 @@ static void scr_update(void)
 	mvwaddstr (_win, S_ROWS/2, (S_COLS-strlen("Paused"))/2, "Paused");
     else {
 	// draw preview of nextpattern
-	wattrset (_win, A_REVERSE| COLOR_PAIR(color_Shapes));
+	wattr_set (_win, A_REVERSE, color_Shapes, NULL);
 	unsigned py = 1, px = 1, ip = 0;
 	for (;;) {
 	    mvwaddstr (_win, 5+py, SCORE_COL+4+px*2, "  ");
@@ -452,17 +452,17 @@ static void scr_update(void)
     }
 
     // Draw the board border
-    wattrset (_win, A_REVERSE| COLOR_PAIR(color_Borders));
+    wattr_set (_win, A_REVERSE, color_Borders, NULL);
     mvwvline (_win, 0, BOARD_COL-1, ' ', B_ROWS+1);
     mvwvline (_win, 0, BOARD_COL-2, ' ', B_ROWS+1);
     mvwvline (_win, 0, BOARD_COL+B_COLS*2, ' ', B_ROWS+1);
     mvwvline (_win, 0, BOARD_COL+B_COLS*2+1, ' ', B_ROWS+1);
     mvwhline (_win, B_ROWS, BOARD_COL, ' ', B_COLS*2);
-    wattroff (_win, A_REVERSE);
+    wattr_off (_win, A_REVERSE, NULL);
     mvwvline (_win, 0, BOARD_COL-3, ACS_VLINE, B_ROWS+1);
     mvwvline (_win, 0, BOARD_COL+B_COLS*2+2, ACS_VLINE, B_ROWS+1);
 
-    wattrset (_win, COLOR_PAIR(color_Default));
+    wattr_set (_win, A_NORMAL, color_Default, NULL);
     wrefresh (_win);
 }
 

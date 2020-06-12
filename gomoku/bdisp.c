@@ -39,9 +39,9 @@ void initialize_field_window (void)
 void bdisp (void)
 {
     werase (_w);
-    wattrset (_w, A_BOLD| COLOR_PAIR(color_Field));
+    wattr_set (_w, A_BOLD, color_Field, NULL);
     box (_w, 0, 0);
-    wattroff (_w, A_BOLD);
+    wattr_off (_w, A_BOLD, NULL);
     for (unsigned j = 1; j < BSZ1; ++j) {
 	for (unsigned i = 1; i < BSZ1; ++i) {
 	    unsigned bo = j*BSZ1+i;
@@ -65,7 +65,7 @@ void display_game_result_message (unsigned i, bool humanPlayer)
 {
     bdisp();
     wmove(_w, getmaxy(_w)-1, 2);
-    wattrset (_w, A_BOLD| COLOR_PAIR(color_Computer));
+    wattr_set (_w, A_BOLD, color_Computer, NULL);
     if (i == WIN)
 	waddstr (_w, humanPlayer ? "Rats! you won" : "Ha ha, I won");
     else
@@ -80,7 +80,7 @@ int usermove (void)
 {
     for (;;) {
 	bdisp();
-	wattrset (_w, A_BOLD| COLOR_PAIR(color_Human));
+	wattr_set (_w, A_BOLD, color_Human, NULL);
 	mvwaddstr (_w, getmaxy(_w)-1, 2, "Your move");
 	unsigned lhy = _lastHumanMove/BSZ1, lhx = _lastHumanMove%BSZ1;
 	flushinp();

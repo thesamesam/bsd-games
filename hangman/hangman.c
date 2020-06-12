@@ -185,13 +185,13 @@ static void endgame (void)
     draw();
     wmove (_wprompt, 1, 1);
     if (strchr (_known, '-')) {
-	wattrset (_wprompt, A_BOLD| COLOR_PAIR(color_WrongLetter));
+	wattr_set (_wprompt, A_BOLD, color_WrongLetter, NULL);
 	wprintw (_wprompt, "Sorry, the word was \"%s\"\n", _word);
     } else {
-	wattrset (_wprompt, A_BOLD| COLOR_PAIR(color_RightLetter));
+	wattr_set (_wprompt, A_BOLD, color_RightLetter, NULL);
 	wprintw (_wprompt, "You got it!\n");
     }
-    wattrset (_wprompt, 0);
+    wattr_set (_wprompt, A_NORMAL, color_None, NULL);
     wclrtoeol (_wprompt);
     wrefresh (_wprompt);
     sleep (1);

@@ -135,9 +135,9 @@ static unsigned makemove (enum EPlayer player)
     else {
 	unsigned m = compmove();
 	_asked[COMPUTER][m] = true;
-	wattron (_wmsg, A_BOLD);
+	wattr_on (_wmsg, A_BOLD, NULL);
 	wprintw (_wmsg, "I ask you for %s. ", c_CardNames[m]);
-	wattroff (_wmsg, A_BOLD);
+	wattr_off (_wmsg, A_BOLD, NULL);
 	return m;
     }
 }
@@ -154,18 +154,18 @@ static void draw_panel (void)
 	    continue;
 	if (_hand[USER][i] < SUITS) {
 	    for (unsigned y = 0; y < _hand[USER][i]; ++y) {
-		wattrset (_wpanel, COLOR_PAIR(color_CardBlack+(y%2)));
+		wcolor_set (_wpanel, color_CardBlack+(y%2), NULL);
 		mvwaddstr (_wpanel, y, cx, c_CardNames[i]);
 	    }
 	    cx += strlen(c_CardNames[i])+1;
 	} else {
 	    ++nBooks;
-	    wattrset (_wpanel, COLOR_PAIR(color_CardBlack));
+	    wcolor_set (_wpanel, color_CardBlack, NULL);
 	    mvwaddstr (_wpanel, 3, bx, c_CardNames[i]);
 	    bx += strlen(c_CardNames[i])+1;
 	}
     }
-    wattrset (_wpanel, 0);
+    wattr_set (_wpanel, A_NORMAL, color_None, NULL);
     if (nBooks)
 	mvwaddstr (_wpanel, 3, 0, "Books: ");
 
@@ -258,10 +258,10 @@ static unsigned drawcard (enum EPlayer player)
 
 static bool gofish (enum EPlayer player, unsigned askedfor)
 {
-    wattron (_wmsg, A_BOLD);
+    wattr_on (_wmsg, A_BOLD, NULL);
     printplayer (OTHER(player));
     waddstr (_wmsg, "say \"GO FISH!\"\n");
-    wattroff (_wmsg, A_BOLD);
+    wattr_off (_wmsg, A_BOLD, NULL);
     if (askedfor == drawcard (player)) {
 	printplayer (player);
 	waddstr (_wmsg, "drew the guess and get to ask again.\n");

@@ -82,26 +82,26 @@ static void draw_radar (void)
 {
     // Draw radar screen with map
     werase (_wradar);
-    wattrset (_wradar, COLOR_PAIR(color_RadarBackground));
+    wattr_set (_wradar, A_NORMAL, color_RadarBackground, NULL);
     box (_wradar, 0, 0);
     for (unsigned i = 1; i < _sp->height-1u; ++i)
 	for (unsigned j = 1; j < _sp->width-1u; ++j)
 	    mvwaddch (_wradar, i, j*2, C_BACKROUND);
-    wattrset (_wradar, COLOR_PAIR(color_Lines));
+    wcolor_set (_wradar, color_Lines, NULL);
     for (unsigned i = 0; i < _sp->num_lines; ++i)
 	draw_line(_wradar, _sp->line[i].p1.x, _sp->line[i].p1.y, _sp->line[i].p2.x, _sp->line[i].p2.y, C_LINE);
-    wattrset (_wradar, COLOR_PAIR(color_Beacons));
+    wcolor_set (_wradar, color_Beacons, NULL);
     for (unsigned i = 0; i < _sp->num_beacons; ++i)
 	mvwprintw (_wradar, _sp->beacon[i].y, _sp->beacon[i].x*2, "%c%u", C_BEACON, i);
-    wattrset (_wradar, COLOR_PAIR(color_Exits));
+    wcolor_set (_wradar, color_Exits, NULL);
     for (unsigned i = 0; i < _sp->num_exits; ++i)
 	mvwprintw (_wradar, _sp->exit[i].y, _sp->exit[i].x*2, "%u", i);
-    wattrset (_wradar, COLOR_PAIR(color_Airports));
+    wcolor_set (_wradar, color_Airports, NULL);
     for (unsigned i = 0; i < _sp->num_airports; ++i)
 	mvwprintw (_wradar, _sp->airport[i].y, _sp->airport[i].x * 2, "%c%u", "^?>?v?<?"[_sp->airport[i].dir], i);
 
     // Draw planes on radar
-    wattrset (_wradar, COLOR_PAIR(color_Planes));
+    wcolor_set (_wradar, color_Planes, NULL);
     vector_foreach (const struct Plane, p, _air) {
 	if (p->status == S_MARKED)
 	    wstandout (_wradar);

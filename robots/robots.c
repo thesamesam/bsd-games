@@ -206,7 +206,7 @@ static void lose_game (void)
 {
     draw_field();
     static const char c_Scream[] = "Aaaaargghhhh!!!!";
-    wattrset (_wgame, A_BOLD| COLOR_PAIR(color_Robots));
+    wattr_set (_wgame, A_BOLD, color_Robots, NULL);
     for (unsigned i = 1; i < strlen(c_Scream); ++i) {
 	mvwaddnstr (_wgame, _player.y+1, _player.x+1, c_Scream, i);
 	wrefresh (_wgame);
@@ -356,13 +356,13 @@ static void save_score (void)
     box (_wgame, 0, 0);
     mvwhline (_wgame, 2, 1, 0, FIELD_WIDTH-2);
     mvwhline (_wgame, FIELD_HEIGHT-4, 1, 0, FIELD_WIDTH-2);
-    wattrset (_wgame, A_BOLD);
+    wattr_set (_wgame, A_BOLD, color_None, NULL);
     mvwaddstr (_wgame, 1, 2, "Top Scores");
     for (unsigned i = 0; i < ArraySize(_scores) && _scores[i].score; ++i) {
 	if (_score == _scores[i].score && name && 0 == strcmp (name, _scores[i].name))
-	    wattron (_wgame, A_REVERSE);
+	    wattr_on (_wgame, A_REVERSE, NULL);
 	mvwprintw (_wgame, 3+i, 2, "%2u: %6u %-14s ", i+1, _scores[i].score, _scores[i].name);
-	wattroff (_wgame, A_REVERSE);
+	wattr_off (_wgame, A_REVERSE, NULL);
     }
     mvwaddstr (_wgame, FIELD_HEIGHT-3, 2, "Congratulations! You have been eaten by the evil robots.");
     if (!_score)

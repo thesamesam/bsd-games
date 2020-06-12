@@ -326,14 +326,14 @@ static void draw_view(void)
 		&& sp->status.col > _viewcol
 		&& sp->status.col < _viewcol + VIEW_X) {
 	    if (sp->status.index == _player)
-		wattrset (_view_w, A_BOLD| COLOR_PAIR(color_Player));
+		wattr_set (_view_w, A_BOLD, color_Player, NULL);
 	    else if (shipnationality(sp) == _ms->nationality)
-		wattrset (_view_w, A_BOLD| COLOR_PAIR(color_Friend));
+		wattr_set (_view_w, A_BOLD, color_Friend, NULL);
 	    else
-		wattrset (_view_w, A_BOLD| COLOR_PAIR(color_Enemy));
+		wattr_set (_view_w, A_BOLD, color_Enemy, NULL);
 	    mvwaddch (_view_w, sp->status.row - _viewrow, sp->status.col - _viewcol, colours(sp));
 	    mvwaddch (_view_w, sternrow(sp) - _viewrow, sterncol(sp) - _viewcol, sterncolour(sp));
-	    wattrset (_view_w, 0);
+	    wattr_set (_view_w, A_NORMAL, color_None, NULL);
 	}
     }
     wnoutrefresh (_view_w);
@@ -593,32 +593,32 @@ struct ScenarioSelector select_scenario (void)
 	box (wscen, 0, 0);
 	for (unsigned i = scentop; i < min_u (NSCENE, scentop+scenpage); ++i) {
 	    if (i == r.scenario)
-		wattron (wscen, focus == FOCUS_SCENARIOS ? A_REVERSE : A_BOLD);
+		wattr_on (wscen, focus == FOCUS_SCENARIOS ? A_REVERSE : A_BOLD, NULL);
 	    mvwhline (wscen, i-scentop+1,1, ' ', getmaxx(wscen)-2);
 	    mvwaddstr (wscen, i-scentop+1,2, _scenarios[i].name);
-	    wattrset (wscen, 0);
+	    wattr_set (wscen, A_NORMAL, color_None, NULL);
 	}
 
 	box (wship, 0, 0);
 	for (unsigned i = 0; i < min_u (_scenarios[r.scenario].vessels, getmaxy(wship)-2); ++i) {
 	    if (i == r.ship)
-		wattron (wship, focus == FOCUS_SHIPS ? A_REVERSE : A_BOLD);
+		wattr_on (wship, focus == FOCUS_SHIPS ? A_REVERSE : A_BOLD, NULL);
 	    mvwhline (wship, i+1,1, ' ', getmaxx(wship)-2);
 	    mvwprintw (wship, i+1,2, "%c %s", c_CountryName[_scenarios[r.scenario].ship[i].nationality][0], _scenarios[r.scenario].ship[i].shipname);
-	    wattrset (wship, 0);
+	    wattr_set (wship, A_NORMAL, color_None, NULL);
 	}
 
-	wattrset (wlload, 0);
+	wattr_set (wlload, A_NORMAL, color_None, NULL);
 	box (wlload, 0, 0);
 	static const char c_LoadName[4][8] = { "Grape", "Chain", "Round", "Double" };
 	if (focus == FOCUS_LEFTLOAD)
-	    wattron (wlload, A_REVERSE);
+	    wattr_on (wlload, A_REVERSE, NULL);
 	mvwaddstr (wlload, 1,2, c_LoadName[r.iniload.l-1]);
 
-	wattrset (wrload, 0);
+	wattr_set (wrload, A_NORMAL, color_None, NULL);
 	box (wrload, 0, 0);
 	if (focus == FOCUS_RIGHTLOAD)
-	    wattron (wrload, A_REVERSE);
+	    wattr_on (wrload, A_REVERSE, NULL);
 	mvwaddstr (wrload, 1,2, c_LoadName[r.iniload.r-1]);
 
 	wnoutrefresh (wtitle);

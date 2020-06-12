@@ -249,7 +249,7 @@ static void draw_field (void)
     erase();
     werase (_wfield);
     // Draw grid
-    wattrset (_wfield, 0);
+    wattr_set (_wfield, A_NORMAL, color_None, NULL);
     box (_wfield, 0, 0);				// corners
     for (unsigned c = 1; c < _fw; ++c) {
 	mvwaddch (_wfield, 0, 2*c, ACS_TTEE);		// top line tees
@@ -268,14 +268,14 @@ static void draw_field (void)
     // Draw the box ownership letters
     for (unsigned l = 0; l < _fw; ++l) {
 	for (unsigned c = 0; c < _fw; ++c) {
-	    wattrset (_wfield, COLOR_PAIR(_boxes[l][c]));
+	    wcolor_set (_wfield, _boxes[l][c], NULL);
 	    mvwaddch (_wfield, l*2+1, c*2+1, " hc"[_boxes[l][c]]);
 	}
     }
     // Draw last moves
-    wattrset (_wfield, COLOR_PAIR(color_Computer));
+    wcolor_set (_wfield, color_Computer, NULL);
     draw_edge (_lastMove[COMPUTER].l, _lastMove[COMPUTER].c);
-    wattrset (_wfield, COLOR_PAIR(color_Human));
+    wcolor_set (_wfield, color_Human, NULL);
     draw_edge (_lastMove[HUMAN].l, _lastMove[HUMAN].c);
     // Draw stats
     unsigned winner = have_winner();

@@ -320,7 +320,7 @@ static void spacewarp (bool bonus)
     } else
 	_penalty += _loot / SPACEWARP_PENALTY;
     // Flash the message in the center of the empty screen
-    wattrset (_wgame, A_BOLD|COLOR_PAIR(color_Goal));
+    wattr_set (_wgame, A_BOLD, color_Goal, NULL);
     for (unsigned j = 0; j < 3; ++j) {
 	werase (_wgame);
 	box (_wgame, 0, 0);
@@ -330,7 +330,7 @@ static void spacewarp (bool bonus)
 	wrefresh (_wgame);
 	delay(10);
     }
-    wattrset (_wgame, COLOR_PAIR(color_Field));
+    wattr_set (_wgame, A_NORMAL, color_Field, NULL);
     setup();
     winnings (cashvalue());
 }

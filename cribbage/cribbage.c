@@ -437,7 +437,7 @@ static void draw_card (unsigned l, unsigned c, card_t v, bool selected)
 
 static void draw_hidden_card (unsigned l, unsigned c)
 {
-    wattrset (_wtable, COLOR_PAIR(color_HiddenCard));
+    wattr_set (_wtable, A_NORMAL, color_HiddenCard, NULL);
     mvwaddch (_wtable, l, c, ACS_ULCORNER);
     mvwaddch (_wtable, l, c+1, ACS_URCORNER);
     mvwaddch (_wtable, l+1, c, ACS_LLCORNER);
