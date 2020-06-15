@@ -464,9 +464,7 @@ static bool save_score (unsigned score, bool won)
     else if (!won)
 	return true;	// Return true to wink if the score would have been saved
     // Get user name
-    const char* name = getlogin();
-    if (!name)
-	return false;
+    const char* name = player_name();
     ns->score = score;
     strncpy (ns->name, name, sizeof(ns->name)-1);
     ns->name[sizeof(ns->name)-1] = 0;

@@ -337,7 +337,7 @@ static void save_score (void)
     // Resort to account for the above zeroing
     qsort (_scores, ArraySize(_scores), sizeof(_scores[0]), compare_scores);
     // Add this game's score, if it is high enough
-    const char* name = getlogin();
+    const char* name = player_name();
     struct Score* ns = &_scores[ArraySize(_scores)-1];
     bool bScoreSaved = false;
     if (name && ns->score < _score) {

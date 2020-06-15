@@ -469,7 +469,7 @@ static void scr_update(void)
 // Show current scores.
 static void showscores (unsigned level)
 {
-    const char* username = getlogin();
+    const char* username = player_name();
     werase (_win);
     mvwaddstr (_win, 0, 0, "Drop4 High Scores");
     mvwaddstr (_win, 1, 0, "Rank  Score   Name             (points/level)");
@@ -525,7 +525,7 @@ static void savescore (unsigned score, unsigned level)
     struct highscore* nsc = &_scores[MAXHISCORES-1];
     if (nsc->score*nsc->level > score*level)
 	return;	// The new score is too low to save
-    const char* username = getlogin();
+    const char* username = player_name();
     if (!username)
 	return;
     strncpy (nsc->name, username, sizeof(nsc->name)-1);

@@ -57,12 +57,25 @@ int mkpath (const char* path, mode_t mode)
     return 0;
 }
 
+// Returns username or something to call the player. Never fails.
+const char* player_name (void)
+{
+    const char* un = getlogin();
+    if (!un)
+	un = getenv ("LOGNAME");
+    if (!un)
+	un = getenv ("USER");
+    if (!un)
+	un = "player";
+    return un;
+}
+
 void StringBuilder_skip (struct StringBuilder* sb, ssize_t n) {
     if (n < 0) {
 	sb->s[0] = 0; // snprintf error - ensure terminator is restored
 	return;
     }
-    assert (n <= sb->n && "StringBuilder buffer full");
+    assert (n <= (ssize_t) sb->n && "StringBuilder buffer full");
     if ((size_t) n > sb->n)
 	n = sb->n;
     sb->s += n;

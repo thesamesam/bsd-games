@@ -87,7 +87,7 @@ static unsigned score_hand(const struct Hand *h, bool isCrib, bool explain);
 static unsigned score_play(card_t lastCard, bool printMessage);
 static unsigned n_playable_cards(const struct Hand *h);
 static void score_last_played_card(void);
-static const char *player_name(unsigned p);
+static const char *player_pronoun(unsigned p);
 static void draw_peg(uint8_t score, unsigned line);
 static void draw_board(void);
 static void draw_card(unsigned l, unsigned c, card_t v, bool selected);
@@ -379,7 +379,7 @@ static void score_last_played_card (void)
 {
     unsigned ncards = _p[HUMAN].table.sz + _p[COMPUTER].table.sz,
 		lastPlayer = _dealer^(ncards%2);
-    print_msg ("%s get 1 for last. Count reset.\n", player_name(lastPlayer));
+    print_msg ("%s get 1 for last. Count reset.\n", player_pronoun(lastPlayer));
     _count = 0;
     record_score (lastPlayer, 1);
 }
@@ -387,7 +387,7 @@ static void score_last_played_card (void)
 //}}}-------------------------------------------------------------------
 //{{{ Drawing
 
-static const char* player_name (unsigned p)
+static const char* player_pronoun (unsigned p)
 {
     static const char c_Name[NPLAYERS][4] = {"You", "I"};
     return c_Name[p];
@@ -614,7 +614,7 @@ static unsigned winning_player (void)
 static bool run_play (void)
 {
     // The deal
-    print_msg ("\nStarting new play. %s deal.\n", player_name(_dealer));
+    print_msg ("\nStarting new play. %s deal.\n", player_pronoun(_dealer));
     deal_cards();
     computer_discard();
     print_msg ("Discard 2 cards\n");
@@ -624,7 +624,7 @@ static bool run_play (void)
     }
     sort_hand (&_crib);
     if (card_rank(_starter) == rank_Jack) {
-	print_msg ("%s get one for \"his heels\"\n", player_name(_dealer));
+	print_msg ("%s get one for \"his heels\"\n", player_pronoun(_dealer));
 	record_score (_dealer, 1);
     }
     print_msg ("\n");
@@ -634,7 +634,7 @@ static bool run_play (void)
 	if (!n_playable_cards(&_p[HUMAN].hand) && !n_playable_cards(&_p[COMPUTER].hand))
 	    score_last_played_card();
 	unsigned sc = (turn == HUMAN ? select_card() : computer_select_play());
-	print_msg ("%s say ", player_name(turn));
+	print_msg ("%s say ", player_pronoun(turn));
 	if (sc < _p[turn].hand.sz) {
 	    unsigned pts = score_play (_p[turn].hand.c[sc], true);
 	    _count += card_value (_p[turn].hand.c[sc]);
@@ -651,7 +651,7 @@ static bool run_play (void)
     // The show
     for (unsigned i = 0, turn = !_dealer; i < NPLAYERS && winning_player() >= NPLAYERS; ++i, turn = !turn) {
 	struct Hand ch = hand_with_starter (&_p[turn].table);
-	print_msg ("%s score ", player_name(turn));
+	print_msg ("%s score ", player_pronoun(turn));
 	unsigned pts = score_hand (&ch, false, true);
 	if (turn == _dealer) {
 	    print_msg (" + crib score ");
@@ -664,14 +664,14 @@ static bool run_play (void)
     // Display winner, if any, and pause
     unsigned winner = winning_player();
     if (winner < NPLAYERS) {
-	print_msg ("%s won this game.\n", player_name(winner));
+	print_msg ("%s won this game.\n", player_pronoun(winner));
 	++_p[winner].gameswon;
 	if (_p[!winner].score <= WINSCORE/2) {
-	    print_msg ("%s skunked %s!\n", player_name(winner), player_name(!winner));
+	    print_msg ("%s skunked %s!\n", player_pronoun(winner), player_pronoun(!winner));
 	    ++_p[winner].gameswon;
 	}
 	if (_p[HUMAN].gameswon + _p[COMPUTER].gameswon >= MAXGAMES)
-	    print_msg ("\n%s won the match.\n", player_name(_p[HUMAN].gameswon < _p[COMPUTER].gameswon));
+	    print_msg ("\n%s won the match.\n", player_pronoun(_p[HUMAN].gameswon < _p[COMPUTER].gameswon));
     }
     draw_screen();
     wgetch (_wtable);

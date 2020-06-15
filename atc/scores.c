@@ -93,8 +93,7 @@ void save_score (bool reallySave)
     if (reallySave && (lowscore->planes < _safe_planes || (lowscore->planes == _safe_planes && lowscore->time < _clck))) {
 	// Write the new high score
 	memset (lowscore, 0, sizeof(*lowscore));
-	if (0 > getlogin_r (lowscore->name, sizeof(lowscore->name)))
-	    return;	// No score if you have no name
+	snprintf (ArrayBlock(lowscore->name), "%s", player_name());
 	gethostname (lowscore->host, sizeof(lowscore->host)-1);
 	char* dot = strchr (lowscore->host, '.');
 	if (dot)	// Record base hostname only

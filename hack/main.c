@@ -19,13 +19,8 @@ int main (int argc, const char* const* argv)
     atexit (global_dtors);
     initoptions();
     // Set player name if not set in options
-    if (!*plname) {
-	const char* pln = getenv ("USER");
-	if (pln && *pln)
-	    snprintf (ArrayBlock(plname), "%s", pln);
-	else
-	    snprintf (ArrayBlock(plname), "user%u", getuid());
-    }
+    if (!*plname)
+	snprintf (ArrayBlock(plname), "%s", player_name());
 
     if (argc > 1 && !strncmp(argv[1], "-s", 2)) {
 	savescore();
