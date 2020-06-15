@@ -5,7 +5,7 @@ adventure/EXE	:= $Oadventure/${adventure/NAME}
 adventure/SRCS	:= $(wildcard adventure/*.c)
 adventure/OBJS	:= $(addprefix $O,$(adventure/SRCS:.c=.o))
 adventure/DEPS	:= $(adventure/OBJS:.o=.d)
-adventure/LIBS	:= ${COMLIB}
+adventure/TXTS	:= $(wildcard adventure/*.txt)
 
 ################ Compilation ###########################################
 
@@ -18,7 +18,7 @@ adventure/run:	${adventure/EXE}
 
 ${adventure/EXE}:	${adventure/OBJS} ${COMLIB}
 	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ ${adventure/OBJS} ${adventure/LIBS}
+	@${CC} ${LDFLAGS} -o $@ $^
 
 ################ Installation ##########################################
 
@@ -46,13 +46,13 @@ endif
 clean:	adventure/clean
 adventure/clean:
 	@if [ -d $O/adventure ]; then\
-	    rm -f ${adventure/EXE} ${adventure/OBJS} ${adventure/DEPS} $Oadventure/setup* $Oadventure/data.c $Oadventure/.d;\
+	    rm -f ${adventure/EXE} ${adventure/OBJS} ${adventure/DEPS} $Oadventure/.d;\
 	    rmdir $O/adventure;\
 	fi
 
 $Oadventure/.d:	$O.d
 	@[ -d $Oadventure ] || mkdir $Oadventure && touch $Oadventure/.d
 
-${adventure/OBJS} $Oadventure/setup.o: ${CONFS} adventure/Module.mk $Oadventure/.d
+${adventure/OBJS}: ${CONFS} adventure/Module.mk $Oadventure/.d
 
 -include ${adventure/DEPS}
