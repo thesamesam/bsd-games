@@ -70,7 +70,6 @@ include dab/Module.mk
 include drop4/Module.mk
 include fish/Module.mk
 include gomoku/Module.mk
-include hack/Module.mk
 include hangman/Module.mk
 include klondike/Module.mk
 include robots/Module.mk
