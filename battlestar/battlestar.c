@@ -3,6 +3,12 @@
 
 #include "extern.h"
 
+//----------------------------------------------------------------------
+
+static void initialize (const char *filename);
+
+//----------------------------------------------------------------------
+
 int main(int argc, char **argv)
 {
     char mainbuf[LINELENGTH];
@@ -22,18 +28,18 @@ int main(int argc, char **argv)
     news();
     if (beenthere[position] <= ROOMDESC)
 	beenthere[position]++;
-    if (notes[LAUNCHED])
+    if (game_state (LAUNCHED))
 	crash();	       // decrements fuel & crash
-    if (matchlight) {
+    if (game_state (MATCH_LIGHT)) {
 	puts("Your match splutters out.");
-	matchlight = 0;
+	clear_game_state (MATCH_LIGHT);
     }
-    if (!notes[CANTSEE] || testbit(inven, LAMPON) || testbit(location[position].objects, LAMPON)) {
+    if (!game_state (CANTSEE) || object_is_at (LAMPON, INVENTORY) || object_is_at (LAMPON, position)) {
 	writedes();
 	printobjs();
     } else
 	puts("It's too dark to see anything in here!");
-    whichway(location[position]);
+    update_relative_directions();
   run:
     next = getcom(mainbuf, sizeof mainbuf, ">-: ", "Please type in something.");
     for (wordcount = 0; next && wordcount < NWORD - 1; wordcount++)
@@ -47,5 +53,32 @@ int main(int argc, char **argv)
 	default:
 	    printf ("bad return from cypher(): please submit a bug report");
 	    exit (EXIT_FAILURE);
+    }
+}
+
+static void initialize (const char *filename)
+{
+    puts("Version 4.2, fall 1984.");
+    puts("First Adventure game written by His Lordship, the honorable");
+    puts("Admiral D.W. Riggle\n");
+
+    initialize_curses();
+    endwin();
+    atexit (cleanup_objects);
+    username = player_name();
+    wordinit();
+    if (filename == NULL) {
+	direction = NORTH;
+	ourtime = 0;
+	snooze = CYCLE * 1.5;
+	position = LUXURIOUS_STATEROOM;
+	create_object_at (PAJAMAS, WEARING);
+	fuel = TANKFULL;
+	torps = TORPEDOES;
+	place_default_objects();
+    } else {
+	char* savefile = save_file_name(filename, strlen(filename));
+	restore(savefile);
+	free(savefile);
     }
 }

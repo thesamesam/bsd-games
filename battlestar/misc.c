@@ -13,12 +13,3 @@ int card (const char* array, int size)
 	    ++i;
     return i;
 }
-
-int ucard (const unsigned int* array)
-{
-    int j = 0;
-    for (int n = 0; n < NUMOFOBJECTS; ++n)
-	if (testbit(array, n))
-	    ++j;
-    return j;
-}

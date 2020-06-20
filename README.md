@@ -23,7 +23,7 @@ This package contains the following games:
 
 * adventure:	the original adventure by Crowther and Woods
 * atc:		air traffic control simulator
-* battlestar:	adventure game on a battlestar
+* battlestar:	a tropical adventure
 * caesar:	performs rotated-alphabet cryptography (like rot13)
 * cribbage:	cribbage card game
 * dab:		dots and boxes
@@ -48,10 +48,10 @@ Anyway, programs were removed for the following specific reasons:
 
 Some are already maintained as standalone packages:
 
-* backgammon:	[http://gnubg.org/](http://gnubg.org/)
+* backgammon:	[https://www.gnu.org/software/gnubg/](https://www.gnu.org/software/gnubg/)
 * banner:	[https://packages.debian.org/stable/bsdmainutils](https://packages.debian.org/stable/bsdmainutils)
 * factor:	[http://www.gnu.org/software/coreutils/coreutils.html](http://www.gnu.org/software/coreutils/coreutils.html)
-* fortune:	[ftp://ftp.ibiblio.org/pub/linux/games/amusements/fortune](ftp://ftp.ibiblio.org/pub/linux/games/amusements/fortune)
+* fortune:	[https://ibiblio.org/pub/linux/games/amusements/fortune/](https://ibiblio.org/pub/linux/games/amusements/fortune/)
 * primes:	[http://primesieve.org/](http://primesieve.org/)
 * rogue:	[http://coredumpcentral.org/](http://coredumpcentral.org/)
 * hack:		[https://www.nethack.org](https://www.nethack.org), [https://github.com/msharov/hack](https://github.com/msharov/hack)

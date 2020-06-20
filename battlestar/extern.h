@@ -19,10 +19,39 @@
 
 // well known rooms
 enum {
-    FINAL	= 275,
-    GARDEN	= 197,
-    POOLS	= 126,
-    DOCK	= 93
+    MAIN_HANGAR		= 1,
+    HANGAR_GALLERY	= 3,
+    LAUNCH_ROOM		= 5,
+    STARFIGHTER_ROOM	= 7,
+    STATEROOM_CLOSET	= 8,
+    AMULET_ROOM		= 13,
+    LASER_ROOM		= 20,
+    LUXURIOUS_STATEROOM	= 22,
+    KITCHEN_STAIRWELL	= 25,
+    KITCHEN_DOOR	= 30,
+    DINING_ROOM_DOOR	= 31,
+    OUTSIDE_BATTLESTAR	= 32,
+    FIRST_ISLAND_LAND	= 89,
+    DOCK		= 93,
+    ABOVE_SEA_CAVE	= 114,
+    POOLS		= 126,
+    SECRET_THICKET	= 144,
+    TIDE_POOLS		= 145,
+    SEA_CAVE_ENTRANCE	= 160,
+    GARDEN		= 197,
+    CAVE_DOOR		= 189,
+    BUNGALOW_PORCH	= 217,
+    END_OF_THE_ROAD	= 224,
+    CAVE_STREAM_BANK	= 229,
+    CAVE_ENTRANCE	= 231,
+    HUGE_CHASM		= 232,
+    CLIFF_WATERFALL	= 242,
+    GODDESS_THRONE_ROOM	= 268,
+    FINAL		= 275,
+    NUMOFROOMS		= FINAL,
+    // Non-world locations
+    INVENTORY,
+    WEARING
 };
 
 // word types
@@ -36,7 +65,7 @@ enum {
 };
 
 // words numbers
-enum {
+enum ObjectId {
     KNIFE,
     SWORD,
     LAND,
@@ -173,15 +202,11 @@ enum {
     NUMOFINJURIES
 };
 
-// notes
-enum {
-    CANTLAUNCH,
-    LAUNCHED,
-    CANTSEE,
-    CANTMOVE,
-    JINXED,
-    DUG,
-    NUMOFNOTES
+// game_states bits
+enum EGameState {
+    CANTLAUNCH, LAUNCHED, CANTSEE, CANTMOVE, JINXED,
+    DUG, OPENED_KITCHEN_DOOR, OPENED_CAVE_DOOR, UNCOVERED_SEA_CAVE, ROPE_IN_PIT,
+    IS_NIGHT, MET_GIRL, IS_WIZARD, MATCH_LIGHT, IS_VERBOSE
 };
 
 // Number of times room description shown.
@@ -189,12 +214,9 @@ enum { ROOMDESC = 3 };
 
 // Fundamental constants
 enum {
-    NUMOFROOMS	= 275,
     NUMOFWORDS	= ((NUMOFOBJECTS + BITS - 1) / BITS),
     LINELENGTH	= 81,
 
-    TODAY	= 0,
-    TONIGHT	= 1,
     CYCLE	= 100,
 
     // Initial variable values
@@ -204,7 +226,9 @@ enum {
     MAXCUMBER	= 10
 };
 
-// These are flags for objects in the objflags array.  OBJ_PLURAL means
+enum EDayOrNight { TODAY, TONIGHT };
+
+// These are flags for objects in ObjectInfo. OBJ_PLURAL means
 // that the object short name is plural; OBJ_AN that it begins with a
 // vowel sound so should be preceded by "an" instead of "a"; OBJ_PERSON
 // that it is a living person; OBJ_NONOBJ that it is not an object (to
@@ -217,79 +241,80 @@ enum {
     OBJ_NONOBJ	= 1<<3,
 };
 
-struct room {
-    const char *name;
-    int link[8];
-#define north	link[0]
-#define south	link[1]
-#define east	link[2]
-#define west	link[3]
-#define up	link[4]
-#define access	link[5]
-#define down	link[6]
-#define flyhere	link[7]
-    const char *desc;
-    unsigned int objects[NUMOFWORDS];
+struct ObjectInfo {
+    const char*	shdesc;
+    const char*	desc;
+    uint16_t	weight;
+    uint8_t	cumber;
+    uint8_t	flags;
 };
-extern struct room dayfile[];
-extern struct room nightfile[];
-extern struct room *location;
 
- // object characteristics
-extern const char *const objdes [NUMOFOBJECTS];
-extern const char *const objsht [NUMOFOBJECTS];
+struct room {
+    const char*	name;
+    const char*	day_desc;
+    const char*	night_desc;
+    struct {
+	uint16_t north;
+	uint16_t east;
+	uint16_t south;
+	uint16_t west;
+	uint16_t up;
+	uint16_t down;
+	uint16_t flyhere;
+	uint16_t access;
+    }		dir;
+};
+extern const struct room location [NUMOFROOMS+1];
+
+// object characteristics
+extern const struct ObjectInfo c_objinfo [NUMOFOBJECTS];
 extern const char *const ouch [NUMOFINJURIES];
-extern const int objwt [NUMOFOBJECTS];
-extern const int objcumber [NUMOFOBJECTS];
-extern const int objflags [NUMOFOBJECTS];
-#define is_plural_object(n)	(objflags[(n)] & OBJ_PLURAL)
-//
-// These macros yield words to use with objects (followed but not preceded
-// by spaces, or with no spaces if the expansion is the empty string).
-#define A_OR_AN(n)		(objflags[(n)] & OBJ_AN ? "an " : "a ")
-#define A_OR_AN_OR_THE(n)	(is_plural_object((n)) ? "the " : A_OR_AN((n)))
-#define A_OR_AN_OR_BLANK(n)	(is_plural_object((n)) ? "" : A_OR_AN((n)))
-#define IS_OR_ARE(n)		(is_plural_object((n)) ? "are " : "is ")
 
- // current input line
+// current input line
 enum {
     WORDLEN	= 15,
     NWORD	= 20	       // words per line
 };
+
+//----------------------------------------------------------------------
+
 extern char words[NWORD][WORDLEN];
 extern int wordvalue[NWORD];
 extern int wordtype[NWORD];
-extern int wordcount, wordnumber;
+extern int wordcount;
+extern int wordnumber;
 
- // state of the game
+// state of the game
 extern int ourtime;
 extern int position;
 extern int direction;
-extern int left, right, ahead, back;
-extern int ourclock, fuel, torps;
-extern int carrying, encumber;
+extern int left;
+extern int right;
+extern int ahead;
+extern int back;
+extern int ourclock;
+extern int fuel;
+extern int torps;
+extern int carrying;
+extern int encumber;
 extern int rythmn;
 extern int followfight;
 extern int ate;
 extern int snooze;
-extern int meetgirl;
 extern int followgod;
 extern int godready;
 extern int win;
 extern int wintime;
-extern int wiz;
-extern int tempwiz;
-extern int matchlight, matchcount;
+extern int matchcount;
 extern int loved;
-extern int pleasure, power, ego;
+extern int pleasure;
+extern int power;
+extern int ego;
 extern int WEIGHT;
 extern int CUMBER;
-extern int notes[NUMOFNOTES];
-extern unsigned int inven[NUMOFWORDS];
-extern unsigned int wear[NUMOFWORDS];
-extern char beenthere[NUMOFROOMS + 1];
-extern char injuries[NUMOFINJURIES];
-extern int verbose;
+extern uint16_t game_states;
+extern char beenthere [NUMOFROOMS+1];
+extern char injuries [NUMOFINJURIES];
 
 extern const char *username;
 
@@ -300,17 +325,35 @@ struct wlist {
 };
 extern struct wlist wlist[];
 
-struct objs {
-    short room;
-    short obj;
-};
-extern const struct objs dayobjs[];
-extern const struct objs nightobjs[];
+//----------------------------------------------------------------------
+
+// game_states access
+inline static bool game_state (enum EGameState f)
+    { return game_states & (1u << f); }
+inline static void set_game_state (enum EGameState f)
+    { game_states |= (1u << f); }
+inline static void clear_game_state (enum EGameState f)
+    { game_states &= ~(1u << f); }
+
+// These macros yield words to use with objects (followed but not preceded
+// by spaces, or with no spaces if the expansion is the empty string).
+
+inline static bool is_plural_object (uint16_t n)
+    { return c_objinfo[n].flags & OBJ_PLURAL; }
+inline static const char* A_OR_AN (uint16_t n)
+    { return c_objinfo[n].flags & OBJ_AN ? "an " : "a "; }
+inline static const char* A_OR_AN_OR_THE (uint16_t n)
+    { return is_plural_object(n) ? "the " : A_OR_AN(n); }
+inline static const char* A_OR_AN_OR_BLANK (uint16_t n)
+    { return is_plural_object(n) ? "" : A_OR_AN(n); }
+inline static const char* IS_OR_ARE (uint16_t n)
+    { return is_plural_object(n) ? "are " : "is "; }
+
+//----------------------------------------------------------------------
 
 void bury(void);
 int card(const char *, int);
 void chime(void);
-void convert(int);
 void crash(void);
 int cypher(void);
 _Noreturn void die(void);
@@ -326,7 +369,6 @@ int follow(void);
 char *getcom(char *, int, const char *, const char *);
 char *getword(char *, char *, int);
 int give(void);
-void initialize(const char *);
 int jump(void);
 void kiss(void);
 int land(void);
@@ -341,7 +383,6 @@ void newway(int);
 void open_score_file(void);
 void parse(void);
 void post(char);
-void printobjs(void);
 int put(void);
 int puton(void);
 const char *rate(void);
@@ -350,15 +391,26 @@ int ride(void);
 void save(const char *);
 char *save_file_name(const char *, size_t);
 int shoot(void);
-int take(unsigned int[]);
+int take (uint16_t fromloc);
 int takeoff(void);
 int throw(const char *);
 const char *truedirec(int, char);
-int ucard(const unsigned int *);
 int use(void);
 int visual(void);
 int wearit(void);
-void whichway(struct room);
+void update_relative_directions (void);
 void wordinit(void);
 void writedes(void);
 int zzz(void);
+
+// obj.c
+void cleanup_objects (void);
+bool object_is_at (enum ObjectId oid, uint16_t l);
+void create_object_at (enum ObjectId oid, uint16_t l);
+void remove_object_from (enum ObjectId oid, uint16_t l);
+unsigned count_objects_at (uint16_t l);
+void printobjs (void);
+void convert (enum EDayOrNight to);
+void place_default_objects (void);
+void restore_saved_objects (FILE* fp);
+void save_objects (FILE* fp);

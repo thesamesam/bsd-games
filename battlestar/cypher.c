@@ -25,20 +25,21 @@ int cypher(void)
 		continue;
 
 	    case UP:
-		if (location[position].access || wiz || tempwiz) {
-		    if (!location[position].access)
-			puts("Zap!  A gust of wind lifts you up.");
-		    if (!moveplayer(location[position].up, AHEAD))
+		if (position == FINAL) {
+		    if (game_state (IS_WIZARD))
+			puts ("Zap! A gust of wind lifts you up.");
+		    else if (!game_state (ROPE_IN_PIT)) {
+			puts ("There is no way up.");
 			return -1;
-		} else {
-		    puts("There is no way up.");
-		    return -1;
+		    }
 		}
+		if (!moveplayer (location[position].dir.up, AHEAD))
+		    return -1;
 		lflag = 0;
 		break;
 
 	    case DOWN:
-		if (!moveplayer(location[position].down, AHEAD))
+		if (!moveplayer(location[position].dir.down, AHEAD))
 		    return -1;
 		lflag = 0;
 		break;
@@ -72,7 +73,7 @@ int cypher(void)
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; n++)
-			if (testbit(location[position].objects, n) && objsht[n]) {
+			if (object_is_at (n, position) && c_objinfo[n].shdesc) {
 			    things++;
 			    wordvalue[wordnumber + 1] = n;
 			    wordnumber = shoot();
@@ -90,7 +91,7 @@ int cypher(void)
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; n++)
-			if (testbit(location[position].objects, n) && objsht[n]) {
+			if (object_is_at (n, position) && c_objinfo[n].shdesc) {
 			    things++;
 			    wordvalue[wordnumber + 1] = n;
 			    // Some objects (type NOUNS)
@@ -124,14 +125,14 @@ int cypher(void)
 				default:
 				    wordtype[wordnumber + 1] = OBJECT;
 			    }
-			    wordnumber = take(location[position].objects);
+			    wordnumber = take (position);
 			}
 		    wordnumber++;
 		    wordnumber++;
 		    if (!things)
 			puts("Nothing to take!");
 		} else
-		    take(location[position].objects);
+		    take (position);
 		break;
 
 	    case DROP:
@@ -139,7 +140,7 @@ int cypher(void)
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; n++)
-			if (testbit(inven, n)) {
+			if (object_is_at (n, INVENTORY)) {
 			    things++;
 			    wordvalue[wordnumber + 1] = n;
 			    wordnumber = drop("Dropped");
@@ -159,7 +160,7 @@ int cypher(void)
 		    things = 0;
 		    wv = wordvalue[wordnumber];
 		    for (n = 0; n < NUMOFOBJECTS; n++)
-			if (testbit(inven, n) || (testbit(location[position].objects, n) && objsht[n])) {
+			if (object_is_at (n, INVENTORY) || (object_is_at (n, position) && c_objinfo[n].shdesc)) {
 			    things++;
 			    wordvalue[wordnumber + 1] = n;
 			    wordnumber = throw(wordvalue[wordnumber] == KICK ? "Kicked" : "Thrown");
@@ -176,7 +177,7 @@ int cypher(void)
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; n++)
-			if (testbit(wear, n)) {
+			if (object_is_at (n, WEARING)) {
 			    things++;
 			    wordvalue[wordnumber + 1] = n;
 			    wordnumber = takeoff();
@@ -193,7 +194,7 @@ int cypher(void)
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; n++)
-			if (testbit(wear, n)) {
+			if (object_is_at (n, WEARING)) {
 			    things++;
 			    wordvalue[wordnumber + 1] = n;
 			    wordnumber = draw();
@@ -210,7 +211,7 @@ int cypher(void)
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; n++)
-			if (testbit(location[position].objects, n) && objsht[n]) {
+			if (object_is_at (n, position) && c_objinfo[n].shdesc) {
 			    things++;
 			    wordvalue[wordnumber + 1] = n;
 			    wordnumber = puton();
@@ -227,7 +228,7 @@ int cypher(void)
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; n++)
-			if (testbit(inven, n)) {
+			if (object_is_at (n, INVENTORY)) {
 			    things++;
 			    wordvalue[wordnumber + 1] = n;
 			    wordnumber = wearit();
@@ -244,7 +245,7 @@ int cypher(void)
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; n++)
-			if (testbit(inven, n)) {
+			if (object_is_at (n, INVENTORY)) {
 			    things++;
 			    wordvalue[wordnumber + 1] = n;
 			    wordnumber = eat();
@@ -261,11 +262,11 @@ int cypher(void)
 		break;
 
 	    case INVEN:
-		if (ucard(inven)) {
+		if (count_objects_at (INVENTORY)) {
 		    puts("You are holding:\n");
 		    for (n = 0; n < NUMOFOBJECTS; n++)
-			if (testbit(inven, n))
-			    printf("\t%s\n", objsht[n]);
+			if (object_is_at (n, INVENTORY))
+			    printf("\t%s\n", c_objinfo[n].shdesc);
 		    if (WEIGHT == 0)
 			printf("\n= %d kilogram%s (can't lift any weight%s)\n", carrying, (carrying == 1 ? "." : "s."), (carrying ? " or move with what you have" : ""));
 		    else
@@ -277,11 +278,11 @@ int cypher(void)
 		} else
 		    puts("You aren't carrying anything.");
 
-		if (ucard(wear)) {
+		if (count_objects_at (WEARING)) {
 		    puts("\nYou are wearing:\n");
 		    for (n = 0; n < NUMOFOBJECTS; n++)
-			if (testbit(wear, n))
-			    printf("\t%s\n", objsht[n]);
+			if (object_is_at (n, WEARING))
+			    printf("\t%s\n", c_objinfo[n].shdesc);
 		} else
 		    puts("\nYou are stark naked.");
 		if (card(injuries, NUMOFINJURIES)) {
@@ -304,7 +305,7 @@ int cypher(void)
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; n++)
-			if (testbit(inven, n)) {
+			if (object_is_at (n, INVENTORY)) {
 			    things++;
 			    wordvalue[wordnumber + 1] = n;
 			    dooropen();
@@ -317,14 +318,14 @@ int cypher(void)
 		break;
 
 	    case LOOK:
-		if (!notes[CANTSEE] || testbit(inven, LAMPON) || testbit(location[position].objects, LAMPON)
-		    || matchlight) {
+		if (!game_state (CANTSEE) || object_is_at (LAMPON, INVENTORY) || object_is_at (LAMPON, position)
+		    || game_state (MATCH_LIGHT)) {
 		    beenthere[position] = 2;
 		    writedes();
 		    printobjs();
-		    if (matchlight) {
+		    if (game_state (MATCH_LIGHT)) {
 			puts("\nYour match splutters out.");
-			matchlight = 0;
+			clear_game_state (MATCH_LIGHT);
 		    }
 		} else
 		    puts("I can't see anything.");
@@ -332,7 +333,7 @@ int cypher(void)
 		break;
 
 	    case SU:
-		if (wiz || tempwiz) {
+		if (game_state (IS_WIZARD)) {
 		    printf("\nRoom (was %d) = ", position);
 		    fgets(buffer, 10, stdin);
 		    if (*buffer != '\n')
@@ -361,12 +362,12 @@ int cypher(void)
 		    fgets(buffer, 10, stdin);
 		    if (*buffer != '\n')
 			sscanf(buffer, "%d", &ourclock);
-		    printf("Wizard (was %d, %d) = ", wiz, tempwiz);
+		    printf("Wizard (was %d) = ", game_state (IS_WIZARD));
 		    fgets(buffer, 10, stdin);
 		    if (*buffer != '\n') {
 			sscanf(buffer, "%d", &junk);
 			if (!junk)
-			    tempwiz = wiz = 0;
+			    clear_game_state (IS_WIZARD);
 		    }
 		    printf("\nDONE.\n");
 		    return 0;
@@ -397,12 +398,12 @@ int cypher(void)
 		break;
 
 	    case VERBOSE:
-		verbose = 1;
+		set_game_state (IS_VERBOSE);
 		printf("[Maximum verbosity]\n");
 		break;
 
 	    case BRIEF:
-		verbose = 0;
+		clear_game_state (IS_VERBOSE);
 		printf("[Standard verbosity]\n");
 		break;
 
