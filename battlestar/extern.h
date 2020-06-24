@@ -6,19 +6,11 @@
 #include <signal.h>
 #include <time.h>
 
-#define BITS (8 * sizeof (int))
-
-#define OUTSIDE		(position > 68 && position < 246 && position != 218)
-#define max(a,b)	((a) < (b) ? (b) : (a))
-#define testbit(array, index)	(array[index/BITS] & (1 << (index % BITS)))
-#define setbit(array, index)	(array[index/BITS] |= (1 << (index % BITS)))
-#define clearbit(array, index)	(array[index/BITS] &= ~(1 << (index % BITS)))
-
 #define	_PATH_SCORE	_PATH_GAME_STATE "battlestar.scores"
 #define DEFAULT_SAVE_FILE	".Bstar"
 
 // well known rooms
-enum {
+enum LocationId {
     MAIN_HANGAR		= 1,
     HANGAR_GALLERY	= 3,
     LAUNCH_ROOM		= 5,
@@ -31,16 +23,25 @@ enum {
     KITCHEN_DOOR	= 30,
     DINING_ROOM_DOOR	= 31,
     OUTSIDE_BATTLESTAR	= 32,
+    ORBITING_PLANET	= 68,
     FIRST_ISLAND_LAND	= 89,
     DOCK		= 93,
     ABOVE_SEA_CAVE	= 114,
     POOLS		= 126,
+    WIDER_CANYON	= 133,
     SECRET_THICKET	= 144,
     TIDE_POOLS		= 145,
+    ALONG_THE_SHORE	= 159,
     SEA_CAVE_ENTRANCE	= 160,
-    GARDEN		= 197,
+    COAST_ROAD_TURN	= 162,
+    BRIDGE_OVER_LAGOON	= 172,
     CAVE_DOOR		= 189,
+    GARDEN		= 197,
+    IN_THE_LAGOON	= 201,
+    ALONG_HIGH_CLIFFS	= 214,
+    ROAD_TURNAROUND	= 215,
     BUNGALOW_PORCH	= 217,
+    BUNGALOW_BEDROOM	= 218,
     END_OF_THE_ROAD	= 224,
     CAVE_STREAM_BANK	= 229,
     CAVE_ENTRANCE	= 231,
@@ -55,7 +56,7 @@ enum {
 };
 
 // word types
-enum {
+enum WordType {
     VERB,
     OBJECT,
     NOUNS,
@@ -66,140 +67,41 @@ enum {
 
 // words numbers
 enum ObjectId {
-    KNIFE,
-    SWORD,
-    LAND,
-    WOODSMAN,
-    TWO_HANDED,
-    CLEAVER,
-    BROAD,
-    MAIL,
-    HELM,
-    SHIELD,
-    MAID,
-    BODY = MAID,
-    STARFIGHTER,
-    LAMPON,
-    SHOES,
-    DRENIAN,
-    PAJAMAS,
-    ROBE,
-    AMULET,
-    MEDALION,
-    TALISMAN,
-    DEADWOOD,
-    MALLET,
-    LASER,
-    BATHGOD,
-    NORMGOD,
-    GRENADE,
-    CHAIN,
-    ROPE,
-    LEVIS,
-    MACE,
-    SHOVEL,
-    HALBERD,
-    COMPASS,
-    CRASH,
-    ELF,
-    FOOT,
-    COINS,
-    MATCHES,
-    MAN,
-    PAPAYAS,
-    PINEAPPLE,
-    KIWI,
-    COCONUTS,
-    MANGO,
-    RING,
-    POTION,
-    BRACELET,
-    GIRL,
-    GIRLTALK,
-    DARK,
-    TIMER,
-    CHAR = TIMER+3,
-    BOMB,
-    DEADGOD,
-    DEADTIME,
-    DEADNATIVE,
-    NATIVE,
-    HORSE,
-    CAR,
-    POT,
-    BAR,
-    BLOCK,
-    NUMOFOBJECTS
+    KNIFE, SWORD, LAND, WOODSMAN, TWO_HANDED,
+    CLEAVER, BROAD, MAIL, HELM, SHIELD,
+    MAID, STARFIGHTER, LAMPON, SHOES, DRENIAN,
+    PAJAMAS, ROBE, AMULET, MEDALION, TALISMAN,
+    DEADWOOD, MALLET, LASER, BATHGOD, GODDESS,
+    GRENADE, CHAIN, ROPE, LEVIS, MACE,
+    SHOVEL, HALBERD, COMPASS, CRASH, ELF,
+    FOOT, COINS, MATCHES, MAN, PAPAYAS,
+    PINEAPPLE, KIWI, COCONUTS, MANGO, RING,
+    POTION, BRACELET, GIRL, GIRLTALK, DARK_LORD,
+    TIMER, TIMER1, TIMER2, CHAR, BOMB,
+    NATIVE_GIRL, HORSE, CAR, POT, BAR,
+    BLOCK, NUMOFOBJECTS
 };
 
 // non-objects below
 enum {
-    UP = 1000,
-    DOWN,
-    AHEAD,
-    BACK,
-    RIGHT,
-    LEFT,
-    TAKE,
-    USE,
-    LOOK,
-    QUIT,
-    NORTH,
-    SOUTH,
-    EAST,
-    WEST,
-    SU,
-    DROP,
-    TAKEOFF,
-    DRAW,
-    PUTON,
-    WEARIT,
-    PUT,
-    INVEN,
-    EVERYTHING,
-    AND,
-    KILL,
-    THROW,
-    LAUNCH,
-    LANDIT,
-    LIGHT,
-    FOLLOW,
-    KISS,
-    LOVE,
-    GIVE,
-    SMITE,
-    SHOOT,
-    ON,
-    OFF,
-    TIME,
-    SLEEP,
-    DIG,
-    EAT,
-    SWIM,
-    DRINK,
-    DOOR,
-    SAVE,
-    RIDE,
-    DRIVE,
-    SCORE,
-    BURY,
-    JUMP,
-    KICK,
-    OPEN,
-    VERBOSE,
-    BRIEF,
-    AUXVERB
+    UP = 1000, DOWN, AHEAD, BACK, RIGHT,
+    LEFT, TAKE, USE, LOOK, QUIT,
+    NORTH, SOUTH, EAST, WEST, SU,
+    DROP, TAKEOFF, DRAW, PUTON, WEARIT,
+    PUT, INVEN, EVERYTHING, AND, KILL,
+    THROW_OBJECT, LAUNCH, LANDIT, LIGHT, FOLLOW,
+    KISS, LOVE, GIVE, SMITE, SHOOT,
+    ON, OFF, TIME, SLEEP, DIG,
+    EAT, SWIM, DRINK, DOOR, SAVE,
+    RIDE, DRIVE, SCORE, BURY, JUMP,
+    KICK, OPEN, VERBOSE, BRIEF, AUXVERB
 };
 
 // injuries
 enum {
-    ARM		= 6,	// broken arm
-    RIBS	= 7,	// broken ribs
-    SPINE	= 9,	// broken back
-    INCISE	= 10,	// deep incisions
-    SKULL	= 11,	// fractured skull
-    NECK	= 12,	// broken NECK
-    NUMOFINJURIES
+    ABRASIONS, LACERATIONS, MINOR_PUNCTURE, MINOR_AMPUTATION, SPRAINED_WRIST,
+    BROKEN_ANKLE, BROKEN_ARM, BROKEN_RIBS, BROKEN_LEG, BROKEN_BACK,
+    HEAVY_BLEEDING, FRACTURED_SKULL, BROKEN_NECK, NUMOFINJURIES
 };
 
 // game_states bits
@@ -214,11 +116,8 @@ enum { ROOMDESC = 3 };
 
 // Fundamental constants
 enum {
-    NUMOFWORDS	= ((NUMOFOBJECTS + BITS - 1) / BITS),
     LINELENGTH	= 81,
-
     CYCLE	= 100,
-
     // Initial variable values
     TANKFULL	= 250,
     TORPEDOES	= 10,
@@ -268,7 +167,7 @@ extern const struct room location [NUMOFROOMS+1];
 
 // object characteristics
 extern const struct ObjectInfo c_objinfo [NUMOFOBJECTS];
-extern const char *const ouch [NUMOFINJURIES];
+extern const char ouch [NUMOFINJURIES][24];
 
 // current input line
 enum {
@@ -279,10 +178,10 @@ enum {
 //----------------------------------------------------------------------
 
 extern char words[NWORD][WORDLEN];
-extern int wordvalue[NWORD];
-extern int wordtype[NWORD];
-extern int wordcount;
-extern int wordnumber;
+extern uint16_t wordvalue [NWORD];
+extern uint8_t wordtype [NWORD];
+extern uint8_t wordcount;
+extern uint8_t wordnumber;
 
 // state of the game
 extern int ourtime;
@@ -318,13 +217,6 @@ extern char injuries [NUMOFINJURIES];
 
 extern const char *username;
 
-struct wlist {
-    const char *string;
-    int value, article;
-    struct wlist *next;
-};
-extern struct wlist wlist[];
-
 //----------------------------------------------------------------------
 
 // game_states access
@@ -349,6 +241,9 @@ inline static const char* A_OR_AN_OR_BLANK (uint16_t n)
 inline static const char* IS_OR_ARE (uint16_t n)
     { return is_plural_object(n) ? "are " : "is "; }
 
+inline static bool is_outside (void)
+    { return position > ORBITING_PLANET && position < 246 && position != BUNGALOW_BEDROOM; }
+
 //----------------------------------------------------------------------
 
 void bury(void);
@@ -367,41 +262,37 @@ int eat(void);
 int fight(int, int);
 int follow(void);
 char *getcom(char *, int, const char *, const char *);
-char *getword(char *, char *, int);
+char* getword (char*, char*);
 int give(void);
 int jump(void);
 void kiss(void);
-int land(void);
-int launch(void);
+bool land (void);
+bool launch (void);
 void light(void);
 _Noreturn void live(void);
 void love(void);
-int moveplayer(int, int);
+bool moveplayer(int, int);
 void murder(void);
 void news(void);
 void newway(int);
-void open_score_file(void);
 void parse(void);
-void post(char);
 int put(void);
 int puton(void);
 const char *rate(void);
-void restore(const char *);
 int ride(void);
 void save(const char *);
 char *save_file_name(const char *, size_t);
 int shoot(void);
 int take (uint16_t fromloc);
 int takeoff(void);
-int throw(const char *);
+int throw_object (const char *);
 const char *truedirec(int, char);
 int use(void);
 int visual(void);
 int wearit(void);
 void update_relative_directions (void);
-void wordinit(void);
 void writedes(void);
-int zzz(void);
+bool zzz(void);
 
 // obj.c
 void cleanup_objects (void);

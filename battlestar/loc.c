@@ -18,13 +18,13 @@ void writedes(void)
 	for (char c; (c = *desc++) != 0;) {
 	    if (c != '-' && c != '*' && c != '+') {
 		if (c == '=')
-		    putchar('-');
+		    putchar ('-');
 		else
-		    putchar(c);
+		    putchar (c);
 	    } else {
 		if (c != '*')
 		    printf (truedirec (compass, c));
-		compass++;
+		++compass;
 	    }
 	}
 	putchar ('\n');
@@ -613,17 +613,17 @@ const struct room location [NUMOFROOMS+1] = {
 	"You are in space.",
 	"****",
 	"****",
-	{ 64, 68, 68, 68, 68, 68, 1, 1 }
+	{ 64, ORBITING_PLANET, ORBITING_PLANET, ORBITING_PLANET, ORBITING_PLANET, ORBITING_PLANET, 1, 1 }
     },{ // 67
 	"You are orbiting a small blue planet.",
 	"****",
 	"****",
 	{ 67, 67, 67, 67, 65, 69, 1, 1 }
-    },{ // 68
+    },{ // 68, ORBITING_PLANET
 	"You are orbiting a tropical planet.",
 	"****",
 	"****",
-	{ 68, 68, 68, 68, 66, 70, 1, 1 }
+	{ ORBITING_PLANET, ORBITING_PLANET, ORBITING_PLANET, ORBITING_PLANET, 66, 70, 1, 1 }
     },{ // 69
 	"You are flying through a dense fog.",
 	"A cold grey sea of mist is swirling around the windshield and water droplets\n"
@@ -644,7 +644,7 @@ const struct room location [NUMOFROOMS+1] = {
 	 "the perimeter of the island. Mighty mountains of emerald and amethyst rise\n"
 	 "like jagged teeth from black gums. The land rises sharply +. The shore\n"
 	 "line stretches on *+.*",
-	{ 71, 73, 72, 74, 68, 0, 1, 1 }
+	{ 71, 73, 72, 74, ORBITING_PLANET, 0, 1, 1 }
     },{ // 71
 	"You are flying over a mountainous region.",
 	"Below is a magnificent canyon with deep gorges, high pinnacles and\n"
@@ -652,7 +652,7 @@ const struct room location [NUMOFROOMS+1] = {
 	 "is carpeted with a tropical green.* The ocean is +.**",
 	"Below is a shadow=filled canyon with looming spires and pinnacles and\n"
 	 "luminous waterfalls plummeting down beyond sight. **The ocean is +.*",
-	{ 75, 76, 73, 77, 68, 0, 1, 1 }
+	{ 75, 76, 73, 77, ORBITING_PLANET, 0, 1, 1 }
     },{ // 72
 	"You are flying over the ocean.",
 	"You bank over the water and your wingtips dip low to the green waves. The\n"
@@ -661,21 +661,21 @@ const struct room location [NUMOFROOMS+1] = {
 	"You bank over the water and your wingtips dip low to the green waves. The\n"
 	 "sea is very shallow here and the white coral beds beneath us teem with \n"
 	 "shadowy fish.****",
-	{ 74, 78, 78, 78, 68, 0, 1, 1 }
+	{ 74, 78, 78, 78, ORBITING_PLANET, 0, 1, 1 }
     },{ // 73
 	"You are flying over the beach.",
 	"A warm gentle surf caresses the white coral beach here. The land rises\n"
 	 "sharply +.* The beach is lost in low cliffs and rocks +.*",
 	"A warm gentle surf caresses the beach here. The land rises\n"
 	 "sharply +.* The beach is lost in low cliffs +.*",
-	{ 71, 79, 72, 74, 68, 80, 1, 1 }
+	{ 71, 79, 72, 74, ORBITING_PLANET, 80, 1, 1 }
     },{ // 74
 	"You are flying over a large lagoon.",
 	"Encircled by a coral reef, the palms and ferns in this sheltered spot\n"
 	 "have grown down to the water's very brink which winds tortuously inland.\n"
 	 "There looks like a small village +.***",
 	"The water's brink winds tortuously inland. There are some lights +.***",
-	{ 81, 73, 72, 82, 68, 0, 1, 1 }
+	{ 81, 73, 72, 82, ORBITING_PLANET, 0, 1, 1 }
     },{ // 75
 	"You are flying over a gently sloping plane.",
 	"This is where several alluvial fans and ancient lava flows have run\n"
@@ -683,7 +683,7 @@ const struct room location [NUMOFROOMS+1] = {
 	 "impossible to land safely here.* The terrain is more rugged +.**",
 	"The ground appears to be choked with vegetation.*  The terrain is more\n"
 	 "rugged +.**",
-	{ 83, 84, 71, 85, 68, 0, 1, 1 }
+	{ 83, 84, 71, 85, ORBITING_PLANET, 0, 1, 1 }
     },{ // 76
 	"You are flying through a gorge.",
 	"This narrow, steep sided canyon is lined with waving ferns. The floor is of\n"
@@ -692,7 +692,7 @@ const struct room location [NUMOFROOMS+1] = {
 	"This is a narrow, steep sided canyon lined with plants. The stars above\n"
 	 "glisten through the over hanging trees. The gorge leads to the\n"
 	 "sea** +, and to a tumultuous origin +.",
-	{ 0, 86, 0, 71, 68, 102, 1, 1 }
+	{ 0, 86, 0, 71, ORBITING_PLANET, 102, 1, 1 }
     },{ // 77
 	"You are flying over a plantation.",
 	"Rows of palms, papayas, mangoes, kiwi, as well as smaller fields of sugar\n"
@@ -701,12 +701,12 @@ const struct room location [NUMOFROOMS+1] = {
 	 "and *+.",
 	"It might be possible to land here, but not in the dark.*  There are some lights\n"
 	 "+ and *+.",
-	{ 85, 71, 81, 88, 68, FIRST_ISLAND_LAND, 1, 1 }
+	{ 85, 71, 81, 88, ORBITING_PLANET, FIRST_ISLAND_LAND, 1, 1 }
     },{ // 78
 	"You are over the ocean.",
 	"The deep green swells foam and roll into the shore **+*.",
 	"The deep green swells foam and roll into the shore **+*.",
-	{ 72, 79, 78, 74, 68, 0, 1, 1 }
+	{ 72, 79, 78, 74, ORBITING_PLANET, 0, 1, 1 }
     },{ // 79
 	"You are flying along the coast.",
 	"The coastline here is very rocky with little or no sand. The surf in some\n"
@@ -714,7 +714,7 @@ const struct room location [NUMOFROOMS+1] = {
 	 "There is a winding road below which closely follows the shore. ****",
 	"The coastline here is very rocky. The surf in some places is violent\n"
 	 "and explodes in a shower of sparkling, moonlit spray. ****",
-	{ 86, 90, 72, 73, 68, 91, 1, 1 }
+	{ 86, 90, 72, 73, ORBITING_PLANET, 91, 1, 1 }
     },{ // 80
 	"This is a beautiful coral beach.",
 	"Fine silver sand kissed lightly by warm tropical waters stretches at least\n"
@@ -730,7 +730,7 @@ const struct room location [NUMOFROOMS+1] = {
 	 "continues on ***+.",
 	"A few thatched huts lit with torches and bonfires line a road below.\n"
 	 "The road continues on ***+.",
-	{ 77, 71, 74, 82, 68, 92, 1, 1 }
+	{ 77, 71, 74, 82, ORBITING_PLANET, 92, 1, 1 }
     },{ // 82
 	"You are flying over a clearing.",
 	"There is a dock here (big enough for a seaplane) leading to a grassy\n"
@@ -738,20 +738,20 @@ const struct room location [NUMOFROOMS+1] = {
 	 "a good landing site. ****",
 	"There is a dock here (big enough for a seaplane) leading to a clearing.\n"
 	 "The still waters of the lagoon reflects our orange turbo thrusters.****",
-	{ 88, 74, 72, 87, 68, DOCK, 1, 1 }
+	{ 88, 74, 72, 87, ORBITING_PLANET, DOCK, 1, 1 }
     },{ // 83
 	"You are flying over the shore.",
 	"Rocky lava flows or coarse sandy beaches are all that is here except for\n"
 	 "sparse herbs and weeds.****",
 	"Rocky lava flows have overtaken the beach here.****",
-	{ 94, 95, 75, 96, 68, 0, 1, 1 }
+	{ 94, 95, 75, 96, ORBITING_PLANET, 0, 1, 1 }
     },{ // 84
 	"You are flying in a wide valley.",
 	"This is a shallow valley yet the floor is obscured by a thick mist.\n"
 	 "The valley opens to the sea +. The mist grows thicker +.**",
 	"This is a shallow valley yet the floor is obscured by a thick mist.\n"
 	 "The valley opens into blackness +. The mist grows thicker +.**",
-	{ 95, 86, 97, 75, 68, 98, 1, 1 }
+	{ 95, 86, 97, 75, ORBITING_PLANET, 98, 1, 1 }
     },{ // 85
 	"You are flying near the shore.",
 	"Very tall palm trees growing in neatly planted rows march off from the \n"
@@ -759,7 +759,7 @@ const struct room location [NUMOFROOMS+1] = {
 	 "There is a nice beach +.",
 	"Very tall trees growing in neatly planted rows march off from the \n"
 	 "water here towards the hills and down to the flat lands *+.**",
-	{ 96, 75, 77, 99, 68, 0, 1, 1 }
+	{ 96, 75, 77, 99, ORBITING_PLANET, 0, 1, 1 }
     },{ // 86
 	"You are flying around the very tip of the island.",
 	"There is no beach here for sheer cliffs rise several hundred feet\n"
@@ -768,7 +768,7 @@ const struct room location [NUMOFROOMS+1] = {
 	"Sheer cliffs rise several hundred feet to a tree covered summit. Far below,\n"
 	 "the grey sea gnaws voraciously at the roots of these cliffs. The island bends\n"
 	 "around +** and +.",
-	{ 95, 90, 79, 84, 68, 0, 1, 1 }
+	{ 95, 90, 79, 84, ORBITING_PLANET, 0, 1, 1 }
     },{ // 87
 	"You are flying along the coastline.",
 	"There is a narrow strip of sand here lined with ferns and shrubs, but very\n"
@@ -777,7 +777,7 @@ const struct room location [NUMOFROOMS+1] = {
 	"This is a narrow strip of sand lined with very few trees. The stars above\n"
 	 "flicker through wisps of clouds. The beach continues on -.* There\n"
 	 "are some lights +.*",
-	{ 99, 88, 82, 100, 68, 101, 1, 1 }
+	{ 99, 88, 82, 100, ORBITING_PLANET, 101, 1, 1 }
     },{ // 88
 	"You are flying over several cottages and buildings",
 	"The grounds here are landscaped with palm trees, ferns, orchids, and beds of\n"
@@ -787,7 +787,7 @@ const struct room location [NUMOFROOMS+1] = {
 	"Directly below is small ornate house lit up with spot lights and decorative\n"
 	 "bulbs. A bell tower and a spurting fountain are nearby. Small dirt roads go\n"
 	 "+ and +.**",
-	{ 99, 77, 82, 87, 68, 103, 1, 1 }
+	{ 99, 77, 82, 87, ORBITING_PLANET, 103, 1, 1 }
     },{ // 89, FIRST_ISLAND_LAND
 	"You are in a field of sugar cane.",
 	"These strong, thick canes give little shelter but many cuts and scrapes.\n"
@@ -800,7 +800,7 @@ const struct room location [NUMOFROOMS+1] = {
 	"The water is a placid turquoise and so clear that fish and sharks\n"
 	 "many fathoms below are clearly visible.****",
 	"The water is a placid ebony.****",
-	{ 95, 90, 78, 86, 68, 0, 1, 1 }
+	{ 95, 90, 78, 86, ORBITING_PLANET, 0, 1, 1 }
     },{ // 91
 	"You are on the coast road.",
 	"The road winds close to the shore here and the sound of crashing surf is\n"
@@ -834,7 +834,7 @@ const struct room location [NUMOFROOMS+1] = {
 	"Sea weeds and kelp surge in the waves off shore here. The ocean becomes \n"
 	 "much deeper +.***",
 	"The black waves surge off shore here. The ocean becomes much calmer +.***",
-	{ 94, 95, 83, 96, 68, 0, 1, 1 }
+	{ 94, 95, 83, 96, ORBITING_PLANET, 0, 1, 1 }
     },{ // 95
 	"You are flying along the coast.",
 	"The land is very low here with a river running into the sea +. There\n"
@@ -842,13 +842,13 @@ const struct room location [NUMOFROOMS+1] = {
 	"The land is very low here with a river running into the sea +. There\n"
 	 "is a wide valley opening up +, but a strange mist is flowing out of it.\n"
 	 "The very tip of the island is +.*",
-	{ 94, 86, 84, 83, 68, 0, 1, 1 }
+	{ 94, 86, 84, 83, ORBITING_PLANET, 0, 1, 1 }
     },{ // 96
 	"You are flying along the coast.",
 	"There are some secluded sandy stretches of beach here, but too many rocky\n"
 	 "outcroppings of lava to land. There is a nicer beach ***+.",
 	"The coast here is cluttered with rocky outcroppings.****",
-	{ 94, 83, 85, 99, 68, 0, 1, 1 }
+	{ 94, 83, 85, 99, ORBITING_PLANET, 0, 1, 1 }
     },{ // 97
 	"You are lost in a sea of fog.",
 	"What have you gotten us into?\n"
@@ -871,14 +871,14 @@ const struct room location [NUMOFROOMS+1] = {
 	 "lawn and garden with traipsing stone walks leads down to the sand.*\n"
 	 "There are some buildings +. Some trees are growing +.*",
 	"There are some lighted buildings *+. Some trees are growing +.*",
-	{ 96, 85, 88, 87, 68, 105, 1, 1 }
+	{ 96, 85, 88, 87, ORBITING_PLANET, 105, 1, 1 }
     },{ // 100
 	"You are flying over the ocean.",
 	"The sea is a perfectly clear blue with a white sandy bottom. No coral\n"
 	 "grows underwater here, but the force of the waves is broken by the steep\n"
 	 "incline.****",
 	"The black waves surge and splash against the rocky shore.****",
-	{ 100, 87, 100, 100, 68, 0, 1, 1 }
+	{ 100, 87, 100, 100, ORBITING_PLANET, 0, 1, 1 }
     },{ // 101
 	"You are on a narrow strip of sand.",
 	"Rather coarse sand makes this beach very steep and only a few meters wide.\n"
@@ -894,7 +894,7 @@ const struct room location [NUMOFROOMS+1] = {
 	"Delicate waving ferns flourish here, suckled by warm water dripping from \n"
 	 "every fissure and crevice in the solid rock walls. The stars above sparkle\n"
 	 "through a thin mist. The canyon winds **-, and -.",
-	{ 0, 132, 0, 133, 76, 0, 0, 0 }
+	{ 0, 132, 0, WIDER_CANYON, 76, 0, 0, 0 }
     },{ // 103
 	"This is the front lawn.",
 	"There is a small fountain here where the driveway meets the lawn.\n"
@@ -913,7 +913,7 @@ const struct room location [NUMOFROOMS+1] = {
 	 "Far + I can see the ocean.**",
 	"The fog vanished mysteriously as we flew over the crest.*\n"
 	 "Far + I can see the ocean sparkling in the moonlight.**",
-	{ 97, 86, 79, 71, 68, 0, 1, 1 }
+	{ 97, 86, 79, 71, ORBITING_PLANET, 0, 1, 1 }
     },{ // 105
 	"You are on a sandy beach.",
 	"This is the only good beach on the weather side of the island. Fine coral\n"
@@ -996,14 +996,14 @@ const struct room location [NUMOFROOMS+1] = {
 	"The low minus tide tonight might make it possible to climb down to a\n"
 	 "small cave entrance below. Large rocks would usually churn the waves\n"
 	 "asunder.***  The beach goes -.",
-	{ 91, 159, 0, TIDE_POOLS, 79, SEA_CAVE_ENTRANCE, 0, 0 }
+	{ 91, ALONG_THE_SHORE, 0, TIDE_POOLS, 79, SEA_CAVE_ENTRANCE, 0, 0 }
     },{ // 115
 	"You are on the coast road.",
 	"The road is beginning to turn inland.* I can hear the surf +. The road\n"
 	 "continues +.*",
 	"The road is beginning to turn slightly -. I can hear the surf +. The road\n"
 	 "continues into the dark forest +.*",
-	{ 158, 162, 161, 91, 79, 0, 0, 0 }
+	{ 158, COAST_ROAD_TURN, 161, 91, 79, 0, 0, 0 }
     },{ // 116
 	"The road winds deeper into the trees.",
 	"Only narrow sunbeams filter through the foliage above. The moist rich earth\n"
@@ -1042,7 +1042,7 @@ const struct room location [NUMOFROOMS+1] = {
 	"**There is a village +. A huge bonfire licks at the trees, and a celebration\n"
 	 "of some sort is going on there. The smell of luscious cooking is tantalizing\n"
 	 "my flared nostrils. The road continues +.",
-	{ 171, 92, 118, 172, 81, 0, 0, 0 }
+	{ 171, 92, 118, BRIDGE_OVER_LAGOON, 81, 0, 0, 0 }
     },{ // 121
 	"You are on a dirt road.",
 	"The light tan soil of the road contrasts artistically with the lush green\n"
@@ -1138,7 +1138,7 @@ const struct room location [NUMOFROOMS+1] = {
 	"The steep sides here squeeze a little freshet through a gauntlet like\n"
 	 "series of riffles and pools. The cool mountain air is refreshing.****",
 	{ 0, 188, 0, 102, 76, 0, 0, 0 }
-    },{ // 133
+    },{ // 133, WIDER_CANYON
 	"The canyon is much wider here.",
 	"The sheer rock walls rise 10 meters to the forest above. A slender \n"
 	 "waterfall careens away from the face of the rock high above and showers\n"
@@ -1251,7 +1251,7 @@ const struct room location [NUMOFROOMS+1] = {
 	"The beach ends here where the coral reef rises to form a wide lagoon.\n"
 	 "A path winds around the lagoon to the -.* The beach continues\n"
 	 "on -. Only water lies +.",
-	{ 200, 108, 0, 201, 74, 0, 0, 0 }
+	{ 200, 108, 0, IN_THE_LAGOON, 74, 0, 0, 0 }
     },{ // 148
 	"You are in a breadfruit grove.",
 	"The tall trees bend leisurely in the breeze, holding many round breadfruits\n"
@@ -1317,14 +1317,14 @@ const struct room location [NUMOFROOMS+1] = {
 	"You are in the woods.",
 	"You have walked a long way and found only trees. ****",
 	"You have walked a long way and found only spider webs. ****",
-	{ 158, 215, 115, 113, 79, 0, 0, 0 }
-    },{ // 159
+	{ 158, ROAD_TURNAROUND, 115, 113, 79, 0, 0, 0 }
+    },{ // 159, ALONG_THE_SHORE
 	"You are walking along the shore.",
 	"You are now about 10 meters above the surf on a gently rising cliffside.**\n"
 	 "The land rises +. There is a beach far +.",
 	"You are now about 10 meters above the surf on a gently rising cliffside.**\n"
 	 "The land rises +. There is a beach far +.",
-	{ 115, 214, 0, ABOVE_SEA_CAVE, 86, 0, 0, 0 }
+	{ 115, ALONG_HIGH_CLIFFS, 0, ABOVE_SEA_CAVE, 86, 0, 0, 0 }
     },{ // 160, SEA_CAVE_ENTRANCE
 	"You are just inside the entrance to the sea cave.",
 	"The sound of water dripping in darkness and the roar of the ocean just outside\n"
@@ -1344,13 +1344,13 @@ const struct room location [NUMOFROOMS+1] = {
 	"This little thicket is hidden from the road in the shadows of the forest.\n"
 	 "From here we have a clear view of any traffic along the road. A great hollow\n"
 	 "tree stuffed with something is nearby. The road is +.***",
-	{ 115, 162, 159, 91, 79, 0, 0, 0 }
-    },{ // 162
+	{ 115, COAST_ROAD_TURN, ALONG_THE_SHORE, 91, 79, 0, 0, 0 }
+    },{ // 162, COAST_ROAD_TURN
 	"You are on the coast road.",
 	"The road turns abruptly - here, avoiding the cliffs near the shore\n"
 	 "+ and +.*",
 	"The road turns abruptly - here, wandering deeper into the black forest.***",
-	{ 215, 0, 214, 115, 86, 0, 0, 0 }
+	{ ROAD_TURNAROUND, 0, ALONG_HIGH_CLIFFS, 115, 86, 0, 0, 0 }
     },{ // 163
 	"You are on a dirt road.",
 	"The roadside is choked with broad leaved plants fighting for every breath of\n"
@@ -1377,7 +1377,7 @@ const struct room location [NUMOFROOMS+1] = {
 	"A decorative entry with fresh flowers and wall to wall carpeting leads into\n"
 	 "the living room here where a couch and two chairs converge with an end table.\n"
 	 "*The exit is +.* The bedroom is +.",
-	{ 0, BUNGALOW_PORCH, 117, 218, 0, 0, 0, 0 }
+	{ 0, BUNGALOW_PORCH, 117, BUNGALOW_BEDROOM, 0, 0, 0, 0 }
     },{ // 166
 	"You are at the lagoon.",
 	"There are several outrigger canoes pulled up on a small beach here and a\n"
@@ -1401,7 +1401,7 @@ const struct room location [NUMOFROOMS+1] = {
 	 "and continues on **- and -.",
 	"The path meanders through shadows of tussocks of grass, ferns, and thorny\n"
 	 "bushes here and continues on **- and -.",
-	{ 118, 166, 0, 172, 81, 0, 0, 0 }
+	{ 118, 166, 0, BRIDGE_OVER_LAGOON, 81, 0, 0, 0 }
     },{ // 169
 	"You are in the woods.",
 	"There are plenty of ferns and thorny bushes here! ****",
@@ -1420,7 +1420,7 @@ const struct room location [NUMOFROOMS+1] = {
 	"The forest grows darker +. The road is +.**",
 	"The forest grows darker +. The road is +.**",
 	{ 221, 92, 120, 222, 81, 0, 0, 0 }
-    },{ // 172
+    },{ // 172, BRIDGE_OVER_LAGOON
 	"The road crosses the lagoon here.",
 	"Coursing through the trees, the road at this point bridges a watery finger\n"
 	 "of the lagoon.* The water is +. The road continues - and -.",
@@ -1442,7 +1442,7 @@ const struct room location [NUMOFROOMS+1] = {
 	"You are walking along a dirt road.",
 	"You are nearing the lagoon.** The road continues - and -.",
 	"You are near misty patch of the roadway **+. The road continues -.",
-	{ END_OF_THE_ROAD, 172, 176, 121, 82, 0, 0, 0 }
+	{ END_OF_THE_ROAD, BRIDGE_OVER_LAGOON, 176, 121, 82, 0, 0, 0 }
     },{ // 175
 	"You are on a dirt road.",
 	"The road turns abruptly - here, entering a grove of palm trees.* The road\n"
@@ -1456,7 +1456,7 @@ const struct room location [NUMOFROOMS+1] = {
 	 "There is deep water + and +. The trail continues -.",
 	"The dark waters brush the trail here and the path crosses an old  bridge\n"
 	 "+. There is deep water + and +. The trail continues -.",
-	{ 172, 0, 0, 122, 82, 0, 0, 0 }
+	{ BRIDGE_OVER_LAGOON, 0, 0, 122, 82, 0, 0, 0 }
     },{ // 177
 	"This is the mouth of the lagoon.",
 	"The coral reef wraps around a natural bay here to create a wide lagoon which\n"
@@ -1558,7 +1558,7 @@ const struct room location [NUMOFROOMS+1] = {
 	"The two sheer sides are no more than a few meters apart here. There is a stone\n"
 	 "door in the wall +. The gravelly floor runs with tiny rivulets seeping \n"
 	 "from the ground itself.* The canyon continues - and -.",
-	{ CAVE_ENTRANCE, 133, 0, HUGE_CHASM, 76, 0, 0, 0 }
+	{ CAVE_ENTRANCE, WIDER_CANYON, 0, HUGE_CHASM, 76, 0, 0, 0 }
     },{ // 190
 	"You are in the drawing room.",
 	"Exquisitely decorated with plants and antique furniture of superb\n"
@@ -1633,11 +1633,11 @@ const struct room location [NUMOFROOMS+1] = {
 	"The still waters reflect bending palms and a starry sky. It looks like\n"
 	 "the path runs into a clearing +. The path continues -.**",
 	{ 170, 146, 147, 0, 74, 0, 0, 0 }
-    },{ // 201
+    },{ // 201, IN_THE_LAGOON
 	"You are drowning in the lagoon.",
 	"I suggest you get out before you become waterlogged.****",
 	"I suggest you get out before you become waterlogged.****",
-	{ 201, 147, 201, 201, 74, 0, 0, 0 }
+	{ IN_THE_LAGOON, 147, IN_THE_LAGOON, IN_THE_LAGOON, 74, 0, 0, 0 }
     },{ // 202
 	"You are in a coconut palm grove.",
 	"****",
@@ -1700,14 +1700,14 @@ const struct room location [NUMOFROOMS+1] = {
 	"***The grove ends in a clearing +.",
 	"***The grove ends in a clearing +.",
 	{ 213, 156, 213, 234, 88, 0, 0, 0 }
-    },{ // 214
+    },{ // 214, ALONG_HIGH_CLIFFS
 	"You are walking along some high cliffs.",
 	"The island bends sharply + here with high cliffs -\n"
 	 "and -. The cliffs are lower +.",
 	"The island bends sharply + here with high cliffs -\n"
 	 "and -. The cliffs are lower +.",
-	{ 162, 0, 0, 159, 86, 0, 0, 0 }
-    },{ // 215
+	{ COAST_ROAD_TURN, 0, 0, ALONG_THE_SHORE, 86, 0, 0, 0 }
+    },{ // 215, ROAD_TURNAROUND
 	"You are at the coast road turn around.",
 	"The coast road ends here in a lookout with a view of 100 kilometers of blue\n"
 	 "sea and 100 meters of rugged cliff. Far below the waves crash against rocks.\n"
@@ -1715,7 +1715,7 @@ const struct room location [NUMOFROOMS+1] = {
 	"The coast road ends here in a lookout with a view of the ocean.\n"
 	 "Far below, the waves crash against the rocks.\n"
 	 "****",
-	{ 0, 0, 162, 158, 90, 0, 0, 0 }
+	{ 0, 0, COAST_ROAD_TURN, 158, 90, 0, 0, 0 }
     },{ // 216
 	"You are in the woods near the road.",
 	"These thorny bushes are killing me.****",
@@ -1730,7 +1730,7 @@ const struct room location [NUMOFROOMS+1] = {
 	 "gas oven has been left on and the whole room is reeking with natural gas.\n"
 	 "One spark from a match and.... The door out is ***+.",
 	{ 0, 0, 0, 165, 0, 0, 0, 0 }
-    },{ // 218
+    },{ // 218, BUNGALOW_BEDROOM
 	"You are in the bedroom.",
 	"A soft feather comforter on top of layers of Answer blankets make this a very\n"
 	 "luxurious place to sleep indeed. There are also some end tables and a dresser\n"
@@ -1760,7 +1760,7 @@ const struct room location [NUMOFROOMS+1] = {
 	 "and very painful sedges.* The road is +.**",
 	"It is impossible to follow the lagoon any farther inland because of sharp\n"
 	 "and very painful sedges.* The road is +.**",
-	{ 0, 171, 172, 172, 81, 0, 0, 0 }
+	{ 0, 171, BRIDGE_OVER_LAGOON, BRIDGE_OVER_LAGOON, 81, 0, 0, 0 }
     },{ // 223
 	"You are in a grassy coconut grove.",
 	"The tall palms provide a perfect canopy for the lush green grass.***\n"
