@@ -1,5 +1,5 @@
 // Copyright (c) 2016 by Mike Sharov <msharov@users.sourceforge.net>
-// This file is free software, distributed under the MIT License.
+// This file is free software, distributed under the BSD License.
 
 #include "common.h"
 
