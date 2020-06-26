@@ -9,6 +9,9 @@
 #define	_PATH_SCORE	_PATH_GAME_STATE "battlestar.scores"
 #define DEFAULT_SAVE_FILE	".Bstar"
 
+#define BOLD_ON		"\033[1m"
+#define BOLD_OFF	"\033[22m"
+
 // well known rooms
 enum LocationId {
     MAIN_HANGAR		= 1,
@@ -106,9 +109,9 @@ enum {
 
 // game_states bits
 enum EGameState {
-    CANTLAUNCH, LAUNCHED, CANTSEE, CANTMOVE, JINXED,
-    DUG, OPENED_KITCHEN_DOOR, OPENED_CAVE_DOOR, UNCOVERED_SEA_CAVE, ROPE_IN_PIT,
-    IS_NIGHT, MET_GIRL, IS_WIZARD, MATCH_LIGHT, IS_VERBOSE
+    CANTLAUNCH, LAUNCHED, CANTSEE, CANTMOVE, DUG,
+    OPENED_KITCHEN_DOOR, OPENED_CAVE_DOOR, UNCOVERED_SEA_CAVE, ROPE_IN_PIT, IS_NIGHT,
+    MET_GIRL, IS_WIZARD, MATCH_LIGHT, IS_VERBOSE
 };
 
 // Number of times room description shown.
@@ -171,15 +174,18 @@ extern const char ouch [NUMOFINJURIES][24];
 
 // current input line
 enum {
-    WORDLEN	= 15,
-    NWORD	= 20	       // words per line
+    WORDLEN	= 13,
+    NWORDS	= 8	       // words per line
+};
+struct Word {
+    char	word [WORDLEN];
+    uint8_t	type;
+    uint16_t	value;
 };
 
 //----------------------------------------------------------------------
 
-extern char words[NWORD][WORDLEN];
-extern uint16_t wordvalue [NWORD];
-extern uint8_t wordtype [NWORD];
+extern struct Word words [NWORDS];
 extern uint8_t wordcount;
 extern uint8_t wordnumber;
 
@@ -250,7 +256,7 @@ void bury(void);
 int card(const char *, int);
 void chime(void);
 void crash(void);
-int cypher(void);
+int process_command(void);
 _Noreturn void die(void);
 void dig(void);
 void dooropen(void);
@@ -259,10 +265,9 @@ void drink(void);
 int drive(void);
 int drop(const char *);
 int eat(void);
-int fight(int, int);
+void fight (enum ObjectId enemy, unsigned strength);
 int follow(void);
-char *getcom(char *, int, const char *, const char *);
-char* getword (char*, char*);
+void get_player_command (const char* prompt);
 int give(void);
 int jump(void);
 void kiss(void);
@@ -275,7 +280,6 @@ bool moveplayer(int, int);
 void murder(void);
 void news(void);
 void newway(int);
-void parse(void);
 int put(void);
 int puton(void);
 const char *rate(void);
@@ -305,3 +309,6 @@ void convert (enum EDayOrNight to);
 void place_default_objects (void);
 void restore_saved_objects (FILE* fp);
 void save_objects (FILE* fp);
+unsigned player_melee_damage (void);
+const char* melee_damage_message (unsigned dmg);
+unsigned player_melee_damage_taken (void);

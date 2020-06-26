@@ -3,13 +3,9 @@
 
 #include "extern.h"
 
-//{{{ wlist ------------------------------------------------------------
+//{{{ c_vocabulary -----------------------------------------------------
 
-static const struct Word {
-    const char	w [13];
-    uint8_t	type;
-    uint16_t	value;
-} wlist[] = {
+static const struct Word c_vocabulary[] = {
     {",",		CONJ,		AND		},
     {"a",		VERB,		AHEAD		},
     {"ahead",		VERB,		AHEAD		},
@@ -182,7 +178,7 @@ static const struct Word {
 
 //}}}-------------------------------------------------------------------
 
-char* getcom (char* buf, int size, const char* prompt, const char* error)
+static char* getcom (char* buf, int size, const char* prompt, const char* error)
 {
     for (;;) {
 	fputs (prompt, stdout);
@@ -210,7 +206,7 @@ char* getcom (char* buf, int size, const char* prompt, const char* error)
 
 // shifts to UPPERCASE if flag > 0, lowercase if flag < 0,
 // and leaves it unchanged if flag = 0
-char* getword (char* buf1, char* buf2)
+static char* getword (char* buf1, char* buf2)
 {
     unsigned cnt = 1;
     while (isspace (*buf1))
@@ -235,11 +231,11 @@ char* getword (char* buf1, char* buf2)
 
 static const struct Word* lookup (const char* s)
 {
-    for (unsigned f = 0, l = ArraySize (wlist); f < l;) {
+    for (unsigned f = 0, l = ArraySize (c_vocabulary); f < l;) {
 	unsigned m = (f+l)/2u;
-	int c = strcmp (wlist[m].w, s);
+	int c = strcmp (c_vocabulary[m].word, s);
 	if (c == 0)
-	    return &wlist[m];
+	    return &c_vocabulary[m];
 	else if (c < 0)
 	    f = m+1;
 	else
@@ -248,87 +244,34 @@ static const struct Word* lookup (const char* s)
     return NULL;
 }
 
-void parse (void)
+void get_player_command (const char* prompt)
 {
-    wordnumber = 0;	       // for cypher
-    for (unsigned n = 0; n <= wordcount; ++n) {
-	const struct Word* wp = lookup (words[n]);
-	if (!wp) {
-	    wordvalue[n] = LOOK;
-	    wordtype[n] = VERB;
-	} else {
-	    wordvalue[n] = wp->value;
-	    wordtype[n] = wp->type;
-	}
-    }
-    // We never use adjectives for anything, so yank them all.
-    for (unsigned n = 1; n < wordcount; ++n) {
-	if (wordtype[n] == ADJS) {
-	    for (unsigned i = n+1; i < wordcount; ++i) {
-		wordtype[i-1] = wordtype[i];
-		wordvalue[i-1] = wordvalue[i];
-		strcpy (words[i-1], words[i]);
-	    }
-	    --wordcount;
-	}
-    }
-    // Don't let a comma mean AND if followed by a verb.
-    for (unsigned n = 0; n < wordcount; ++n) {
-	if (wordvalue[n] == AND && words[n][0] == ',' && wordtype[n+1] == VERB) {
-	    wordvalue[n] = -1;
-	    wordtype[n] = -1;
-	}
-    }
-    // Trim "AND AND" which can happen naturally at the end of a
-    // comma-delimited list.
-    for (unsigned n = 1; n < wordcount; ++n) {
-	if (wordvalue[n - 1] == AND && wordvalue[n] == AND) {
-	    for (unsigned i = n+1; i < wordcount; ++i) {
-		wordtype[i - 1] = wordtype[i];
-		wordvalue[i - 1] = wordvalue[i];
-		strcpy(words[i - 1], words[i]);
-	    }
-	    --wordcount;
-	}
-    }
+    char mainbuf [LINELENGTH];
+    char* next = getcom (ArrayBlock(mainbuf), prompt, "Please type in something.");
+    for (wordcount = 0; next && wordcount < NWORDS - 1; ++wordcount)
+	next = getword (next, words[wordcount].word);
 
-    // If there is a sequence (NOUN | OBJECT) AND EVERYTHING
-    // then move all the EVERYTHINGs to the beginning, since that's where
-    // they're expected.  We can't get rid of the NOUNs and OBJECTs in
-    // case they aren't in EVERYTHING (i.e. not here or nonexistent).
-    bool flag = true;
-    while (flag) {
-	flag = false;
-	for (unsigned n = 1; n < wordcount; ++n) {
-	    if ((wordtype[n-1] == NOUNS || wordtype[n-1] == OBJECT) && wordvalue[n] == AND && wordvalue[n+1] == EVERYTHING) {
-		char tmpword[WORDLEN];
-		wordvalue[n+1] = wordvalue[n-1];
-		wordvalue[n-1] = EVERYTHING;
-		wordtype[n+1] = wordtype[n-1];
-		wordtype[n-1] = OBJECT;
-		strcpy(tmpword, words[n-1]);
-		memcpy(words[n-1], words[n+1], sizeof(words[n-1]));
-		strcpy(words[n+1], tmpword);
-		flag = true;
-	    }
-	}
-	// And trim EVERYTHING AND EVERYTHING.
-	for (unsigned n = 1; n < wordcount; ++n) {
-	    if (wordvalue[n-1] == EVERYTHING && wordvalue[n] == AND && wordvalue[n+1] == EVERYTHING) {
-		int i;
-		for (i = n + 1; i < wordcount; ++i) {
-		    wordtype[i-1] = wordtype[i+1];
-		    wordvalue[i-1] = wordvalue[i+1];
-		    strcpy(words[i-1], words[i+1]);
-		}
-		wordcount -= 2;
-		flag = true;
-	    }
+    wordnumber = 0;	       // for process_command
+    for (unsigned n = 0; n <= wordcount; ++n) {
+	const struct Word* wp = lookup (words[n].word);
+	if (!wp) {
+	    words[n].type = CONJ;	// Something to make an error
+	    words[n].value = AND;
+	} else
+	    words[n] = *wp;
+    }
+    for (unsigned n = 1; n < wordcount; ++n) {
+	if (words[n].type == ADJS	// We never use adjectives for anything, so yank them all.
+	    || (words[n].type == CONJ	// Remove AND followed by not OBJECT
+		&& (n+1 == wordcount || words[n+1].type != OBJECT))) {
+	    memmove (&words[n], &words[n+1], sizeof(words[n])*(wordcount-n-1));
+	    --wordcount;
+	    --n;
 	}
     }
 }
 
-int cypher (void)
+int process_command (void)
 {
     int n;
     int junk;
@@ -338,12 +281,12 @@ int cypher (void)
     size_t filename_len = 0;
 
     while (wordnumber <= wordcount) {
-	if (wordtype[wordnumber] != VERB && !(wordtype[wordnumber] == OBJECT && wordvalue[wordnumber] == KNIFE)) {
-	    printf("%s: How's that?\n", (wordnumber == wordcount) ? words[0] : words[wordnumber]);
+	if (words[wordnumber].type != VERB && !(words[wordnumber].type == OBJECT && words[wordnumber].value == KNIFE)) {
+	    printf("%s: How's that?\n", (wordnumber == wordcount) ? words[0].word : words[wordnumber].word);
 	    return -1;
 	}
 
-	switch (wordvalue[wordnumber]) {
+	switch (words[wordnumber].value) {
 	    case AUXVERB:
 		// Take the following word as the verb (e.g. "make love", "climb up").
 		++wordnumber;
@@ -394,13 +337,13 @@ int cypher (void)
 		break;
 
 	    case SHOOT:
-		if (wordnumber < wordcount && wordvalue[wordnumber + 1] == EVERYTHING) {
+		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; ++n)
 			if (object_is_at (n, position) && c_objinfo[n].shdesc) {
 			    ++things;
-			    wordvalue[wordnumber + 1] = n;
+			    words[wordnumber + 1].value = n;
 			    wordnumber = shoot();
 			}
 		    if (!things)
@@ -412,13 +355,13 @@ int cypher (void)
 		break;
 
 	    case TAKE:
-		if (wordnumber < wordcount && wordvalue[wordnumber + 1] == EVERYTHING) {
+		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; ++n)
 			if (object_is_at (n, position) && c_objinfo[n].shdesc) {
 			    ++things;
-			    wordvalue[wordnumber + 1] = n;
+			    words[wordnumber + 1].value = n;
 
 			    // Some objects (type NOUNS) have special
 			    // treatment in take(). For these we must
@@ -432,7 +375,7 @@ int cypher (void)
 
 			    switch (n) {
 				case BATHGOD:
-				    wordvalue[wordnumber + 1] = GODDESS;
+				    words[wordnumber + 1].value = GODDESS;
 				    // FALLTHROUGH
 				case GODDESS:
 				case AMULET:
@@ -441,10 +384,10 @@ int cypher (void)
 				case MAN:
 				case TIMER:
 				case NATIVE_GIRL:
-				    wordtype[wordnumber + 1] = NOUNS;
+				    words[wordnumber + 1].type = NOUNS;
 				    break;
 				default:
-				    wordtype[wordnumber + 1] = OBJECT;
+				    words[wordnumber + 1].type = OBJECT;
 			    }
 			    wordnumber = take (position);
 			}
@@ -457,13 +400,13 @@ int cypher (void)
 		break;
 
 	    case DROP:
-		if (wordnumber < wordcount && wordvalue[wordnumber + 1] == EVERYTHING) {
+		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; ++n)
 			if (object_is_at (n, INVENTORY)) {
 			    ++things;
-			    wordvalue[wordnumber + 1] = n;
+			    words[wordnumber + 1].value = n;
 			    wordnumber = drop("Dropped");
 			}
 		    ++wordnumber;
@@ -476,31 +419,31 @@ int cypher (void)
 
 	    case KICK:
 	    case THROW_OBJECT:
-		if (wordnumber < wordcount && wordvalue[wordnumber + 1] == EVERYTHING) {
+		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
 		    int things, wv;
 		    things = 0;
-		    wv = wordvalue[wordnumber];
+		    wv = words[wordnumber].value;
 		    for (n = 0; n < NUMOFOBJECTS; ++n)
 			if (object_is_at (n, INVENTORY) || (object_is_at (n, position) && c_objinfo[n].shdesc)) {
 			    ++things;
-			    wordvalue[wordnumber + 1] = n;
-			    wordnumber = throw_object (wordvalue[wordnumber] == KICK ? "Kicked" : "Thrown");
+			    words[wordnumber + 1].value = n;
+			    wordnumber = throw_object (words[wordnumber].value == KICK ? "Kicked" : "Thrown");
 			}
 		    wordnumber += 2;
 		    if (!things)
 			printf("Nothing to %s!\n", wv == KICK ? "kick" : "throw");
 		} else
-		    throw_object (wordvalue[wordnumber] == KICK ? "Kicked" : "Thrown");
+		    throw_object (words[wordnumber].value == KICK ? "Kicked" : "Thrown");
 		break;
 
 	    case TAKEOFF:
-		if (wordnumber < wordcount && wordvalue[wordnumber + 1] == EVERYTHING) {
+		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; ++n)
 			if (object_is_at (n, WEARING)) {
 			    ++things;
-			    wordvalue[wordnumber + 1] = n;
+			    words[wordnumber + 1].value = n;
 			    wordnumber = takeoff();
 			}
 		    wordnumber += 2;
@@ -511,13 +454,13 @@ int cypher (void)
 		break;
 
 	    case DRAW:
-		if (wordnumber < wordcount && wordvalue[wordnumber + 1] == EVERYTHING) {
+		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; ++n)
 			if (object_is_at (n, WEARING)) {
 			    ++things;
-			    wordvalue[wordnumber + 1] = n;
+			    words[wordnumber + 1].value = n;
 			    wordnumber = draw();
 			}
 		    wordnumber += 2;
@@ -528,13 +471,13 @@ int cypher (void)
 		break;
 
 	    case PUTON:
-		if (wordnumber < wordcount && wordvalue[wordnumber + 1] == EVERYTHING) {
+		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; ++n)
 			if (object_is_at (n, position) && c_objinfo[n].shdesc) {
 			    ++things;
-			    wordvalue[wordnumber + 1] = n;
+			    words[wordnumber + 1].value = n;
 			    wordnumber = puton();
 			}
 		    wordnumber += 2;
@@ -545,13 +488,13 @@ int cypher (void)
 		break;
 
 	    case WEARIT:
-		if (wordnumber < wordcount && wordvalue[wordnumber + 1] == EVERYTHING) {
+		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; ++n)
 			if (object_is_at (n, INVENTORY)) {
 			    ++things;
-			    wordvalue[wordnumber + 1] = n;
+			    words[wordnumber + 1].value = n;
 			    wordnumber = wearit();
 			}
 		    wordnumber += 2;
@@ -562,13 +505,13 @@ int cypher (void)
 		break;
 
 	    case EAT:
-		if (wordnumber < wordcount && wordvalue[wordnumber + 1] == EVERYTHING) {
+		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; ++n)
 			if (object_is_at (n, INVENTORY)) {
 			    ++things;
-			    wordvalue[wordnumber + 1] = n;
+			    words[wordnumber + 1].value = n;
 			    wordnumber = eat();
 			}
 		    wordnumber += 2;
@@ -622,13 +565,13 @@ int cypher (void)
 		break;
 
 	    case OPEN:
-		if (wordnumber < wordcount && wordvalue[wordnumber + 1] == EVERYTHING) {
+		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
 		    int things;
 		    things = 0;
 		    for (n = 0; n < NUMOFOBJECTS; ++n)
 			if (object_is_at (n, INVENTORY)) {
 			    ++things;
-			    wordvalue[wordnumber + 1] = n;
+			    words[wordnumber + 1].value = n;
 			    dooropen();
 			}
 		    wordnumber += 2;
@@ -807,10 +750,91 @@ int cypher (void)
 		break;
 
 	}
-	if (wordnumber < wordcount && *words[wordnumber++] == ',')
+	if (wordnumber < wordcount && words[wordnumber++].word[0] == ',')
 	    continue;
 	else
 	    return lflag;
     }
     return lflag;
+}
+
+void fight (enum ObjectId enemy, unsigned strength)
+{
+    for (;;) {
+	// The player gets to attack first
+	get_player_command (BOLD_ON "fight! > " BOLD_OFF);
+	if (words[wordnumber].value == KILL || words[wordnumber].value == SMITE) {
+	    unsigned dmg = player_melee_damage();
+	    strength -= min_u (strength, dmg);
+	    puts (melee_damage_message (dmg));
+	} else if (words[wordnumber].value == SHOOT) {
+	    if (!object_is_at (LASER, INVENTORY))
+		puts ("Unfortunately, you don't have a blaster handy.");
+	    else if (enemy == DARK_LORD && strength > 50) {
+		puts ("With his bare hand he deflects the laser blast and whips the pistol from you!");
+		remove_object_from (LASER, INVENTORY);
+		create_object_at (LASER, position);
+		carrying -= c_objinfo[LASER].weight;
+		encumber -= c_objinfo[LASER].cumber;
+	    } else {
+		printf ("The %s took a direct hit!\n", c_objinfo[enemy].shdesc);
+		strength -= min_u (strength, 50);
+	    }
+	} else if (words[wordnumber].value == DROP || words[wordnumber].value == DRAW) {
+	    process_command();
+	    --ourtime;
+	} else if (words[wordnumber].value == BACK) {
+	    if (enemy == DARK_LORD && strength > 30) {
+		puts ("He throws you back against the rock and pummels your face.");
+		if ((object_is_at (AMULET, INVENTORY) || object_is_at (AMULET, WEARING))
+			&& (object_is_at (MEDALION, INVENTORY) || object_is_at (MEDALION, WEARING)))
+		    puts ("Lifting the amulet from you, his power grows and the walls of the\n"
+			    "earth tremble. When he touches the medallion, your chest explodes\n"
+			    "and the foundations of the earth collapse.\n"
+			    "The planet is consumed by darkness.");
+		else
+		    puts ("I'm afraid you have been killed.");
+		die();
+	    } else if (!back || position == back)
+		puts ("You can't seem to find the way out.");
+	    else {
+		puts ("You escape stunned and disoriented from the fight.\n"
+			"A victorious bellow echoes from the battlescene.");
+		moveplayer (back, BACK);
+		return;
+	    }
+	} else
+	    puts ("You don't have a chance; he is too quick.");
+
+	// Check if he is killed
+	if (!strength) {
+	    remove_object_from (enemy, position);
+	    if (enemy == WOODSMAN)
+		create_object_at (DEADWOOD, position);
+	    else
+		puts ("A watery black smoke consumes his body and then vanishes with a peal of thunder!");
+	    printf ("You have killed the %s.\n", c_objinfo[enemy].shdesc);
+	    power += 2;
+	    return;
+	}
+
+	// Attacks take time
+	++ourtime;
+	snooze -= 5;	// and are tiring
+	if (snooze - ourtime < 20)
+	    puts ("You look tired! I hope you're able to fight.");
+
+	// If not, then he hits back
+	puts ("He attacks...");
+	unsigned hurt = player_melee_damage_taken();
+	if (!injuries[hurt]) {
+	    injuries[hurt] = 1;
+	    printf ("I'm afraid you have suffered %s.\n", ouch[hurt]);
+	} else
+	    puts ("You emerge unscathed.");
+	if (injuries[FRACTURED_SKULL] && injuries[HEAVY_BLEEDING] && injuries[BROKEN_NECK]) {
+	    puts ("Your injuries are fatal.");
+	    die();
+	}
+    }
 }

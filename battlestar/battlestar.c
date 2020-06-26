@@ -14,9 +14,7 @@ int followgod = -1;
 int followfight = -1;
 
 // current input line
-char words [NWORD][WORDLEN] = {};
-uint16_t wordvalue [NWORD] = {};
-uint8_t wordtype [NWORD] = {};
+struct Word words [NWORDS] = {};
 uint8_t wordcount = 0;
 uint8_t wordnumber = 0;
 
@@ -56,52 +54,44 @@ static void restore (const char *filename);
 
 int main (int argc, char **argv)
 {
-    char mainbuf[LINELENGTH];
-    char *next;
-
     if (argc < 2)
-	initialize(NULL);
+	initialize (NULL);
     else if (strcmp(argv[1], "-r") == 0)
-	initialize((argc > 2) ? argv[2] : DEFAULT_SAVE_FILE);
+	initialize ((argc > 2) ? argv[2] : DEFAULT_SAVE_FILE);
     else
-	initialize(argv[1]);
-  start:
-    news();
-    if (beenthere[position] <= ROOMDESC)
-	++beenthere[position];
-    if (game_state (LAUNCHED))
-	crash();	       // decrements fuel & crash
-    if (game_state (MATCH_LIGHT)) {
-	puts("Your match splutters out.");
-	clear_game_state (MATCH_LIGHT);
-    }
-    if (!game_state (CANTSEE) || object_is_at (LAMPON, INVENTORY) || object_is_at (LAMPON, position)) {
-	writedes();
-	printobjs();
-    } else
-	puts("It's too dark to see anything in here!");
-    update_relative_directions();
-  run:
-    next = getcom(mainbuf, sizeof mainbuf, ">-: ", "Please type in something.");
-    for (wordcount = 0; next && wordcount < NWORD - 1; ++wordcount)
-	next = getword (next, words[wordcount]);
-    parse();
-    switch (cypher()) {
-	case -1:
-	    goto run;
-	case 0:
-	    goto start;
-	default:
-	    printf ("bad return from cypher(): please submit a bug report");
-	    exit (EXIT_FAILURE);
+	initialize (argv[1]);
+
+    for (;;) {
+	news();
+	if (beenthere[position] <= ROOMDESC)
+	    ++beenthere[position];
+	if (game_state (LAUNCHED))
+	    crash();	// decrements fuel & crashes when empty
+	if (game_state (MATCH_LIGHT)) {
+	    puts("Your match splutters out.");
+	    clear_game_state (MATCH_LIGHT);
+	}
+	if (!game_state (CANTSEE) || object_is_at (LAMPON, INVENTORY) || object_is_at (LAMPON, position)) {
+	    writedes();
+	    printobjs();
+	} else
+	    puts("It's too dark to see anything in here!");
+	update_relative_directions();
+	do {
+	    get_player_command (BOLD_ON "> " BOLD_OFF);
+	} while (process_command() != 0);
     }
 }
 
 static void initialize (const char *filename)
 {
-    puts("Version 4.2, fall 1984.");
-    puts("First Adventure game written by His Lordship, the honorable");
-    puts("Admiral D.W. Riggle\n");
+    puts (BOLD_ON "\n"
+	"		===========================	\n"
+	"		    B A T T L E S T A R		\n"
+	"		===========================	\n"
+	BOLD_OFF "\n"
+	"	First Adventure game written by His Lordship,\n"
+	"	     the honorable Admiral D.W. Riggle");
 
     initialize_curses();
     endwin();

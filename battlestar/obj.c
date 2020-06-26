@@ -316,10 +316,13 @@ unsigned count_objects_at (uint16_t l)
 
 void printobjs (void)
 {
-    printf("\n");
+    if (!count_objects_at (position))
+	return;
+    printf("\n" BOLD_ON);
     for (unsigned n = 0; n < NUMOFOBJECTS; ++n)
 	if (object_is_at (n, position) && c_objinfo[n].desc)
 	    puts (c_objinfo[n].desc);
+    printf (BOLD_OFF);
 }
 
 // Converts day to night and vice versa.
@@ -522,4 +525,74 @@ void save_objects (FILE* fp)
 {
     uint16_t nobjs = s_objects.size;
     fwrite (vector_begin(&s_objects), sizeof(s_objects.d[0]), nobjs, fp);
+}
+
+unsigned player_melee_damage (void)
+{
+    unsigned exhaustion = 0;
+    if (snooze > ourtime)
+	exhaustion = CYCLE / (snooze - ourtime);
+
+    int dmg;
+    if (object_is_at (TWO_HANDED, INVENTORY))
+	dmg = nrand(70) - 2 * card(injuries, NUMOFINJURIES) - count_objects_at(WEARING) - exhaustion;
+    else if (object_is_at (SWORD, INVENTORY) || object_is_at (BROAD, INVENTORY))
+	dmg = nrand(50) % (WEIGHT - carrying) - card(injuries, NUMOFINJURIES) - encumber - exhaustion;
+    else if (object_is_at (KNIFE, INVENTORY) || object_is_at (MALLET, INVENTORY) || object_is_at (CHAIN, INVENTORY) || object_is_at (MACE, INVENTORY) || object_is_at (HALBERD, INVENTORY))
+	dmg = nrand(15) - card(injuries, NUMOFINJURIES) - exhaustion;
+    else
+	dmg = nrand(7) - encumber;
+
+    if (dmg < 5) // counts as a miss
+	dmg = 0;
+    return dmg;
+}
+
+const char* melee_damage_message (unsigned dmg)
+{
+    static const char c_dmgmsg[] =
+	"You swung wide and missed.\0"
+	"He checked your blow. CLASH! CLANG!\0"
+	"His filthy tunic hangs by one less thread."
+	"He's bleeding.\0"
+	"A trickle of blood runs down his face.\0"
+	"A huge purple bruise is forming on the side of his face."
+	"He staggers back quavering.\0"
+	"He jumps back with his hand over the wound.\0"
+	"His shirt falls open with a swath across the chest."
+	"A bloody gash opens up on his side.\0"
+	"The steel bites home and scrapes along his ribs.\0"
+	"You pierce him, and his breath hisses through clenched teeth."
+	"You smite him to the ground.\0"
+	"The force of your blow sends him to his knees.\n"
+	    "His arm swings lifeless at his side.\0"
+	"Clutching his blood drenched shirt, he collapses stunned."
+	"His ribs crack under your powerful swing, flooding his lungs with blood.\0"
+	"You shatter his upheld arm in a spray of blood.\n"
+	    "The blade continues deep into his back, severing the spinal cord.\0"
+	"With a mighty lunge the steel slides in, and gasping, he falls to the ground.";
+    return zstrn (c_dmgmsg, 3*min_u((dmg+5)/10,5) + nrand(3), 18);
+}
+
+unsigned player_melee_damage_taken (void)
+{
+    int hurt = nrand (NUMOFINJURIES);
+    // Armor reduces damage taken
+    if (object_is_at (SHIELD, INVENTORY))
+	--hurt;
+    if (object_is_at (MAIL, WEARING))
+	--hurt;
+    if (object_is_at (HELM, WEARING))
+	--hurt;
+
+    // The amulets make player more vulnerable
+    if (object_is_at (AMULET, WEARING))
+	++hurt;
+    if (object_is_at (MEDALION, WEARING))
+	++hurt;
+    if (object_is_at (TALISMAN, WEARING))
+	++hurt;
+
+    // Unlike given damage, damage taken translates directly into injury level
+    return min_u (max_i (hurt, 0), NUMOFINJURIES-1);
 }

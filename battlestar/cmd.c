@@ -237,8 +237,8 @@ int wearit (void)
 {
     int firstnumber = wordnumber;
     ++wordnumber;
-    while (wordnumber <= wordcount && (wordtype[wordnumber] == OBJECT || wordtype[wordnumber] == NOUNS) && wordvalue[wordnumber] != DOOR) {
-	int value = wordvalue[wordnumber];
+    while (wordnumber <= wordcount && (words[wordnumber].type == OBJECT || words[wordnumber].type == NOUNS) && words[wordnumber].value != DOOR) {
+	int value = words[wordnumber].value;
 	if (value >= 0 && !c_objinfo[value].shdesc)
 	    break;
 	if (value < 0) {
@@ -260,7 +260,7 @@ int wearit (void)
 	    printf ("You are already wearing the %s.\n", c_objinfo[value].shdesc);
 	else
 	    printf ("You aren't holding the %s.\n", c_objinfo[value].shdesc);
-	if (wordnumber < wordcount - 1 && wordvalue[++wordnumber] == AND)
+	if (wordnumber < wordcount - 1 && words[++wordnumber].value == AND)
 	    ++wordnumber;
 	else
 	    return firstnumber;
@@ -271,15 +271,15 @@ int wearit (void)
 
 int put (void)
 {			       // synonyms = {buckle, strap, tie}
-    if (wordvalue[wordnumber + 1] == ON) {
-	wordvalue[++wordnumber] = PUTON;
-	wordtype[wordnumber] = VERB;
-	return cypher();
+    if (words[wordnumber + 1].value == ON) {
+	words[++wordnumber].value = PUTON;
+	words[wordnumber].type = VERB;
+	return process_command();
     }
-    if (wordvalue[wordnumber + 1] == DOWN) {
-	wordvalue[++wordnumber] = DROP;
-	wordtype[wordnumber] = VERB;
-	return cypher();
+    if (words[wordnumber + 1].value == DOWN) {
+	words[++wordnumber].value = DROP;
+	words[wordnumber].type = VERB;
+	return process_command();
     }
     puts ("I don't understand what you want to put.");
     return -1;
@@ -293,7 +293,7 @@ int draw (void)
 int use (void)
 {
     ++wordnumber;
-    if (wordvalue[wordnumber] == AMULET
+    if (words[wordnumber].value == AMULET
 	    && object_is_at (AMULET, INVENTORY)
 	    && position >= FIRST_ISLAND_LAND) {
 	if (position == FINAL) {
@@ -320,7 +320,7 @@ int use (void)
 	++ourtime;
 	clear_game_state (CANTSEE);
 	return 0;
-    } else if (wordvalue[wordnumber] == COMPASS) {
+    } else if (words[wordnumber].value == COMPASS) {
 	if (!object_is_at (COMPASS, INVENTORY) && !object_is_at (COMPASS, WEARING))
 	    puts ("You don't have a compass.");
 	else
@@ -405,13 +405,13 @@ void bury (void)
 	return;
     }
     static const uint16_t c_buryable[] = { MAID, DEADWOOD };
-    while (wordtype[++wordnumber] != OBJECT && wordtype[wordnumber] != NOUNS && wordnumber < wordcount)
+    while (words[++wordnumber].type != OBJECT && words[wordnumber].type != NOUNS && wordnumber < wordcount)
 	continue;
-    int value = wordvalue[wordnumber];
-    if (wordtype[wordnumber] == NOUNS && (object_is_at (value, position) || value == MAID)) {
+    int value = words[wordnumber].value;
+    if (words[wordnumber].type == NOUNS && (object_is_at (value, position) || value == MAID)) {
 	switch (value) {
 	    case MAID:
-		wordtype[wordnumber] = OBJECT;
+		words[wordnumber].type = OBJECT;
 		for (unsigned i = 0; i < ArraySize(c_buryable); ++i)
 		    if (object_is_at (c_buryable[i], INVENTORY) || object_is_at (c_buryable[i], position))
 			value = c_buryable[i];
@@ -419,11 +419,11 @@ void bury (void)
 	    case TIMER:		power += 7; ego -= 10; // fallthrough
 	    case AMULET:
 	    case MEDALION:
-	    case TALISMAN:	wordtype[wordnumber] = OBJECT; break;
+	    case TALISMAN:	words[wordnumber].type = OBJECT; break;
 	    default:		puts ("Wha..?"); break;
 	}
     }
-    if (wordtype[wordnumber] == OBJECT && position >= FIRST_ISLAND_LAND
+    if (words[wordnumber].type == OBJECT && position >= FIRST_ISLAND_LAND
 	    && (object_is_at (value, INVENTORY) || object_is_at (value, position))) {
 	puts ("Buried.");
 	if (object_is_at (value, INVENTORY)) {
@@ -468,8 +468,8 @@ int shoot (void)
 	return firstnumber;
     }
     ++wordnumber;
-    while (wordnumber <= wordcount && wordtype[wordnumber] == OBJECT) {
-	int value = wordvalue[wordnumber];
+    while (wordnumber <= wordcount && words[wordnumber].type == OBJECT) {
+	int value = words[wordnumber].value;
 	printf ("%s:\n", c_objinfo[value].shdesc);
 	if (object_is_at (value, position)) {
 	    remove_object_from (value, position);
@@ -479,13 +479,13 @@ int shoot (void)
 		die();
 	} else
 	    printf ("I don't see any %s around here.\n", c_objinfo[value].shdesc);
-	if (wordnumber < wordcount - 1 && wordvalue[++wordnumber] == AND)
+	if (wordnumber < wordcount - 1 && words[++wordnumber].value == AND)
 	    ++wordnumber;
 	else
 	    return firstnumber;
     }
     // The blaster's only useful purpose is to destroy locked doors.
-    if (wordnumber > wordcount || wordvalue[wordnumber] != DOOR) {
+    if (wordnumber > wordcount || words[wordnumber].value != DOOR) {
 	puts ("Shoot what?");
 	return firstnumber;
     }
@@ -518,15 +518,15 @@ int shoot (void)
 int take (uint16_t fromloc)
 {
     int firstnumber = wordnumber;
-    if (wordnumber < wordcount && wordvalue[wordnumber + 1] == OFF) {
+    if (wordnumber < wordcount && words[wordnumber + 1].value == OFF) {
 	++wordnumber;
-	wordvalue[wordnumber] = TAKEOFF;
-	wordtype[wordnumber] = VERB;
-	return cypher();
+	words[wordnumber].value = TAKEOFF;
+	words[wordnumber].type = VERB;
+	return process_command();
     } else {
 	++wordnumber;
-	while (wordnumber <= wordcount && wordtype[wordnumber] == OBJECT) {
-	    int value = wordvalue[wordnumber];
+	while (wordnumber <= wordcount && words[wordnumber].type == OBJECT) {
+	    int value = words[wordnumber].value;
 	    printf ("%s:\n", c_objinfo[value].shdesc);
 	    bool heavy = (carrying + c_objinfo[value].weight) <= WEIGHT;
 	    bool bulky = (encumber + c_objinfo[value].cumber) <= CUMBER;
@@ -550,43 +550,43 @@ int take (uint16_t fromloc)
 		printf ("The %s %stoo heavy.\n", c_objinfo[value].shdesc, IS_OR_ARE(value));
 	    else
 		printf ("The %s %stoo cumbersome to hold.\n", c_objinfo[value].shdesc, IS_OR_ARE(value));
-	    if (wordnumber < wordcount - 1 && wordvalue[++wordnumber] == AND)
+	    if (wordnumber < wordcount - 1 && words[++wordnumber].value == AND)
 		++wordnumber;
 	    else
 		return firstnumber;
 	}
     }
 
-    if (wordnumber > wordcount || wordtype[wordnumber] != NOUNS) {
+    if (wordnumber > wordcount || words[wordnumber].type != NOUNS) {
 	puts ("You've got to be kidding.");
 	return firstnumber;
     }
 
     // special cases with their own returns
-    switch (wordvalue[wordnumber]) {
+    switch (words[wordnumber].value) {
 
 	case SWORD:
 	    if (object_is_at (SWORD, fromloc)) {
-		wordtype[wordnumber--] = OBJECT;
+		words[wordnumber--].type = OBJECT;
 		return take(fromloc);
 	    }
 	    if (object_is_at (TWO_HANDED, fromloc)) {
-		wordvalue[wordnumber] = TWO_HANDED;
-		wordtype[wordnumber--] = OBJECT;
+		words[wordnumber].value = TWO_HANDED;
+		words[wordnumber--].type = OBJECT;
 		return take(fromloc);
 	    }
-	    wordvalue[wordnumber] = BROAD;
-	    wordtype[wordnumber--] = OBJECT;
+	    words[wordnumber].value = BROAD;
+	    words[wordnumber--].type = OBJECT;
 	    return take(fromloc);
 
 	case MAID:
 	    if (object_is_at (MAID, fromloc)) {
-		wordvalue[wordnumber] = MAID;
-		wordtype[wordnumber--] = OBJECT;
+		words[wordnumber].value = MAID;
+		words[wordnumber--].type = OBJECT;
 		return take(fromloc);
 	    } else if (object_is_at (DEADWOOD, fromloc)) {
-		wordvalue[wordnumber] = DEADWOOD;
-		wordtype[wordnumber--] = OBJECT;
+		words[wordnumber].value = DEADWOOD;
+		words[wordnumber--].type = OBJECT;
 		return take(fromloc);
 	    } else
 		puts ("It doesn't seem to work.");
@@ -600,7 +600,7 @@ int take (uint16_t fromloc)
 			"reaches you from afar. The mist falls again, and your heart leaps in horror.\n"
 			"The gold freezes your hands and fathomless darkness engulfs your soul.");
 	    }
-	    wordtype[wordnumber--] = OBJECT;
+	    words[wordnumber--].type = OBJECT;
 	    return take(fromloc);
 
 	case MEDALION:
@@ -609,13 +609,13 @@ int take (uint16_t fromloc)
 			"Your amulet begins to glow as the medallion is brought near to it,\n"
 			"and together they radiate.");
 	    }
-	    wordtype[wordnumber--] = OBJECT;
+	    words[wordnumber--].type = OBJECT;
 	    return take(fromloc);
 
 	case TALISMAN:
 	    if (object_is_at (TALISMAN, position))
 		puts ("The talisman is cold to the touch, and it sends a chill down your spine.");
-	    wordtype[wordnumber--] = OBJECT;
+	    words[wordnumber--].type = OBJECT;
 	    return take(fromloc);
 
 	case GODDESS:
@@ -645,7 +645,7 @@ int throw_object (const char *name)
 {
     int deposit = 0, first = wordnumber;
     if (drop(name) != -1) {
-	switch (wordvalue[wordnumber]) {
+	switch (words[wordnumber].value) {
 	    case AHEAD:	deposit = ahead; break;
 	    case BACK:	deposit = back;	 break;
 	    case LEFT:	deposit = left;	 break;
@@ -662,7 +662,7 @@ int throw_object (const char *name)
 	}
 	wordnumber = first + 1;
 	while (wordnumber <= wordcount) {
-	    int value = wordvalue[wordnumber];
+	    int value = words[wordnumber].value;
 	    if (deposit && object_is_at (value, position)) {
 		remove_object_from (value, position);
 		if (value == GRENADE) {
@@ -693,7 +693,7 @@ int throw_object (const char *name)
 		puts ("You are blown into shreds when your grenade explodes.");
 		die();
 	    }
-	    if (wordnumber < wordcount - 1 && wordvalue[++wordnumber] == AND)
+	    if (wordnumber < wordcount - 1 && words[++wordnumber].value == AND)
 		++wordnumber;
 	    else
 		return first;
@@ -707,16 +707,16 @@ int drop (const char *name)
 {
     int firstnumber = wordnumber;
     ++wordnumber;
-    while (wordnumber <= wordcount && (wordtype[wordnumber] == OBJECT || wordtype[wordnumber] == NOUNS)) {
-	int value = wordvalue[wordnumber];
+    while (wordnumber <= wordcount && (words[wordnumber].type == OBJECT || words[wordnumber].type == NOUNS)) {
+	int value = words[wordnumber].value;
 	if (value == MAID) {   // special case
-	    wordtype[wordnumber] = OBJECT;
+	    words[wordnumber].type = OBJECT;
 	    if (object_is_at (MAID, INVENTORY) || object_is_at (MAID, position))
 		value = MAID;
 	    else if (object_is_at (DEADWOOD, INVENTORY) || object_is_at (DEADWOOD, position))
 		value = DEADWOOD;
 	}
-	if (wordtype[wordnumber] == NOUNS && value == DOOR) {
+	if (words[wordnumber].type == NOUNS && value == DOOR) {
 	    if (*name == 'K')
 		puts ("You hurt your foot.");
 	    else
@@ -763,7 +763,7 @@ int drop (const char *name)
 		    puts ("Not found.");
 	    }
 	}
-	if (wordnumber < wordcount - 1 && wordvalue[++wordnumber] == AND)
+	if (wordnumber < wordcount - 1 && words[++wordnumber].value == AND)
 	    ++wordnumber;
 	else
 	    return firstnumber;
@@ -798,12 +798,12 @@ int eat (void)
     int firstnumber = wordnumber;
     ++wordnumber;
     while (wordnumber <= wordcount) {
-	int value = wordvalue[wordnumber];
+	int value = words[wordnumber].value;
 	if (value < 0 || value >= NUMOFOBJECTS) {
 	    puts ("Eat what?");
 	    return firstnumber;
 	}
-	if (wordtype[wordnumber] != OBJECT || c_objinfo[value].shdesc == NULL) {
+	if (words[wordnumber].type != OBJECT || c_objinfo[value].shdesc == NULL) {
 	    puts ("You can't eat that!");
 	    return firstnumber;
 	}
@@ -824,7 +824,7 @@ int eat (void)
 	    ++ourtime;
 	    printf ("You ate %s%s. You can explore a little longer now.", A_OR_AN_OR_BLANK(value), c_objinfo[value].shdesc);
 	}
-	if (wordnumber < wordcount - 1 && wordvalue[++wordnumber] == AND)
+	if (wordnumber < wordcount - 1 && words[++wordnumber].value == AND)
 	    ++wordnumber;
 	else
 	    return firstnumber;
@@ -834,20 +834,20 @@ int eat (void)
 
 void kiss (void)
 {
-    while (wordtype[++wordnumber] != NOUNS && wordnumber <= wordcount)
+    while (words[++wordnumber].type != NOUNS && wordnumber <= wordcount)
 	continue;
     // The goddess must be "taken" first if bathing. This will remove her from the bath and move her into the throne room.
-    if (wordtype[wordnumber] == NOUNS && wordvalue[wordnumber] == GODDESS && object_is_at (BATHGOD, position)) {
-	wordvalue[--wordnumber] = TAKE;
-	cypher();
+    if (words[wordnumber].type == NOUNS && words[wordnumber].value == GODDESS && object_is_at (BATHGOD, position)) {
+	words[--wordnumber].value = TAKE;
+	process_command();
 	return;
     }
-    if (!object_is_at (wordvalue[wordnumber], position))
+    if (!object_is_at (words[wordnumber].value, position))
 	puts ("She is not here.");
-    else if (wordvalue[wordnumber] == NATIVE_GIRL) {
+    else if (words[wordnumber].value == NATIVE_GIRL) {
 	++pleasure;
 	puts ("You kiss her.\nHer lips are warm and her body robust. She pulls you down to the ground.");
-    } else if (wordvalue[wordnumber] == GODDESS) {
+    } else if (words[wordnumber].value == GODDESS) {
 	++pleasure;
 	switch (godready++) {
 	    case 0: puts ("You try to kiss her. She avoids your advances."); break;
@@ -861,18 +861,18 @@ void kiss (void)
 
 void love (void)
 {
-    while (wordtype[++wordnumber] != NOUNS && wordnumber <= wordcount)
+    while (words[++wordnumber].type != NOUNS && wordnumber <= wordcount)
 	continue;
-    if (!object_is_at (wordvalue[wordnumber], position))
+    if (!object_is_at (words[wordnumber].value, position))
 	puts ("Where's your lover?");
-    else if (wordvalue[wordnumber] == NATIVE_GIRL) {
+    else if (words[wordnumber].value == NATIVE_GIRL) {
 	puts ("The girl peels off her sarong and indulges you.");
 	pleasure += 5;
 	printf ("Girl:\n");
 	ourtime += 10;
 	printf ("Loved.\n");
 	zzz();
-    } else if (wordvalue[wordnumber] == GODDESS) {
+    } else if (words[wordnumber].value == GODDESS) {
 	if (loved)
 	    puts ("Loved.");
 	else if (godready < 3)
@@ -983,23 +983,23 @@ void chime (void)
 int give (void)
 {
     int firstnumber = wordnumber;
-    while (wordtype[++wordnumber] != OBJECT
+    while (words[++wordnumber].type != OBJECT
 	    && wordnumber <= wordcount
-	    && wordvalue[wordnumber] != AMULET
-	    && wordvalue[wordnumber] != MEDALION
-	    && wordvalue[wordnumber] != TALISMAN)
+	    && words[wordnumber].value != AMULET
+	    && words[wordnumber].value != MEDALION
+	    && words[wordnumber].value != TALISMAN)
 	continue;
     int obj = -1, person = 0, last1 = 0, last2 = 0;
     if (wordnumber <= wordcount) {
-	obj = wordvalue[wordnumber];
+	obj = words[wordnumber].value;
 	if (obj == EVERYTHING)
-	    wordtype[wordnumber] = -1;
+	    words[wordnumber].type = -1;
 	last1 = wordnumber;
     }
     wordnumber = firstnumber;
-    while ((wordtype[++wordnumber] != NOUNS || wordvalue[wordnumber] == obj) && wordnumber <= wordcount) {}
-    if (wordtype[wordnumber] == NOUNS) {
-	person = wordvalue[wordnumber];
+    while ((words[++wordnumber].type != NOUNS || words[wordnumber].value == obj) && wordnumber <= wordcount) {}
+    if (words[wordnumber].type == NOUNS) {
+	person = words[wordnumber].value;
 	last2 = wordnumber;
     }
     // Setting wordnumber to last1 - 1 looks wrong if last1 is 0, e.g.,
@@ -1245,7 +1245,7 @@ void light (void)
 void dooropen (void)
 {
     ++wordnumber;
-    if (wordnumber > wordcount || wordtype[wordnumber] != NOUNS || wordvalue[wordnumber] != DOOR)
+    if (wordnumber > wordcount || words[wordnumber].type != NOUNS || words[wordnumber].value != DOOR)
 	puts ("That doesn't open.");
     else if (position == CAVE_DOOR || position == CAVE_ENTRANCE) {
 	if (game_state (OPENED_CAVE_DOOR))
@@ -1263,186 +1263,6 @@ void dooropen (void)
 	puts ("The door is already ajar.");
     else
 	puts ("What door?");
-}
-
-int fight (int enemy, int strength)
-{
-    int lifeline = 0;
-    int hurt;
-    char auxbuf[LINELENGTH];
-    char *next;
-    int i;
-    int exhaustion;
-
-    exhaustion = 0;
-  fighton:
-    ++ourtime;
-    snooze -= 5;
-    if (snooze > ourtime)
-	exhaustion = CYCLE / (snooze - ourtime);
-    else {
-	puts ("You collapse exhausted, and he pulverizes your skull.");
-	die();
-    }
-    if (snooze - ourtime < 20)
-	puts ("You look tired! I hope you're able to fight.");
-    next = getcom(auxbuf, LINELENGTH, "<fight!>-: ", 0);
-    for (i = 0; next && i < 10; ++i)
-	next = getword(next, words[i]);
-    parse();
-    switch (wordvalue[wordnumber]) {
-
-	case KILL:
-	case SMITE:
-	    if (object_is_at (TWO_HANDED, INVENTORY))
-		hurt = nrand(70) - 2 * card(injuries, NUMOFINJURIES) - count_objects_at(WEARING) - exhaustion;
-	    else if (object_is_at (SWORD, INVENTORY) || object_is_at (BROAD, INVENTORY))
-		hurt = nrand(50) % (WEIGHT - carrying) - card(injuries, NUMOFINJURIES) - encumber - exhaustion;
-	    else if (object_is_at (KNIFE, INVENTORY) || object_is_at (MALLET, INVENTORY) || object_is_at (CHAIN, INVENTORY) || object_is_at (MACE, INVENTORY) || object_is_at (HALBERD, INVENTORY))
-		hurt = nrand(15) - card(injuries, NUMOFINJURIES) - exhaustion;
-	    else
-		hurt = nrand(7) - encumber;
-	    if (hurt < 5) {
-		static const char c_hurt5[] =
-		    "You swung wide and missed.\0"
-		    "He checked your blow. CLASH! CLANG!\0"
-		    "His filthy tunic hangs by one less thread.";
-		puts (zstrn (c_hurt5, nrand(3), 3));
-	    } else if (hurt < 10) {
-		static const char c_hurt10[] =
-		    "He's bleeding.\0"
-		    "A trickle of blood runs down his face.\0"
-		    "A huge purple bruise is forming on the side of his face.";
-		puts (zstrn (c_hurt10, nrand(3), 3));
-		++lifeline;
-	    } else if (hurt < 20) {
-		static const char c_hurt20[] =
-		    "He staggers back quavering.\0"
-		    "He jumps back with his hand over the wound.\0"
-		    "His shirt falls open with a swath across the chest.";
-		puts (zstrn (c_hurt20, nrand(3), 3));
-		lifeline += 5;
-	    } else if (hurt < 30) {
-		static const char c_hurt30[] =
-		    "A bloody gash opens up on his side.\0"
-		    "The steel bites home and scrapes along his ribs.\0"
-		    "You pierce him, and his breath hisses through clenched teeth.";
-		puts (zstrn (c_hurt30, nrand(3), 3));
-		lifeline += 10;
-	    } else if (hurt < 40) {
-		static const char c_hurt40[] =
-		    "You smite him to the ground.\0"
-		    "The force of your blow sends him to his knees.\n"
-			"His arm swings lifeless at his side.\0"
-		    "Clutching his blood drenched shirt, he collapses stunned.";
-		puts (zstrn (c_hurt40, nrand(3), 3));
-		lifeline += 20;
-	    } else {
-		static const char c_hurt50[] =
-		    "His ribs crack under your powerful swing, flooding his lungs with blood.\0"
-		    "You shatter his upheld arm in a spray of blood.\n"
-			"The blade continues deep into his back, severing the spinal cord.\0"
-		    "With a mighty lunge the steel slides in, and gasping, he falls to the ground.";
-		puts (zstrn (c_hurt50, nrand(3), 3));
-		lifeline += 55;
-	    }
-	    break;
-
-	case BACK:
-	    if (enemy == DARK_LORD && lifeline > strength/3) {
-		puts ("He throws you back against the rock and pummels your face.");
-		if (object_is_at (AMULET, INVENTORY) || object_is_at (AMULET, WEARING)) {
-		    printf ("Lifting the amulet from you, ");
-		    if (object_is_at (MEDALION, INVENTORY) || object_is_at (MEDALION, WEARING)) {
-			puts ("his power grows and the walls of the earth tremble.\n"
-				"When he touches the medallion, your chest explodes\n"
-				"and the foundations of the earth collapse.\n"
-				"The planet is consumed by darkness.");
-			die();
-		    }
-		    if (object_is_at (AMULET, INVENTORY)) {
-			remove_object_from (AMULET, INVENTORY);
-			carrying -= c_objinfo[AMULET].weight;
-			encumber -= c_objinfo[AMULET].cumber;
-		    } else
-			remove_object_from (AMULET, WEARING);
-		    puts ("he flees down the dark caverns.");
-		    remove_object_from (DARK_LORD, position);
-		    injuries [FRACTURED_SKULL] = 1;
-		    followfight = ourtime;
-		    return 0;
-		} else {
-		    puts ("I'm afraid you have been killed.");
-		    die();
-		}
-	    } else {
-		puts ("You escape stunned and disoriented from the fight.");
-		puts ("A victorious bellow echoes from the battlescene.");
-		if (back && position != back)
-		    moveplayer(back, BACK);
-		else if (ahead && position != ahead)
-		    moveplayer(ahead, AHEAD);
-		else if (left && position != left)
-		    moveplayer(left, LEFT);
-		else if (right && position != right)
-		    moveplayer(right, RIGHT);
-		else
-		    moveplayer(location[position].dir.down, AHEAD);
-		return 0;
-	    }
-
-	case SHOOT:
-	    if (object_is_at (LASER, INVENTORY)) {
-		if (strength - lifeline <= 50) {
-		    printf ("The %s took a direct hit!\n", c_objinfo[enemy].shdesc);
-		    lifeline += 50;
-		} else {
-		    puts ("With his bare hand he deflects the laser blast and whips the pistol from you!");
-		    remove_object_from (LASER, INVENTORY);
-		    create_object_at (LASER, position);
-		    carrying -= c_objinfo[LASER].weight;
-		    encumber -= c_objinfo[LASER].cumber;
-		}
-	    } else
-		puts ("Unfortunately, you don't have a blaster handy.");
-	    break;
-
-	case DROP:
-	case DRAW:
-	    cypher();
-	    --ourtime;
-	    break;
-
-	default:
-	    puts ("You don't have a chance; he is too quick.");
-	    break;
-
-    }
-    if (lifeline >= strength) {
-	printf ("You have killed the %s.\n", c_objinfo[enemy].shdesc);
-	if (enemy == ELF || enemy == DARK_LORD)
-	    puts ("A watery black smoke consumes his body and then vanishes with a peal of thunder!");
-	remove_object_from (enemy, position);
-	power += 2;
-	set_game_state (JINXED);
-	return 0;
-    }
-    puts ("He attacks...");
-    // Some embellishments.
-    hurt = nrand(NUMOFINJURIES) - (object_is_at (SHIELD, INVENTORY) != 0) - (object_is_at (MAIL, WEARING) != 0) - (object_is_at (HELM, WEARING) != 0);
-    hurt += (object_is_at (AMULET, WEARING) != 0) + (object_is_at (MEDALION, WEARING) != 0) + (object_is_at (TALISMAN, WEARING) != 0);
-    hurt = hurt < 0 ? 0 : hurt;
-    hurt = hurt >= NUMOFINJURIES ? NUMOFINJURIES - 1 : hurt;
-    if (!injuries[hurt]) {
-	injuries[hurt] = 1;
-	printf ("I'm afraid you have suffered %s.\n", ouch[hurt]);
-    } else
-	puts ("You emerge unscathed.");
-    if (injuries[FRACTURED_SKULL] && injuries[HEAVY_BLEEDING] && injuries[BROKEN_NECK]) {
-	puts ("I'm afraid you have suffered fatal injuries.");
-	die();
-    }
-    goto fighton;
 }
 
 // for beenthere, injuries
