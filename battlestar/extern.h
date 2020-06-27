@@ -6,8 +6,10 @@
 #include <signal.h>
 #include <time.h>
 
-#define	_PATH_SCORE	_PATH_GAME_STATE "battlestar.scores"
-#define DEFAULT_SAVE_FILE	".Bstar"
+//{{{ Game constants ---------------------------------------------------
+
+#define	_PATH_SCORE		_PATH_GAME_STATE "battlestar.scores"
+#define BATTLESTAR_SAVE_NAME	_PATH_SAVED_GAMES "battlestar.save"
 
 #define BOLD_ON		"\033[1m"
 #define BOLD_OFF	"\033[22m"
@@ -50,6 +52,7 @@ enum LocationId {
     CAVE_ENTRANCE	= 231,
     HUGE_CHASM		= 232,
     CLIFF_WATERFALL	= 242,
+    MINE_CHAMBER	= 266,
     GODDESS_THRONE_ROOM	= 268,
     FINAL		= 275,
     NUMOFROOMS		= FINAL,
@@ -86,7 +89,7 @@ enum ObjectId {
 };
 
 // non-objects below
-enum {
+enum CommandId {
     UP = 1000, DOWN, AHEAD, BACK, RIGHT,
     LEFT, TAKE, USE, LOOK, QUIT,
     NORTH, SOUTH, EAST, WEST, SU,
@@ -101,7 +104,7 @@ enum {
 };
 
 // injuries
-enum {
+enum Injury {
     ABRASIONS, LACERATIONS, MINOR_PUNCTURE, MINOR_AMPUTATION, SPRAINED_WRIST,
     BROKEN_ANKLE, BROKEN_ARM, BROKEN_RIBS, BROKEN_LEG, BROKEN_BACK,
     HEAVY_BLEEDING, FRACTURED_SKULL, BROKEN_NECK, NUMOFINJURIES
@@ -111,7 +114,7 @@ enum {
 enum EGameState {
     CANTLAUNCH, LAUNCHED, CANTSEE, CANTMOVE, DUG,
     OPENED_KITCHEN_DOOR, OPENED_CAVE_DOOR, UNCOVERED_SEA_CAVE, ROPE_IN_PIT, IS_NIGHT,
-    MET_GIRL, IS_WIZARD, MATCH_LIGHT, IS_VERBOSE
+    MET_GIRL, IS_WIZARD, MATCH_LIGHT, IS_VERBOSE, LOVED_GODDESS
 };
 
 // Number of times room description shown.
@@ -143,6 +146,12 @@ enum {
     OBJ_NONOBJ	= 1<<3,
 };
 
+//}}}-------------------------------------------------------------------
+//{{{ Types
+
+typedef uint32_t gametime_t;
+typedef uint16_t location_t;
+
 struct ObjectInfo {
     const char*	shdesc;
     const char*	desc;
@@ -156,21 +165,16 @@ struct room {
     const char*	day_desc;
     const char*	night_desc;
     struct {
-	uint16_t north;
-	uint16_t east;
-	uint16_t south;
-	uint16_t west;
-	uint16_t up;
-	uint16_t down;
-	uint16_t flyhere;
-	uint16_t access;
+	location_t north;
+	location_t east;
+	location_t south;
+	location_t west;
+	location_t up;
+	location_t down;
+	location_t flyhere;
+	location_t access;
     }		dir;
 };
-extern const struct room location [NUMOFROOMS+1];
-
-// object characteristics
-extern const struct ObjectInfo c_objinfo [NUMOFOBJECTS];
-extern const char ouch [NUMOFINJURIES][24];
 
 // current input line
 enum {
@@ -183,47 +187,42 @@ struct Word {
     uint16_t	value;
 };
 
-//----------------------------------------------------------------------
+struct GameScore {
+    uint16_t	ego;
+    uint16_t	pleasure;
+    uint16_t	power;
+};
 
-extern struct Word words [NWORDS];
-extern uint8_t wordcount;
-extern uint8_t wordnumber;
+//}}}-------------------------------------------------------------------
+//{{{ Game data
 
-// state of the game
-extern int ourtime;
-extern int position;
-extern int direction;
-extern int left;
-extern int right;
-extern int ahead;
-extern int back;
-extern int ourclock;
-extern int fuel;
-extern int torps;
-extern int carrying;
-extern int encumber;
-extern int rythmn;
-extern int followfight;
-extern int ate;
-extern int snooze;
-extern int followgod;
-extern int godready;
-extern int win;
-extern int wintime;
-extern int matchcount;
-extern int loved;
-extern int pleasure;
-extern int power;
-extern int ego;
-extern int WEIGHT;
-extern int CUMBER;
+extern const struct room location [NUMOFROOMS+1];
+extern const struct ObjectInfo c_objinfo [NUMOFOBJECTS];
+extern const char ouch [NUMOFINJURIES][24];
+
+//}}}-------------------------------------------------------------------
+//{{{ Global state variables
+
+extern gametime_t ourtime;
+extern gametime_t rythmn;
+extern gametime_t ate;
+extern gametime_t snooze;
+extern location_t position;
+extern uint16_t direction;
 extern uint16_t game_states;
-extern char beenthere [NUMOFROOMS+1];
-extern char injuries [NUMOFINJURIES];
+extern uint16_t player_injuries;
+extern struct GameScore game_score;
+extern uint8_t fuel;
+extern uint8_t torps;
+extern uint8_t matchcount;
+extern uint8_t godready;
+extern uint8_t win;
+extern uint8_t beenthere [(NUMOFROOMS+1+7)/8];
 
 extern const char *username;
 
-//----------------------------------------------------------------------
+//}}}-------------------------------------------------------------------
+//{{{ Inlines for state access
 
 // game_states access
 inline static bool game_state (enum EGameState f)
@@ -232,6 +231,28 @@ inline static void set_game_state (enum EGameState f)
     { game_states |= (1u << f); }
 inline static void clear_game_state (enum EGameState f)
     { game_states &= ~(1u << f); }
+
+// injury accessors
+inline static bool has_injury (enum Injury i)
+    { return (player_injuries >> i) & 1; }
+inline static unsigned is_injured (void)
+    { unsigned n = 0; for (unsigned i = 0; i < NUMOFINJURIES; ++i) if (has_injury(i)) ++n; return n; }
+inline static bool is_fatally_injured (void)
+    { return player_injuries & ((1u<<FRACTURED_SKULL)|(1u<<HEAVY_BLEEDING)|(1u<<BROKEN_NECK)); }
+inline static void suffer_injury (enum Injury i)
+    { player_injuries |= 1u << i; }
+inline static void cure_injury (enum Injury i)
+    { player_injuries &= ~(1u << i); }
+inline static void cure_all_injuries (void)
+    { player_injuries = 0; }
+
+// location visited marker accessors
+inline static bool visited_location (enum LocationId l)
+    { return beenthere[l/8] & (1u<<(l%8)); }
+inline static void mark_location_visited (enum LocationId l)
+    { beenthere[l/8] |= (1u<<(l%8)); }
+inline static unsigned locations_visited (void)
+    { unsigned n = 0; for (unsigned i = 0; i < NUMOFROOMS+1; ++i) if (visited_location(i)) ++n; return n; }
 
 // These macros yield words to use with objects (followed but not preceded
 // by spaces, or with no spaces if the expansion is the empty string).
@@ -250,10 +271,14 @@ inline static const char* IS_OR_ARE (uint16_t n)
 inline static bool is_outside (void)
     { return position > ORBITING_PLANET && position < 246 && position != BUNGALOW_BEDROOM; }
 
-//----------------------------------------------------------------------
+//}}}-------------------------------------------------------------------
+//{{{ Extern prototypes
 
+// battlestar.c
+bool save (void);
+
+// cmd.c
 void bury(void);
-int card(const char *, int);
 void chime(void);
 void crash(void);
 int process_command(void);
@@ -265,7 +290,6 @@ void drink(void);
 int drive(void);
 int drop(const char *);
 int eat(void);
-void fight (enum ObjectId enemy, unsigned strength);
 int follow(void);
 void get_player_command (const char* prompt);
 int give(void);
@@ -276,39 +300,51 @@ bool launch (void);
 void light(void);
 _Noreturn void live(void);
 void love(void);
-bool moveplayer(int, int);
+bool moveplayer (location_t thatway, enum CommandId token);
 void murder(void);
 void news(void);
-void newway(int);
 int put(void);
 int puton(void);
-const char *rate(void);
+const char* player_rating (void);
 int ride(void);
-void save(const char *);
-char *save_file_name(const char *, size_t);
 int shoot(void);
 int take (uint16_t fromloc);
 int takeoff(void);
 int throw_object (const char *);
-const char *truedirec(int, char);
 int use(void);
 int visual(void);
 int wearit(void);
-void update_relative_directions (void);
-void writedes(void);
 bool zzz(void);
+
+// loc.c
+void write_location_short_description (void);
+void write_location_long_description (void);
+location_t relative_destination (enum CommandId relway);
+const char* truedirec (enum CommandId way, char option);
+enum CommandId compass_direction (enum CommandId way);
 
 // obj.c
 void cleanup_objects (void);
-bool object_is_at (enum ObjectId oid, uint16_t l);
-void create_object_at (enum ObjectId oid, uint16_t l);
-void remove_object_from (enum ObjectId oid, uint16_t l);
-unsigned count_objects_at (uint16_t l);
+bool object_is_at (enum ObjectId oid, location_t l);
+void create_object_at (enum ObjectId oid, location_t l);
+void remove_object_from (enum ObjectId oid, location_t l);
+void move_object_to (enum ObjectId oid, location_t f, location_t t);
+unsigned count_objects_at (location_t l);
 void printobjs (void);
 void convert (enum EDayOrNight to);
 void place_default_objects (void);
-void restore_saved_objects (FILE* fp);
-void save_objects (FILE* fp);
+uint16_t saved_objects_checksum (uint16_t sum);
+int read_objects_array (int fd);
+int write_objects_array (int fd);
+unsigned player_max_cumber (void);
+unsigned player_max_weight (void);
+unsigned player_encumber (void);
+unsigned player_carrying (void);
 unsigned player_melee_damage (void);
 const char* melee_damage_message (unsigned dmg);
 unsigned player_melee_damage_taken (void);
+
+// parse.c
+void fight (enum ObjectId enemy, unsigned strength);
+
+//}}}-------------------------------------------------------------------

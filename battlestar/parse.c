@@ -178,6 +178,13 @@ static const struct Word c_vocabulary[] = {
 
 //}}}-------------------------------------------------------------------
 
+// Current input line. These are used in command bodies in cmd.c
+struct Word words [NWORDS] = {};
+uint8_t wordcount = 0;
+uint8_t wordnumber = 0;
+
+//----------------------------------------------------------------------
+
 static char* getcom (char* buf, int size, const char* prompt, const char* error)
 {
     for (;;) {
@@ -273,16 +280,10 @@ void get_player_command (const char* prompt)
 
 int process_command (void)
 {
-    int n;
-    int junk;
     int lflag = -1;
-    char buffer[10];
-    char *filename = NULL, *rfilename;
-    size_t filename_len = 0;
-
     while (wordnumber <= wordcount) {
 	if (words[wordnumber].type != VERB && !(words[wordnumber].type == OBJECT && words[wordnumber].value == KNIFE)) {
-	    printf("%s: How's that?\n", (wordnumber == wordcount) ? words[0].word : words[wordnumber].word);
+	    printf ("%s: How's that?\n", (wordnumber == wordcount) ? words[0].word : words[wordnumber].word);
 	    return -1;
 	}
 
@@ -307,45 +308,45 @@ int process_command (void)
 		break;
 
 	    case DOWN:
-		if (!moveplayer(location[position].dir.down, AHEAD))
+		if (!moveplayer (location[position].dir.down, AHEAD))
 		    return -1;
 		lflag = 0;
 		break;
 
 	    case LEFT:
-		if (!moveplayer(left, LEFT))
+		if (!moveplayer (relative_destination (LEFT), LEFT))
 		    return -1;
 		lflag = 0;
 		break;
 
 	    case RIGHT:
-		if (!moveplayer(right, RIGHT))
+		if (!moveplayer (relative_destination (RIGHT), RIGHT))
 		    return -1;
 		lflag = 0;
 		break;
 
 	    case AHEAD:
-		if (!moveplayer(ahead, AHEAD))
+		if (!moveplayer (relative_destination (AHEAD), AHEAD))
 		    return -1;
 		lflag = 0;
 		break;
 
 	    case BACK:
-		if (!moveplayer(back, BACK))
+		if (!moveplayer (relative_destination (BACK), BACK))
 		    return -1;
 		lflag = 0;
 		break;
 
 	    case SHOOT:
 		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
-		    int things;
-		    things = 0;
-		    for (n = 0; n < NUMOFOBJECTS; ++n)
+		    unsigned things = 0;
+		    for (unsigned n = 0; n < NUMOFOBJECTS; ++n) {
 			if (object_is_at (n, position) && c_objinfo[n].shdesc) {
 			    ++things;
 			    words[wordnumber + 1].value = n;
 			    wordnumber = shoot();
 			}
+		    }
 		    if (!things)
 			puts("Nothing to shoot at!");
 		    ++wordnumber;
@@ -356,9 +357,8 @@ int process_command (void)
 
 	    case TAKE:
 		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
-		    int things;
-		    things = 0;
-		    for (n = 0; n < NUMOFOBJECTS; ++n)
+		    unsigned things = 0;
+		    for (unsigned n = 0; n < NUMOFOBJECTS; ++n)
 			if (object_is_at (n, position) && c_objinfo[n].shdesc) {
 			    ++things;
 			    words[wordnumber + 1].value = n;
@@ -401,14 +401,14 @@ int process_command (void)
 
 	    case DROP:
 		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
-		    int things;
-		    things = 0;
-		    for (n = 0; n < NUMOFOBJECTS; ++n)
+		    unsigned things = 0;
+		    for (unsigned n = 0; n < NUMOFOBJECTS; ++n) {
 			if (object_is_at (n, INVENTORY)) {
 			    ++things;
 			    words[wordnumber + 1].value = n;
 			    wordnumber = drop("Dropped");
 			}
+		    }
 		    ++wordnumber;
 		    ++wordnumber;
 		    if (!things)
@@ -420,32 +420,32 @@ int process_command (void)
 	    case KICK:
 	    case THROW_OBJECT:
 		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
-		    int things, wv;
-		    things = 0;
-		    wv = words[wordnumber].value;
-		    for (n = 0; n < NUMOFOBJECTS; ++n)
+		    unsigned things = 0;
+		    unsigned wv = words[wordnumber].value;
+		    for (unsigned n = 0; n < NUMOFOBJECTS; ++n) {
 			if (object_is_at (n, INVENTORY) || (object_is_at (n, position) && c_objinfo[n].shdesc)) {
 			    ++things;
 			    words[wordnumber + 1].value = n;
 			    wordnumber = throw_object (words[wordnumber].value == KICK ? "Kicked" : "Thrown");
 			}
+		    }
 		    wordnumber += 2;
 		    if (!things)
-			printf("Nothing to %s!\n", wv == KICK ? "kick" : "throw");
+			printf ("Nothing to %s!\n", wv == KICK ? "kick" : "throw");
 		} else
 		    throw_object (words[wordnumber].value == KICK ? "Kicked" : "Thrown");
 		break;
 
 	    case TAKEOFF:
 		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
-		    int things;
-		    things = 0;
-		    for (n = 0; n < NUMOFOBJECTS; ++n)
+		    unsigned things = 0;
+		    for (unsigned n = 0; n < NUMOFOBJECTS; ++n) {
 			if (object_is_at (n, WEARING)) {
 			    ++things;
 			    words[wordnumber + 1].value = n;
 			    wordnumber = takeoff();
 			}
+		    }
 		    wordnumber += 2;
 		    if (!things)
 			puts("Nothing to take off!");
@@ -455,14 +455,14 @@ int process_command (void)
 
 	    case DRAW:
 		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
-		    int things;
-		    things = 0;
-		    for (n = 0; n < NUMOFOBJECTS; ++n)
+		    unsigned things = 0;
+		    for (unsigned n = 0; n < NUMOFOBJECTS; ++n) {
 			if (object_is_at (n, WEARING)) {
 			    ++things;
 			    words[wordnumber + 1].value = n;
 			    wordnumber = draw();
 			}
+		    }
 		    wordnumber += 2;
 		    if (!things)
 			puts("Nothing to draw!");
@@ -472,14 +472,14 @@ int process_command (void)
 
 	    case PUTON:
 		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
-		    int things;
-		    things = 0;
-		    for (n = 0; n < NUMOFOBJECTS; ++n)
+		    unsigned things = 0;
+		    for (unsigned n = 0; n < NUMOFOBJECTS; ++n) {
 			if (object_is_at (n, position) && c_objinfo[n].shdesc) {
 			    ++things;
 			    words[wordnumber + 1].value = n;
 			    wordnumber = puton();
 			}
+		    }
 		    wordnumber += 2;
 		    if (!things)
 			puts("Nothing to put on!");
@@ -489,14 +489,14 @@ int process_command (void)
 
 	    case WEARIT:
 		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
-		    int things;
-		    things = 0;
-		    for (n = 0; n < NUMOFOBJECTS; ++n)
+		    unsigned things = 0;
+		    for (unsigned n = 0; n < NUMOFOBJECTS; ++n) {
 			if (object_is_at (n, INVENTORY)) {
 			    ++things;
 			    words[wordnumber + 1].value = n;
 			    wordnumber = wearit();
 			}
+		    }
 		    wordnumber += 2;
 		    if (!things)
 			puts("Nothing to wear!");
@@ -506,14 +506,14 @@ int process_command (void)
 
 	    case EAT:
 		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
-		    int things;
-		    things = 0;
-		    for (n = 0; n < NUMOFOBJECTS; ++n)
+		    unsigned things = 0;
+		    for (unsigned n = 0; n < NUMOFOBJECTS; ++n) {
 			if (object_is_at (n, INVENTORY)) {
 			    ++things;
 			    words[wordnumber + 1].value = n;
 			    wordnumber = eat();
 			}
+		    }
 		    wordnumber += 2;
 		    if (!things)
 			puts("Nothing to eat!");
@@ -528,33 +528,37 @@ int process_command (void)
 	    case INVEN:
 		if (count_objects_at (INVENTORY)) {
 		    puts("You are holding:\n");
-		    for (n = 0; n < NUMOFOBJECTS; ++n)
+		    for (unsigned n = 0; n < NUMOFOBJECTS; ++n)
 			if (object_is_at (n, INVENTORY))
-			    printf("\t%s\n", c_objinfo[n].shdesc);
-		    if (WEIGHT == 0)
-			printf("\n= %d kilogram%s (can't lift any weight%s)\n", carrying, (carrying == 1 ? "." : "s."), (carrying ? " or move with what you have" : ""));
+			    printf ("\t%s\n", c_objinfo[n].shdesc);
+		    unsigned mw = player_max_weight();
+		    unsigned carrying = player_carrying();
+		    if (!mw)
+			printf ("\n= %d kilogram%s (can't lift any weight%s)\n", carrying, (carrying == 1 ? "." : "s."), (carrying ? " or move with what you have" : ""));
 		    else
-			printf("\n= %d kilogram%s (%d%%)\n", carrying, (carrying == 1 ? "." : "s."), carrying * 100 / WEIGHT);
-		    if (CUMBER == 0)
-			printf("Your arms can't pick anything up.\n");
+			printf ("\n= %d kilogram%s (%d%%)\n", carrying, (carrying == 1 ? "." : "s."), carrying * 100 / mw);
+		    unsigned mc = player_max_cumber();
+		    if (!mc)
+			printf ("Your arms can't pick anything up.\n");
 		    else
-			printf("Your arms are %d%% full.\n", encumber * 100 / CUMBER);
+			printf ("Your arms are %d%% full.\n", player_encumber() * 100 / mc);
 		} else
 		    puts("You aren't carrying anything.");
 
 		if (count_objects_at (WEARING)) {
 		    puts("\nYou are wearing:\n");
-		    for (n = 0; n < NUMOFOBJECTS; ++n)
+		    for (unsigned n = 0; n < NUMOFOBJECTS; ++n)
 			if (object_is_at (n, WEARING))
-			    printf("\t%s\n", c_objinfo[n].shdesc);
+			    printf ("\t%s\n", c_objinfo[n].shdesc);
 		} else
 		    puts("\nYou are stark naked.");
-		if (card(injuries, NUMOFINJURIES)) {
+		if (is_injured()) {
 		    puts("\nYou have suffered:\n");
-		    for (n = 0; n < NUMOFINJURIES; ++n)
-			if (injuries[n])
-			    printf("\t%s\n", ouch[n]);
-		    printf("\nYou can still carry up to %d kilogram%s\n", WEIGHT, (WEIGHT == 1 ? "." : "s."));
+		    for (unsigned n = 0; n < NUMOFINJURIES; ++n)
+			if (has_injury (n))
+			    printf ("\t%s\n", ouch[n]);
+		    unsigned mw = player_max_weight();
+		    printf ("\nYou can still carry up to %d kilogram%s\n", mw, (mw == 1 ? "." : "s."));
 		} else
 		    puts("\nYou are in perfect health.");
 		++wordnumber;
@@ -566,14 +570,14 @@ int process_command (void)
 
 	    case OPEN:
 		if (wordnumber < wordcount && words[wordnumber + 1].value == EVERYTHING) {
-		    int things;
-		    things = 0;
-		    for (n = 0; n < NUMOFOBJECTS; ++n)
+		    unsigned things = 0;
+		    for (unsigned n = 0; n < NUMOFOBJECTS; ++n) {
 			if (object_is_at (n, INVENTORY)) {
 			    ++things;
 			    words[wordnumber + 1].value = n;
 			    dooropen();
 			}
+		    }
 		    wordnumber += 2;
 		    if (!things)
 			puts("Nothing to open!");
@@ -582,15 +586,18 @@ int process_command (void)
 		break;
 
 	    case LOOK:
-		if (!game_state (CANTSEE) || object_is_at (LAMPON, INVENTORY) || object_is_at (LAMPON, position)
-		    || game_state (MATCH_LIGHT)) {
-		    beenthere[position] = 2;
-		    writedes();
+		if (!game_state (CANTSEE)
+			|| object_is_at (LAMPON, INVENTORY)
+			|| object_is_at (LAMPON, position)
+			|| game_state (MATCH_LIGHT)) {
+		    write_location_long_description();
 		    printobjs();
 		    if (game_state (MATCH_LIGHT)) {
 			puts("\nYour match splutters out.");
 			clear_game_state (MATCH_LIGHT);
 		    }
+		    if (!visited_location (position))
+			mark_location_visited (position);
 		} else
 		    puts("I can't see anything.");
 		return -1;
@@ -598,77 +605,38 @@ int process_command (void)
 
 	    case SU:
 		if (game_state (IS_WIZARD)) {
-		    printf("\nRoom (was %d) = ", position);
-		    fgets(buffer, 10, stdin);
+		    printf ("\nRoom (was %d) = ", position);
+		    char buffer[10];
+		    fgets (buffer, 10, stdin);
 		    if (*buffer != '\n')
-			sscanf(buffer, "%d", &position);
-		    printf("Time (was %d) = ", ourtime);
-		    fgets(buffer, 10, stdin);
-		    if (*buffer != '\n')
-			sscanf(buffer, "%d", &ourtime);
-		    printf("Fuel (was %d) = ", fuel);
-		    fgets(buffer, 10, stdin);
-		    if (*buffer != '\n')
-			sscanf(buffer, "%d", &fuel);
-		    printf("Torps (was %d) = ", torps);
-		    fgets(buffer, 10, stdin);
-		    if (*buffer != '\n')
-			sscanf(buffer, "%d", &torps);
-		    printf("CUMBER (was %d) = ", CUMBER);
-		    fgets(buffer, 10, stdin);
-		    if (*buffer != '\n')
-			sscanf(buffer, "%d", &CUMBER);
-		    printf("WEIGHT (was %d) = ", WEIGHT);
-		    fgets(buffer, 10, stdin);
-		    if (*buffer != '\n')
-			sscanf(buffer, "%d", &WEIGHT);
-		    printf("Clock (was %d) = ", ourclock);
-		    fgets(buffer, 10, stdin);
-		    if (*buffer != '\n')
-			sscanf(buffer, "%d", &ourclock);
-		    printf("Wizard (was %d) = ", game_state (IS_WIZARD));
-		    fgets(buffer, 10, stdin);
-		    if (*buffer != '\n') {
-			sscanf(buffer, "%d", &junk);
-			if (!junk)
-			    clear_game_state (IS_WIZARD);
-		    }
-		    printf("\nDONE.\n");
+			sscanf (buffer, "%hu", &position);
+		    printf ("\nDONE.\n");
 		    return 0;
 		} else
 		    puts("You aren't a wizard.");
 		break;
 
-	    case SCORE:
-		printf("\tPLEASURE\tPOWER\t\tEGO\n");
-		printf("\t%3d\t\t%3d\t\t%3d\n\n", pleasure, power, ego);
-		printf("This gives you the rating of %s in %d turns.\n", rate(), ourtime);
-		printf("You have visited %d out of %d rooms this run (%d%%).\n", card(beenthere, NUMOFROOMS), NUMOFROOMS, card(beenthere, NUMOFROOMS) * 100 / NUMOFROOMS);
-		break;
+	    case SCORE: {
+		printf ("\tPLEASURE\tPOWER\t\tEGO\n");
+		printf ("\t%3u\t\t%3u\t\t%3u\n\n", game_score.pleasure, game_score.power, game_score.ego);
+		printf ("This gives you the rating of %s in %u turns.\n", player_rating(), ourtime);
+		unsigned nvisited = locations_visited();
+		printf ("You have visited %u out of %u rooms this run (%u%%).\n", nvisited, NUMOFROOMS, nvisited * 100 / NUMOFROOMS);
+		} break;
 
 	    case SAVE:
-		printf("\nSave file name (default %s): ", DEFAULT_SAVE_FILE);
-		getline(&filename, &filename_len, stdin);
-		if (filename_len == 0 || (filename_len == 1 && filename[0] == '\n'))
-		    rfilename = save_file_name(DEFAULT_SAVE_FILE, strlen(DEFAULT_SAVE_FILE));
-		else {
-		    if (filename[filename_len - 1] == '\n')
-			--filename_len;
-		    rfilename = save_file_name(filename, filename_len);
-		}
-		free(filename);
-		save(rfilename);
-		free(rfilename);
+		if (save())
+		    exit (EXIT_SUCCESS);
 		break;
 
 	    case VERBOSE:
 		set_game_state (IS_VERBOSE);
-		printf("[Maximum verbosity]\n");
+		printf ("[Maximum verbosity]\n");
 		break;
 
 	    case BRIEF:
 		clear_game_state (IS_VERBOSE);
-		printf("[Standard verbosity]\n");
+		printf ("[Standard verbosity]\n");
 		break;
 
 	    case FOLLOW:
@@ -772,10 +740,7 @@ void fight (enum ObjectId enemy, unsigned strength)
 		puts ("Unfortunately, you don't have a blaster handy.");
 	    else if (enemy == DARK_LORD && strength > 50) {
 		puts ("With his bare hand he deflects the laser blast and whips the pistol from you!");
-		remove_object_from (LASER, INVENTORY);
-		create_object_at (LASER, position);
-		carrying -= c_objinfo[LASER].weight;
-		encumber -= c_objinfo[LASER].cumber;
+		move_object_to (LASER, INVENTORY, position);
 	    } else {
 		printf ("The %s took a direct hit!\n", c_objinfo[enemy].shdesc);
 		strength -= min_u (strength, 50);
@@ -784,6 +749,7 @@ void fight (enum ObjectId enemy, unsigned strength)
 	    process_command();
 	    --ourtime;
 	} else if (words[wordnumber].value == BACK) {
+	    location_t destback = relative_destination (BACK);
 	    if (enemy == DARK_LORD && strength > 30) {
 		puts ("He throws you back against the rock and pummels your face.");
 		if ((object_is_at (AMULET, INVENTORY) || object_is_at (AMULET, WEARING))
@@ -795,12 +761,12 @@ void fight (enum ObjectId enemy, unsigned strength)
 		else
 		    puts ("I'm afraid you have been killed.");
 		die();
-	    } else if (!back || position == back)
+	    } else if (!destback || position == destback)
 		puts ("You can't seem to find the way out.");
 	    else {
 		puts ("You escape stunned and disoriented from the fight.\n"
 			"A victorious bellow echoes from the battlescene.");
-		moveplayer (back, BACK);
+		moveplayer (destback, BACK);
 		return;
 	    }
 	} else
@@ -808,13 +774,29 @@ void fight (enum ObjectId enemy, unsigned strength)
 
 	// Check if he is killed
 	if (!strength) {
+	    // Dark lord must be killed twice
+	    if (enemy == DARK_LORD && position == MINE_CHAMBER) {
+		puts ("The Dark Lord succumbs under your onslaught and falls.\n"
+			"With a sinister smile on his lips he makes an arcane gesture\n"
+			"and vanishes. His thunderous voice echoes through the cavern:\n"
+			"\"follow me at your peril, for I am now in the heart of darkness,"
+			"where your mortal soul would fade from existence in a heartbeat\".");
+		move_object_to (enemy, position, FINAL);
+		game_score.power += 10;
+		game_score.ego += 4;
+		return;
+	    }
 	    remove_object_from (enemy, position);
 	    if (enemy == WOODSMAN)
 		create_object_at (DEADWOOD, position);
 	    else
 		puts ("A watery black smoke consumes his body and then vanishes with a peal of thunder!");
 	    printf ("You have killed the %s.\n", c_objinfo[enemy].shdesc);
-	    power += 2;
+	    game_score.power += 2;
+	    if (enemy == DARK_LORD) {
+		game_score.power += 18;
+		game_score.ego += 10;
+	    }
 	    return;
 	}
 
@@ -827,12 +809,12 @@ void fight (enum ObjectId enemy, unsigned strength)
 	// If not, then he hits back
 	puts ("He attacks...");
 	unsigned hurt = player_melee_damage_taken();
-	if (!injuries[hurt]) {
-	    injuries[hurt] = 1;
+	if (!has_injury (hurt)) {
+	    suffer_injury (hurt);
 	    printf ("I'm afraid you have suffered %s.\n", ouch[hurt]);
 	} else
 	    puts ("You emerge unscathed.");
-	if (injuries[FRACTURED_SKULL] && injuries[HEAVY_BLEEDING] && injuries[BROKEN_NECK]) {
+	if (is_fatally_injured()) {
 	    puts ("Your injuries are fatal.");
 	    die();
 	}

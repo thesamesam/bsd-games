@@ -3,6 +3,7 @@
 
 #include "../config.h"
 #include <sys/stat.h>
+#include <paths.h>
 
 // The standard bsd checksum, summing with right rotation
 uint16_t bsdsum (const void* v, size_t n, uint16_t sum)
@@ -68,6 +69,18 @@ const char* player_name (void)
     if (!un)
 	un = "player";
     return un;
+}
+
+// Returns the home directory. Never fails.
+const char* player_homedir (void)
+{
+    const char* homedir = getenv ("HOME");
+    if (homedir)
+	return homedir;
+    homedir = getenv ("TMPDIR");
+    if (homedir)
+	return homedir;
+    return _PATH_TMP;
 }
 
 void StringBuilder_skip (struct StringBuilder* sb, ssize_t n) {

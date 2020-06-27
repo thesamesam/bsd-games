@@ -274,14 +274,14 @@ DECLARE_VECTOR_TYPE (ObjVec, struct ObjLoc);
 
 static VECTOR (struct ObjVec, s_objects);
 
-//----------------------------------------------------------------------
+//{{{ Object array management ------------------------------------------
 
 void cleanup_objects (void)
 {
     vector_deallocate (&s_objects);
 }
 
-bool object_is_at (enum ObjectId oid, uint16_t l)
+bool object_is_at (enum ObjectId oid, location_t l)
 {
     vector_foreach (const struct ObjLoc, o, s_objects)
 	if (o->obj == oid && o->room == l)
@@ -289,7 +289,7 @@ bool object_is_at (enum ObjectId oid, uint16_t l)
     return false;
 }
 
-void create_object_at (enum ObjectId oid, uint16_t l)
+void create_object_at (enum ObjectId oid, location_t l)
 {
     if (object_is_at (oid, l))
 	return; // already here
@@ -298,14 +298,21 @@ void create_object_at (enum ObjectId oid, uint16_t l)
     o->room = l;
 }
 
-void remove_object_from (enum ObjectId oid, uint16_t l)
+void remove_object_from (enum ObjectId oid, location_t l)
 {
     for (size_t i = 0; i < s_objects.size; ++i)
 	if (s_objects.d[i].obj == oid && s_objects.d[i].room == l)
 	    vector_erase (&s_objects, i--);
 }
 
-unsigned count_objects_at (uint16_t l)
+void move_object_to (enum ObjectId oid, location_t f, location_t t)
+{
+    for (size_t i = 0; i < s_objects.size; ++i)
+	if (s_objects.d[i].obj == oid && s_objects.d[i].room == f)
+	    s_objects.d[i].room = t;
+}
+
+unsigned count_objects_at (location_t l)
 {
     unsigned n = 0;
     vector_foreach (const struct ObjLoc, o, s_objects)
@@ -329,7 +336,7 @@ void printobjs (void)
 // Day objects are permanent. Night objects are added at dusk, and subtracted at dawn.
 void convert (enum EDayOrNight tothis)
 {
-//{{{ c_nightobjs
+//{{{2 c_nightobjs
 static const struct ObjLoc c_nightobjs[] = {
     { DRENIAN,		68	},
     { KIWI,		92	},
@@ -390,7 +397,7 @@ static const struct ObjLoc c_nightobjs[] = {
     { FOOT,		249	},
     { FOOT,		250	}
 };
-//}}}-------------------------------------------------------------------
+//}}}2------------------------------------------------------------------
     if (tothis == TONIGHT) {
 	set_game_state (IS_NIGHT);
 	for (unsigned i = 0; i < ArraySize(c_nightobjs); ++i)
@@ -404,8 +411,9 @@ static const struct ObjLoc c_nightobjs[] = {
 
 void place_default_objects (void)
 {
-//{{{ c_dayobjs
+//{{{2 c_dayobjs
 static const struct ObjLoc c_dayobjs[] = {
+    { PAJAMAS,		WEARING },
     { STARFIGHTER,	STARFIGHTER_ROOM },
     { ROBE,		STATEROOM_CLOSET },
     { COINS,		11		},
@@ -497,35 +505,92 @@ static const struct ObjLoc c_dayobjs[] = {
     { MAIL,		258	},
     { COINS,		260	},
     { SWORD,		260	},
-    { DARK_LORD,	266	},
+    { DARK_LORD,	MINE_CHAMBER	},
     { LAMPON,		GODDESS_THRONE_ROOM	},
     { BAR,		FINAL	},
     { BLOCK,		FINAL	},
     { POT,		FINAL	}
 };
-//}}}-------------------------------------------------------------------
+//}}}2------------------------------------------------------------------
     for (unsigned i = 0; i < ArraySize(c_dayobjs); ++i)
 	create_object_at (c_dayobjs[i].obj, c_dayobjs[i].room);
 }
 
-void restore_saved_objects (FILE* fp)
-{
-    uint16_t nobjs;
-    fread (&nobjs, sizeof(nobjs), 1, fp);
-    if (nobjs > 3*NUMOFOBJECTS) {
-	puts ("Error: saved file is corrupt");
-	return;
-    }
-    vector_clear (&s_objects);
-    vector_resize (&s_objects, nobjs);
-    fread (vector_begin(&s_objects), sizeof(s_objects.d[0]), nobjs, fp);
-}
-
-void save_objects (FILE* fp)
+uint16_t saved_objects_checksum (uint16_t sum)
 {
     uint16_t nobjs = s_objects.size;
-    fwrite (vector_begin(&s_objects), sizeof(s_objects.d[0]), nobjs, fp);
+    sum = bsdsum ((const uint8_t*) &nobjs, sizeof(nobjs), sum);
+    return bsdsum ((const uint8_t*) vector_begin (&s_objects), sizeof(s_objects.d[0])*nobjs, sum);
 }
+
+int read_objects_array (int fd)
+{
+    vector_clear (&s_objects);
+    uint16_t nobjs;
+    if (sizeof(nobjs) != read (fd, &nobjs, sizeof(nobjs)) || nobjs > 3*NUMOFOBJECTS)
+	return -1;
+    vector_resize (&s_objects, nobjs);
+    unsigned vbs = sizeof(s_objects.d[0])*nobjs;
+    if (vbs != read (fd, vector_begin(&s_objects), vbs))
+	return -1;
+    return sizeof(nobjs)+vbs;
+}
+
+int write_objects_array (int fd)
+{
+    uint16_t nobjs = s_objects.size;
+    if (0 >= write (fd, &nobjs, sizeof(nobjs)))
+	return -1;
+    unsigned vbs = sizeof(s_objects.d[0])*nobjs;
+    if (vbs != write (fd, vector_begin(&s_objects), vbs))
+	return -1;
+    return sizeof(nobjs)+vbs;
+}
+
+//}}}-------------------------------------------------------------------
+//{{{ Player inventory
+
+unsigned player_max_cumber (void)
+{
+    unsigned mc = MAXCUMBER;
+    if (has_injury (BROKEN_ARM))
+	mc -= 5;
+    if (has_injury (BROKEN_RIBS))
+	mc -= 2;
+    return mc;
+}
+
+unsigned player_max_weight (void)
+{
+    unsigned mw = MAXWEIGHT;
+    if (has_injury (BROKEN_BACK))
+	mw = 0;
+    else for (unsigned n = 0; n < NUMOFINJURIES; ++n)
+	if (has_injury (n))
+	    mw -= min_u (mw, 5);
+    return mw;
+}
+
+unsigned player_encumber (void)
+{
+    unsigned c = 0;
+    vector_foreach (const struct ObjLoc, o, s_objects)
+	if (o->room == INVENTORY)
+	    c += c_objinfo[o->obj].cumber;
+    return c;
+}
+
+unsigned player_carrying (void)
+{
+    unsigned w = 0;
+    vector_foreach (const struct ObjLoc, o, s_objects)
+	if (o->room == INVENTORY)
+	    w += c_objinfo[o->obj].weight;
+    return w;
+}
+
+//}}}-------------------------------------------------------------------
+//{{{ Combat stats
 
 unsigned player_melee_damage (void)
 {
@@ -533,13 +598,15 @@ unsigned player_melee_damage (void)
     if (snooze > ourtime)
 	exhaustion = CYCLE / (snooze - ourtime);
 
+    const unsigned encumber = player_encumber(), mw = player_max_weight();
+
     int dmg;
     if (object_is_at (TWO_HANDED, INVENTORY))
-	dmg = nrand(70) - 2 * card(injuries, NUMOFINJURIES) - count_objects_at(WEARING) - exhaustion;
+	dmg = nrand(70) - 2 * is_injured() - count_objects_at(WEARING) - exhaustion;
     else if (object_is_at (SWORD, INVENTORY) || object_is_at (BROAD, INVENTORY))
-	dmg = nrand(50) % (WEIGHT - carrying) - card(injuries, NUMOFINJURIES) - encumber - exhaustion;
+	dmg = nrand(50) % (mw - min_u (mw, player_carrying())) - is_injured() - encumber - exhaustion;
     else if (object_is_at (KNIFE, INVENTORY) || object_is_at (MALLET, INVENTORY) || object_is_at (CHAIN, INVENTORY) || object_is_at (MACE, INVENTORY) || object_is_at (HALBERD, INVENTORY))
-	dmg = nrand(15) - card(injuries, NUMOFINJURIES) - exhaustion;
+	dmg = nrand(15) - is_injured() - exhaustion;
     else
 	dmg = nrand(7) - encumber;
 
@@ -596,3 +663,5 @@ unsigned player_melee_damage_taken (void)
     // Unlike given damage, damage taken translates directly into injury level
     return min_u (max_i (hurt, 0), NUMOFINJURIES-1);
 }
+
+//}}}-------------------------------------------------------------------

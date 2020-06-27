@@ -4,7 +4,6 @@
 #include <signal.h>
 #include <sys/uio.h>
 #include <sys/stat.h>
-#include <paths.h>
 
 //{{{ Global variables -------------------------------------------------
 
@@ -62,7 +61,6 @@ loc_t	odloc [MAXDWARVES] = {};	// dwarf old locations
 static void initialize (void);
 static _Noreturn void on_fatal_signal (int sig);
 static uint16_t sum_save_array (void);
-static const char* get_homedir (void);
 static bool save (void);
 
 //}}}-------------------------------------------------------------------
@@ -174,20 +172,9 @@ static uint16_t sum_save_array (void)
 
 struct save_header { char magictext[6]; uint16_t sum; };
 
-static const char* get_homedir (void)
-{
-    const char* homedir = getenv ("HOME");
-    if (homedir)
-	return homedir;
-    homedir = getenv ("TMPDIR");
-    if (homedir)
-	return homedir;
-    return _PATH_TMP;
-}
-
 static bool save (void)
 {
-    const char* homedir = get_homedir();
+    const char* homedir = player_homedir();
     char savename [PATH_MAX];
     snprintf (ArrayBlock(savename), _PATH_SAVED_GAMES, homedir);
     if (0 != access (savename, R_OK))
@@ -217,7 +204,7 @@ static bool save (void)
 bool restore (void)
 {
     char savename [PATH_MAX];
-    snprintf (ArrayBlock(savename), ADVENTURE_SAVE_NAME, get_homedir());
+    snprintf (ArrayBlock(savename), ADVENTURE_SAVE_NAME, player_homedir());
     int fd = open (savename, O_RDONLY);
     if (fd < 0)
 	return false;

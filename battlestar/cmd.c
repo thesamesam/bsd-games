@@ -27,22 +27,26 @@ static _Noreturn void post (char ch);
 
 //----------------------------------------------------------------------
 
-bool moveplayer (int thataway, int token)
+// Parsed command line variables, in parse.c
+extern struct Word words [NWORDS];
+extern uint8_t wordcount;
+extern uint8_t wordnumber;
+
+//----------------------------------------------------------------------
+
+bool moveplayer (location_t thataway, enum CommandId token)
 {
     ++wordnumber;
     if ((!game_state (CANTMOVE) && !game_state (LAUNCHED))
 	    || object_is_at (LAND, position)
 	    || (fuel > 0 && game_state (LAUNCHED))) {
-	if (thataway) {
-	    position = thataway;
-	    newway (token);
-	    ++ourtime;
-	} else {
+	if (!thataway) {
 	    puts ("You can't go this way.");
-	    newway (token);
-	    update_relative_directions();
 	    return false;
 	}
+	position = thataway;
+	direction = compass_direction (token);
+	++ourtime;
     } else {
 	if (game_state (CANTMOVE) && !game_state (LAUNCHED))
 	    puts ("You aren't able to move; you better drop something.");
@@ -128,7 +132,7 @@ void news (void)
 	create_object_at (LAMPON, GARDEN);
 	create_object_at (ROPE, GARDEN);
     }
-    if (position == DOCK && (beenthere[position] || ourtime > CYCLE)) {
+    if (position == DOCK && (visited_location (position) || ourtime > CYCLE)) {
 	remove_object_from (GIRL, DOCK);
 	remove_object_from (MAN, DOCK);
     }
@@ -140,50 +144,22 @@ void news (void)
     }
     if (object_is_at (DRENIAN, position)) {
 	puts ("Oh my God, you're being shot at by an alien spacecraft!");
-	printf ("The targeting computer says we have %d seconds to attack!\n", ourclock);
 	fflush (stdout);
 	sleep (1);
 	if (!visual()) {
 	    unsigned hurt = nrand (NUMOFINJURIES);
-	    injuries[hurt] = 1;
+	    suffer_injury (hurt);
 	    puts ("Laser blasts sear the cockpit, and the alien veers off in a victory roll.");
 	    puts ("The starfighter shudders under a terrible explosion.");
 	    printf ("I'm afraid you have suffered %s.\n", ouch[hurt]);
 	} else
 	    remove_object_from (DRENIAN, position);
     }
-    if (injuries[FRACTURED_SKULL] && injuries[HEAVY_BLEEDING] && injuries[BROKEN_NECK]) {
+    if (is_fatally_injured()) {
 	puts ("I'm afraid you have suffered fatal injuries.");
 	die();
     }
-    for (unsigned n = 0; n < NUMOFINJURIES; ++n) {
-	if (injuries[n] == 1) {
-	    injuries[n] = 2;
-	    if (WEIGHT > 5)
-		WEIGHT -= 5;
-	    else
-		WEIGHT = 0;
-	}
-    }
-    if (injuries[BROKEN_ARM] == 2) {
-	if (CUMBER > 5)
-	    CUMBER -= 5;
-	else
-	    CUMBER = 0;
-	++injuries[BROKEN_ARM];
-    }
-    if (injuries[BROKEN_RIBS] == 2) {
-	if (CUMBER > 2)
-	    CUMBER -= 2;
-	else
-	    CUMBER = 0;
-	++injuries[BROKEN_RIBS];
-    }
-    if (injuries[BROKEN_BACK] == 2) {
-	WEIGHT = 0;
-	++injuries[BROKEN_BACK];
-    }
-    if (carrying > WEIGHT || encumber > CUMBER)
+    if (player_carrying() > player_max_weight() || player_encumber() > player_max_cumber())
 	set_game_state (CANTMOVE);
     else
 	clear_game_state (CANTMOVE);
@@ -192,7 +168,7 @@ void news (void)
 void crash (void)
 {
     --fuel;
-    if (location[position].dir.flyhere && (!object_is_at (LAND, position) || fuel > 0))
+    if (location[position].dir.flyhere && (!object_is_at (LAND, position) || fuel >= 2)) // need 2 fuel to land
 	return;
     if (!location[position].dir.flyhere)
 	puts ("You're flying too low. We're going to crash!");
@@ -212,10 +188,10 @@ void crash (void)
     zzz();
     unsigned hurt1 = nrand (NUMOFINJURIES-MINOR_PUNCTURE)+MINOR_PUNCTURE;
     unsigned hurt2 = nrand (NUMOFINJURIES-MINOR_PUNCTURE)+MINOR_PUNCTURE;
-    injuries [hurt1] = 1;
-    injuries [hurt2] = 1;
-    injuries [ABRASIONS] = 1;	// abrasions
-    injuries [LACERATIONS] = 1;	// lacerations
+    suffer_injury (hurt1);
+    suffer_injury (hurt2);
+    suffer_injury (ABRASIONS);	// abrasions
+    suffer_injury (LACERATIONS);	// lacerations
     printf ("I'm afraid you have suffered %s and %s.\n", ouch[hurt1], ouch[hurt2]);
 }
 
@@ -250,10 +226,7 @@ int wearit (void)
 	    return firstnumber;
 	}
 	if (object_is_at (value, INVENTORY)) {
-	    remove_object_from (value, INVENTORY);
-	    create_object_at (value, WEARING);
-	    carrying -= c_objinfo[value].weight;
-	    encumber -= c_objinfo[value].cumber;
+	    move_object_to (value, INVENTORY, WEARING);
 	    ++ourtime;
 	    printf ("You are now wearing %s%s.\n", A_OR_AN_OR_THE(value), c_objinfo[value].shdesc);
 	} else if (object_is_at (value, WEARING))
@@ -305,7 +278,6 @@ int use (void)
 	    puts ("The medallion comes to life too.");
 	    if (position == ABOVE_SEA_CAVE) {
 		set_game_state (UNCOVERED_SEA_CAVE);
-		update_relative_directions();
 		puts ("The waves subside and it is possible to descend to the sea cave now.");
 		++ourtime;
 		return -1;
@@ -332,20 +304,19 @@ int use (void)
 
 int follow (void)
 {
-    if (followfight == ourtime) {
+    if (position == MINE_CHAMBER && object_is_at (DARK_LORD, FINAL)) {
 	puts ("The Dark Lord leaps away and runs down secret tunnels and corridors.\n"
 		"You chase him through the darkness and splash in pools of water.\n"
 		"You have cornered him. His laser sword extends as he steps forward.");
 	position = FINAL;
 	fight (DARK_LORD, 75);
 	create_object_at (TALISMAN, position);
-	create_object_at (AMULET, position);
 	return 0;
-    } else if (followgod == ourtime) {
+    } else if (position == POOLS && object_is_at (GODDESS, POOLS)) {
 	puts ("The goddess leads you down a steamy tunnel and into a high, wide chamber.\n"
 		"She sits down on a throne.");
+	move_object_to (GODDESS, POOLS, GODDESS_THRONE_ROOM);
 	position = GODDESS_THRONE_ROOM;
-	create_object_at (GODDESS, position);
 	set_game_state (CANTSEE);
 	return 0;
     } else
@@ -386,15 +357,11 @@ int jump (void)
 	case HANGAR_GALLERY:	position = MAIN_HANGAR;	break;
     }
     puts ("Ahhhhhhh...");
-    injuries[BROKEN_LEG] = injuries[BROKEN_RIBS] = injuries[BROKEN_ARM] = true;
-    for (unsigned n = 0; n < NUMOFOBJECTS; ++n) {
-	if (object_is_at (n, INVENTORY)) {
-	    remove_object_from (n, INVENTORY);
-	    create_object_at (n, position);
-	}
-    }
-    carrying = 0;
-    encumber = 0;
+    suffer_injury (BROKEN_LEG);
+    suffer_injury (BROKEN_RIBS);
+    suffer_injury (BROKEN_ARM);
+    for (unsigned n = 0; n < NUMOFOBJECTS; ++n)
+	move_object_to (n, INVENTORY, position);
     return 0;
 }
 
@@ -416,7 +383,7 @@ void bury (void)
 		    if (object_is_at (c_buryable[i], INVENTORY) || object_is_at (c_buryable[i], position))
 			value = c_buryable[i];
 		break;
-	    case TIMER:		power += 7; ego -= 10; // fallthrough
+	    case TIMER:		game_score.power += 7; game_score.ego -= min_u (game_score.ego,10); // fallthrough
 	    case AMULET:
 	    case MEDALION:
 	    case TALISMAN:	words[wordnumber].type = OBJECT; break;
@@ -426,15 +393,12 @@ void bury (void)
     if (words[wordnumber].type == OBJECT && position >= FIRST_ISLAND_LAND
 	    && (object_is_at (value, INVENTORY) || object_is_at (value, position))) {
 	puts ("Buried.");
-	if (object_is_at (value, INVENTORY)) {
+	if (object_is_at (value, INVENTORY))
 	    remove_object_from (value, INVENTORY);
-	    carrying -= c_objinfo[value].weight;
-	    encumber -= c_objinfo[value].cumber;
-	}
 	remove_object_from (value, position);
 	for (unsigned i = 0; i < ArraySize(c_buryable); ++i) {
 	    if (c_buryable[i] == value) {
-		ego += 2;
+		game_score.ego += 2;
 		printf ("The %s should rest easier now.\n", c_objinfo[value].shdesc);
 	    }
 	}
@@ -452,10 +416,7 @@ void drink (void)
 	"The heat reaches your limbs and tingles your spirit.\n"
 	"You feel like falling asleep.");
     remove_object_from (POTION, INVENTORY);
-    WEIGHT = MAXWEIGHT;
-    CUMBER = MAXCUMBER;
-    for (unsigned n = 0; n < NUMOFINJURIES; ++n)
-	injuries[n] = false;
+    cure_all_injuries();
     ++ourtime;
     zzz();
 }
@@ -495,12 +456,10 @@ int shoot (void)
 	case CAVE_ENTRANCE:
 	    puts ("The door is unhinged.");
 	    set_game_state (OPENED_CAVE_DOOR);
-	    update_relative_directions();
 	    break;
 	case KITCHEN_DOOR:
 	    puts ("The wooden door splinters.");
 	    set_game_state (OPENED_KITCHEN_DOOR);
-	    update_relative_directions();
 	    break;
 	case DINING_ROOM_DOOR:
 	    puts ("The laser blast has no effect on the door.");
@@ -515,7 +474,7 @@ int shoot (void)
     return firstnumber;
 }
 
-int take (uint16_t fromloc)
+int take (location_t fromloc)
 {
     int firstnumber = wordnumber;
     if (wordnumber < wordcount && words[wordnumber + 1].value == OFF) {
@@ -528,19 +487,17 @@ int take (uint16_t fromloc)
 	while (wordnumber <= wordcount && words[wordnumber].type == OBJECT) {
 	    int value = words[wordnumber].value;
 	    printf ("%s:\n", c_objinfo[value].shdesc);
-	    bool heavy = (carrying + c_objinfo[value].weight) <= WEIGHT;
-	    bool bulky = (encumber + c_objinfo[value].cumber) <= CUMBER;
+	    bool heavy = (player_carrying() + c_objinfo[value].weight) <= player_max_weight();
+	    bool bulky = (player_encumber() + c_objinfo[value].cumber) <= player_max_cumber();
 	    if ((object_is_at (value, fromloc) || game_state (IS_WIZARD)) && heavy && bulky && !object_is_at (value, INVENTORY)) {
 		create_object_at (value, INVENTORY);
-		carrying += c_objinfo[value].weight;
-		encumber += c_objinfo[value].cumber;
 		++ourtime;
 		if (object_is_at (value, fromloc))
 		    printf ("Taken.\n");
 		else
 		    printf ("Zap! Taken from thin air.\n");
 		remove_object_from (value, fromloc);
-		if (value == MEDALION)
+		if (value == MEDALION && win)
 		    --win;
 	    } else if (object_is_at (value, INVENTORY))
 		printf ("You're already holding %s%s.\n", A_OR_AN_OR_BLANK(value), c_objinfo[value].shdesc);
@@ -627,9 +584,9 @@ int take (uint16_t fromloc)
 			"from her, they fall as teardrops. She wraps a single cloth around her and\n"
 			"ties it at the waist. Around her neck hangs a golden amulet.\n"
 			"She bids you to follow her, and walks away.");
-		++pleasure;
-		followgod = ourtime;
+		++game_score.pleasure;
 		remove_object_from (BATHGOD, position);
+		create_object_at (GODDESS, position);
 	    } else
 		puts ("She moves away from you.");
 	    break;
@@ -643,13 +600,13 @@ int take (uint16_t fromloc)
 
 int throw_object (const char *name)
 {
-    int deposit = 0, first = wordnumber;
+    int first = wordnumber;
+    location_t deposit = 0;
     if (drop(name) != -1) {
 	switch (words[wordnumber].value) {
-	    case AHEAD:	deposit = ahead; break;
-	    case BACK:	deposit = back;	 break;
-	    case LEFT:	deposit = left;	 break;
-	    case RIGHT:	deposit = right; break;
+	    default:
+		deposit = relative_destination (words[wordnumber].value);
+		break;
 	    case UP:
 		if (position == FINAL && !game_state (ROPE_IN_PIT))
 		    deposit = 0;
@@ -679,12 +636,10 @@ int throw_object (const char *name)
 		    case CAVE_ENTRANCE:
 			puts ("The stone door is unhinged.");
 			set_game_state (OPENED_CAVE_DOOR);
-			update_relative_directions();
 			break;
 		    case KITCHEN_DOOR:
 			puts ("The wooden door is blown open.");
 			set_game_state (OPENED_KITCHEN_DOOR);
-			update_relative_directions();
 			break;
 		    case DINING_ROOM_DOOR:
 			puts ("The door is not damaged.");
@@ -729,14 +684,11 @@ int drop (const char *name)
 	} else {
 	    printf ("%s:\n", c_objinfo[value].shdesc);
 	    if (object_is_at (value, INVENTORY)) {
-		remove_object_from (value, INVENTORY);
-		carrying -= c_objinfo[value].weight;
-		encumber -= c_objinfo[value].cumber;
+		move_object_to (value, INVENTORY, position);
 		if (value == BOMB) {
 		    puts ("The bomb explodes. A blinding white light and immense concussion obliterate us.");
 		    die();
 		}
-		create_object_at (value, position);
 		++ourtime;
 		if (*name == 'K')
 		    puts ("Drop kicked.");
@@ -817,8 +769,6 @@ int eat (void)
 	    puts ("You need a knife.");
 	else {
 	    remove_object_from (value, INVENTORY);
-	    carrying -= c_objinfo[value].weight;
-	    encumber -= c_objinfo[value].cumber;
 	    ate = max_i (ourtime, ate) + CYCLE / 3;
 	    snooze += CYCLE / 10;
 	    ++ourtime;
@@ -845,10 +795,10 @@ void kiss (void)
     if (!object_is_at (words[wordnumber].value, position))
 	puts ("She is not here.");
     else if (words[wordnumber].value == NATIVE_GIRL) {
-	++pleasure;
+	++game_score.pleasure;
 	puts ("You kiss her.\nHer lips are warm and her body robust. She pulls you down to the ground.");
     } else if (words[wordnumber].value == GODDESS) {
-	++pleasure;
+	++game_score.pleasure;
 	switch (godready++) {
 	    case 0: puts ("You try to kiss her. She avoids your advances."); break;
 	    case 1: puts ("You try to kiss her. She leans away with a smile."); break;
@@ -867,13 +817,13 @@ void love (void)
 	puts ("Where's your lover?");
     else if (words[wordnumber].value == NATIVE_GIRL) {
 	puts ("The girl peels off her sarong and indulges you.");
-	pleasure += 5;
+	game_score.pleasure += 5;
 	printf ("Girl:\n");
 	ourtime += 10;
 	printf ("Loved.\n");
 	zzz();
     } else if (words[wordnumber].value == GODDESS) {
-	if (loved)
+	if (game_state (LOVED_GODDESS))
 	    puts ("Loved.");
 	else if (godready < 3)
 	    puts ("You wish!");
@@ -887,20 +837,18 @@ void love (void)
 		    "which you may use as you wish. As for me, I am the last goddess of the\n"
 		    "waters. My father was the Island King, and the rule is rightfully mine.'\n\n"
 		    "She pulls the throne out into a large bed.");
-	    pleasure += 15;
-	    ++power;
-	    ++ego;
-	    if (card(injuries, NUMOFINJURIES)) {
+	    game_score.pleasure += 50;
+	    ++game_score.power;
+	    ++game_score.ego;
+	    if (is_injured()) {
 		puts ("Her kisses revive you; your wounds are healed.\n");
-		for (unsigned n = 0; n < NUMOFINJURIES; ++n)
-		    injuries[n] = 0;
-		WEIGHT = MAXWEIGHT;
-		CUMBER = MAXCUMBER;
+		cure_all_injuries();
 	    }
 	    printf ("Goddess:\n");
-	    if (!loved)
+	    if (!game_state (LOVED_GODDESS)) {
+		set_game_state (LOVED_GODDESS);
 		create_object_at (MEDALION, position);
-	    loved = true;
+	    }
 	    ourtime += 10;
 	    printf ("Loved.\n");
 	    zzz();
@@ -911,17 +859,17 @@ void love (void)
 
 bool zzz (void)
 {
-    int oldtime = ourtime;
+    gametime_t oldtime = ourtime;
     if (snooze - ourtime >= 3*CYCLE/4)
 	return false;
     ourtime += 3*CYCLE/4 - (snooze - ourtime);
     printf ("<zzz>");
-    for (int n = 0; n < ourtime - oldtime; ++n)
+    for (gametime_t n = 0; n < ourtime - oldtime; ++n)
 	printf (".");
     printf ("\n");
     snooze += 3 * (ourtime - oldtime);
     if (game_state (LAUNCHED)) {
-	fuel -= (ourtime - oldtime);
+	fuel -= min_u (fuel, (ourtime - oldtime));
 	if (location[position].dir.down) {
 	    position = location[position].dir.down;
 	    crash();
@@ -940,11 +888,7 @@ bool zzz (void)
 	    do
 		n = nrand (NUMOFOBJECTS);
 	    while (!object_is_at (n, INVENTORY));
-	    remove_object_from (n, INVENTORY);
-	    if (n != AMULET && n != MEDALION && n != TALISMAN)
-		create_object_at (n, position);
-	    carrying -= c_objinfo[n].weight;
-	    encumber -= c_objinfo[n].cumber;
+	    move_object_to (n, INVENTORY, position);
 	    puts ("A fiendish little Elf is stealing your treasures!");
 	    fight (ELF, 10);
 	}
@@ -954,7 +898,7 @@ bool zzz (void)
 
 void chime (void)
 {
-    unsigned cycletime = (ourtime%CYCLE)*7/CYCLE;
+    gametime_t cycletime = (ourtime%CYCLE)*7/CYCLE;
     if (!is_outside())
 	puts ("I can't tell the time in here.");
     else if ((ourtime/CYCLE+1)%2) {
@@ -1030,30 +974,28 @@ int give (void)
     if (result != -1 && (object_is_at (obj, position) || obj == AMULET || obj == MEDALION || obj == TALISMAN)) {
 	remove_object_from (obj, position);
 	++ourtime;
-	++ego;
+	++game_score.ego;
 	switch (person) {
 	    case NATIVE_GIRL:
 		puts ("She accepts it shyly.");
-		ego += 2;
+		game_score.ego += 2;
 		break;
 	    case GODDESS:
 		if (obj == RING || obj == BRACELET) {
 		    puts ("She takes the charm and puts it on.\n"
 			"A little kiss on the cheek is your reward.");
-		    ego += 5;
+		    game_score.ego += 5;
 		    godready += 3;
 		}
 		if (obj == AMULET || obj == MEDALION || obj == TALISMAN) {
-		    ++win;
-		    ego += 5;
-		    power -= 5;
-		    if (win >= 3) {
+		    game_score.ego += 5;
+		    game_score.power -= min_u (game_score.power, 5);
+		    if (++win >= 3) {
 			puts ("The powers of the earth are now legitimate. You have destroyed the Darkness\n"
 				"and restored the goddess to her throne. The entire island celebrates with\n"
 				"dancing and spring feasts. As a measure of her admiration, the goddess weds\n"
 				"you in the late summer and crowns you Prince Liverwort, Lord of Fungus.");
 			remove_object_from (MEDALION, position);
-			wintime = ourtime;
 			live();
 		    }
 		}
@@ -1119,7 +1061,7 @@ bool land (void)
     clear_game_state (LAUNCHED);
     position = location[position].dir.down;
     create_object_at (STARFIGHTER, position);
-    fuel -= 2;
+    fuel -= min_u (fuel, 2);
     ++ourtime;
     puts ("You land.");
     return true;
@@ -1127,7 +1069,7 @@ bool land (void)
 
 _Noreturn void die (void)
 {
-    printf ("Bye.\nYour rating was %s.\n", rate());
+    printf ("Bye.\nYour rating was %s.\n", player_rating());
     post (' ');
 }
 
@@ -1147,7 +1089,7 @@ static _Noreturn void post (char ch UNUSED)
     FILE* score_fp = fopen (_PATH_SCORE, "a");
     if (!score_fp)
 	return;
-    fprintf (score_fp, "%s  %8s  %c%20s", date, username, ch, rate());
+    fprintf (score_fp, "%s  %8s  %c%20s", date, username, ch, player_rating());
     if (game_state (IS_WIZARD))
 	fprintf (score_fp, "   WIZARD!\n");
     else
@@ -1157,15 +1099,15 @@ static _Noreturn void post (char ch UNUSED)
     exit (EXIT_SUCCESS);
 }
 
-const char* rate (void)
+const char* player_rating (void)
 {
-    int score = max_i (max_i (pleasure, power), ego);
-    if (score == pleasure) {
+    unsigned score = max_i (max_i (game_score.pleasure, game_score.power), game_score.ego);
+    if (score == game_score.pleasure) {
 	if (score < 5)		return "novice";
 	else if (score < 20)	return "junior voyeur";
 	else if (score < 35)	return "Don Juan";
 	else			return "Marquis De Sade";
-    } else if (score == power) {
+    } else if (score == game_score.power) {
 	if (score < 5)		return "serf";
 	else if (score < 8)	return "Samurai";
 	else if (score < 13)	return "Klingon";
@@ -1190,8 +1132,8 @@ int drive (void)
 	    "and an explosion knocks you unconscious...");
     remove_object_from (CAR, position);
     create_object_at (CRASH, position);
-    injuries[BROKEN_ARM] = true;
-    injuries[BROKEN_RIBS] = true;
+    suffer_injury (BROKEN_ARM);
+    suffer_injury (BROKEN_RIBS);
     ourtime += 15;
     zzz();
     return 0;
@@ -1206,10 +1148,10 @@ int ride (void)
     puts ("You climb onto the stallion and kick it in the guts.\n"
 	    "The indignant steed launches forward through bush and fern.\n"
 	    "You are thrown and the horse gallops off.");
-    remove_object_from (HORSE, position);
+    location_t oldpos = position;
     while (!(position = nrand(NUMOFROOMS+1)) || !is_outside()
-	    || !beenthere[position] || location[position].dir.flyhere) {}
-    create_object_at (HORSE, position);
+	    || !visited_location(position) || location[position].dir.flyhere) {}
+    move_object_to (HORSE, oldpos, position);
     if (location[position].dir.north)
 	position = location[position].dir.north;
     else if (location[position].dir.south)
@@ -1263,15 +1205,4 @@ void dooropen (void)
 	puts ("The door is already ajar.");
     else
 	puts ("What door?");
-}
-
-// for beenthere, injuries
-int card (const char* array, int size)
-{
-    const char* end = array + size;
-    int i = 0;
-    while (array < end)
-	if (*array++)
-	    ++i;
-    return i;
 }

@@ -2,69 +2,52 @@
 // This file is free software, distributed under the BSD license.
 
 #include "extern.h"
+#include <sys/uio.h>
 
 //{{{ Global variables -------------------------------------------------
 
-int WEIGHT = MAXWEIGHT;
-int CUMBER = MAXCUMBER;
-
-int win = 1;
-int matchcount = 20;
-int followgod = -1;
-int followfight = -1;
-
-// current input line
-struct Word words [NWORDS] = {};
-uint8_t wordcount = 0;
-uint8_t wordnumber = 0;
-
-// state of the game
-int ourtime = 0;
-int position = 0;
-int direction = 0;
-int left = 0;
-int right = 0;
-int ahead = 0;
-int back = 0;
-int fuel = 0;
-int torps = 0;
-int carrying = 0;
-int encumber = 0;
-int rythmn = 0;
-int ate = 0;
-int snooze = 0;
-int godready = 0;
-int wintime = 0;
-int loved = 0;
-int pleasure = 0;
-int power = 0;
-int ego = 0;
+gametime_t ourtime = 0;
+gametime_t rythmn = 0;
+gametime_t ate = 0;
+gametime_t snooze = 3*CYCLE/2;
+location_t position = LUXURIOUS_STATEROOM;
+uint16_t direction = NORTH;
 uint16_t game_states = 0;
-char beenthere [NUMOFROOMS + 1] = {};
-char injuries [NUMOFINJURIES] = {};
+uint16_t player_injuries = 0;
+struct GameScore game_score = {};
+uint8_t fuel = TANKFULL;
+uint8_t torps = TORPEDOES;
+uint8_t matchcount = 20;
+uint8_t godready = 0;
+uint8_t win = 1;
+uint8_t beenthere [(NUMOFROOMS+1+7)/8] = {};
 
 const char* username = "player";
 
 //}}}-------------------------------------------------------------------
 
-static void initialize (const char *filename);
-static void restore (const char *filename);
+static bool restore (void);
 
 //----------------------------------------------------------------------
 
-int main (int argc, char **argv)
+int main (void)
 {
-    if (argc < 2)
-	initialize (NULL);
-    else if (strcmp(argv[1], "-r") == 0)
-	initialize ((argc > 2) ? argv[2] : DEFAULT_SAVE_FILE);
-    else
-	initialize (argv[1]);
-
+    initialize_curses();
+    endwin();
+    atexit (cleanup_objects);
+    username = player_name();
+    if (!restore()) {
+	place_default_objects();
+	puts (BOLD_ON "\n"
+	    "		===========================	\n"
+	    "		    B A T T L E S T A R		\n"
+	    "		===========================	\n"
+	    BOLD_OFF "\n"
+	    "	First Adventure game written by His Lordship,\n"
+	    "	     the honorable Admiral D.W. Riggle");
+    }
     for (;;) {
 	news();
-	if (beenthere[position] <= ROOMDESC)
-	    ++beenthere[position];
 	if (game_state (LAUNCHED))
 	    crash();	// decrements fuel & crashes when empty
 	if (game_state (MATCH_LIGHT)) {
@@ -72,171 +55,111 @@ int main (int argc, char **argv)
 	    clear_game_state (MATCH_LIGHT);
 	}
 	if (!game_state (CANTSEE) || object_is_at (LAMPON, INVENTORY) || object_is_at (LAMPON, position)) {
-	    writedes();
+	    if (!visited_location (position) || game_state (IS_VERBOSE)) {
+		mark_location_visited (position);
+		write_location_long_description();
+	    } else
+		write_location_short_description();
 	    printobjs();
 	} else
-	    puts("It's too dark to see anything in here!");
-	update_relative_directions();
+	    puts ("It's too dark to see anything in here!");
 	do {
 	    get_player_command (BOLD_ON "> " BOLD_OFF);
 	} while (process_command() != 0);
     }
 }
 
-static void initialize (const char *filename)
-{
-    puts (BOLD_ON "\n"
-	"		===========================	\n"
-	"		    B A T T L E S T A R		\n"
-	"		===========================	\n"
-	BOLD_OFF "\n"
-	"	First Adventure game written by His Lordship,\n"
-	"	     the honorable Admiral D.W. Riggle");
+//{{{ Save and restore -------------------------------------------------
 
-    initialize_curses();
-    endwin();
-    atexit (cleanup_objects);
-    username = player_name();
-    if (filename == NULL) {
-	direction = NORTH;
-	ourtime = 0;
-	snooze = CYCLE * 1.5;
-	position = LUXURIOUS_STATEROOM;
-	create_object_at (PAJAMAS, WEARING);
-	fuel = TANKFULL;
-	torps = TORPEDOES;
-	place_default_objects();
-    } else {
-	char* savefile = save_file_name(filename, strlen(filename));
-	restore(savefile);
-	free(savefile);
-    }
+//{{{2 s_save_array
+
+#define WVAR(v)	{ &v, sizeof(v) }
+#define WARR(v)	{ &v[0], sizeof(v) }
+
+static struct iovec s_save_array[] = {
+    WVAR (ourtime),
+    WVAR (rythmn),
+    WVAR (ate),
+    WVAR (snooze),
+    WVAR (position),
+    WVAR (direction),
+    WVAR (game_states),
+    WVAR (player_injuries),
+    WVAR (game_score),
+    WVAR (fuel),
+    WVAR (torps),
+    WVAR (matchcount),
+    WVAR (godready),
+    WVAR (win),
+    WARR (beenthere)
+};
+//}}}2
+
+static uint16_t savegame_checksum (void)
+{
+    uint16_t sum = 0;
+    for (unsigned i = 0; i < ArraySize(s_save_array); ++i)
+	sum = bsdsum ((const uint8_t*) s_save_array[i].iov_base, s_save_array[i].iov_len, sum);
+    return saved_objects_checksum (sum);
 }
 
-static void restore (const char *filename)
+struct save_header { char magictext[6]; uint16_t sum; };
+
+static bool restore (void)
 {
-    if (filename == NULL)
-	exit (EXIT_FAILURE);	       // Error determining save file name.
-    FILE* fp = fopen (filename, "r");
-    if (!fp) {
-	perror (filename);
+    char savename [PATH_MAX];
+    snprintf (ArrayBlock(savename), BATTLESTAR_SAVE_NAME, player_homedir());
+    int fd = open (savename, O_RDONLY);
+    if (fd < 0)
+	return false;
+
+    struct save_header header;
+    if (sizeof(header) != read (fd, &header, sizeof(header))
+	|| 0 >= readv (fd, s_save_array, ArraySize(s_save_array))
+	|| 0 >= read_objects_array (fd)) {
+	printf ("Error: reading '%s': %s\n", savename, strerror(errno));
+	close (fd);
 	exit (EXIT_FAILURE);
     }
-    fread (&WEIGHT, sizeof WEIGHT, 1, fp);
-    fread (&CUMBER, sizeof CUMBER, 1, fp);
-    fread (&ourclock, sizeof ourclock, 1, fp);
-    fread (&game_states, sizeof game_states, 1, fp);
-    restore_saved_objects (fp);
-    fread (injuries, sizeof injuries, 1, fp);
-    fread (&direction, sizeof direction, 1, fp);
-    fread (&position, sizeof position, 1, fp);
-    fread (&ourtime, sizeof ourtime, 1, fp);
-    fread (&fuel, sizeof fuel, 1, fp);
-    fread (&torps, sizeof torps, 1, fp);
-    fread (&carrying, sizeof carrying, 1, fp);
-    fread (&encumber, sizeof encumber, 1, fp);
-    fread (&rythmn, sizeof rythmn, 1, fp);
-    fread (&followfight, sizeof followfight, 1, fp);
-    fread (&ate, sizeof ate, 1, fp);
-    fread (&snooze, sizeof snooze, 1, fp);
-    fread (&followgod, sizeof followgod, 1, fp);
-    fread (&godready, sizeof godready, 1, fp);
-    fread (&win, sizeof win, 1, fp);
-    fread (&wintime, sizeof wintime, 1, fp);
-    fread (&matchcount, sizeof matchcount, 1, fp);
-    fread (&loved, sizeof loved, 1, fp);
-    fread (&pleasure, sizeof pleasure, 1, fp);
-    fread (&power, sizeof power, 1, fp);
-    // We must check the last read, to catch truncated save files
-    if (fread (&ego, sizeof ego, 1, fp) < 1) {
-	printf ("save file %s too short", filename);
+    if (memcmp (header.magictext, "btlstr", sizeof(header.magictext)) != 0
+	|| header.sum != savegame_checksum()) {
+	printf ("Error: saved game '%s' is corrupt. Please delete it.\n", savename);
+	close (fd);
 	exit (EXIT_FAILURE);
     }
-    fclose(fp);
+    close (fd);
+    unlink (savename);
+    return true;
 }
 
-void save (const char *filename)
+bool save (void)
 {
-    if (filename == NULL)
-	return;		       // Error determining save file name.
-    FILE* fp = fopen (filename, "w");
-    if (!fp) {
-	perror (filename);
-	return;
+    const char* homedir = player_homedir();
+    char savename [PATH_MAX];
+    snprintf (ArrayBlock(savename), _PATH_SAVED_GAMES, homedir);
+    if (0 != access (savename, R_OK))
+	mkpath (savename, S_IRWXU);
+    if (0 != access (savename, W_OK)) {
+	printf ("Error: you are not allowed to write to '%s'\n", savename);
+	return false;
     }
-    printf ("Saved in %s.\n", filename);
-    fwrite (&WEIGHT, sizeof WEIGHT, 1, fp);
-    fwrite (&CUMBER, sizeof CUMBER, 1, fp);
-    fwrite (&ourclock, sizeof ourclock, 1, fp);
-    fwrite (&game_states, sizeof game_states, 1, fp);
-    save_objects (fp);
-    fwrite (injuries, sizeof injuries, 1, fp);
-    fwrite (&direction, sizeof direction, 1, fp);
-    fwrite (&position, sizeof position, 1, fp);
-    fwrite (&ourtime, sizeof ourtime, 1, fp);
-    fwrite (&fuel, sizeof fuel, 1, fp);
-    fwrite (&torps, sizeof torps, 1, fp);
-    fwrite (&carrying, sizeof carrying, 1, fp);
-    fwrite (&encumber, sizeof encumber, 1, fp);
-    fwrite (&rythmn, sizeof rythmn, 1, fp);
-    fwrite (&followfight, sizeof followfight, 1, fp);
-    fwrite (&ate, sizeof ate, 1, fp);
-    fwrite (&snooze, sizeof snooze, 1, fp);
-    fwrite (&followgod, sizeof followgod, 1, fp);
-    fwrite (&godready, sizeof godready, 1, fp);
-    fwrite (&win, sizeof win, 1, fp);
-    fwrite (&wintime, sizeof wintime, 1, fp);
-    fwrite (&matchcount, sizeof matchcount, 1, fp);
-    fwrite (&loved, sizeof loved, 1, fp);
-    fwrite (&pleasure, sizeof pleasure, 1, fp);
-    fwrite (&power, sizeof power, 1, fp);
-    fwrite (&ego, sizeof ego, 1, fp);
-    fflush(fp);
-    if (ferror(fp))
-	perror (filename);
-    fclose(fp);
+    snprintf (ArrayBlock(savename), BATTLESTAR_SAVE_NAME, homedir);
+
+    int fd = creat (savename, S_IRUSR| S_IWUSR);
+    if (fd < 0) {
+	printf ("Error: unable to create save file '%s': %s\n", savename, strerror(errno));
+	return false;
+    }
+    struct save_header header = {{'b','t','l','s','t','r'}, savegame_checksum()};
+    if (sizeof(header) != write (fd, &header, sizeof(header))
+	|| 0 >= writev (fd, s_save_array, ArraySize(s_save_array))
+	|| 0 >= write_objects_array (fd)
+	|| 0 > close (fd)) {
+	printf ("Error writing save file '%s': %s\n", savename, strerror(errno));
+	close (fd);
+	return false;
+    }
+    return true;
 }
 
-// Given a save file name (possibly from getline, so without terminating NUL),
-// determine the name of the file to be saved to by adding the HOME
-// directory if the name does not contain a slash.  Name will be allocated
-// with malloc(3).
-char* save_file_name (const char* filename, size_t len)
-{
-    char *home;
-    char *newname;
-    size_t tmpl;
-
-    if (memchr(filename, '/', len)) {
-	newname = malloc(len + 1);
-	if (newname == NULL) {
-	    printf ("Out of memory");
-	    return NULL;
-	}
-	memcpy(newname, filename, len);
-	newname[len] = 0;
-    } else {
-	home = getenv("HOME");
-	if (home != NULL) {
-	    tmpl = strlen(home);
-	    newname = malloc(tmpl + len + 2);
-	    if (newname == NULL) {
-		printf ("Out of memory");
-		return NULL;
-	    }
-	    memcpy(newname, home, tmpl);
-	    newname[tmpl] = '/';
-	    memcpy(newname + tmpl + 1, filename, len);
-	    newname[tmpl + len + 1] = 0;
-	} else {
-	    newname = malloc(len + 1);
-	    if (newname == NULL) {
-		printf ("Out of memory");
-		return NULL;
-	    }
-	    memcpy(newname, filename, len);
-	    newname[len] = 0;
-	}
-    }
-    return newname;
-}
+//}}}-------------------------------------------------------------------

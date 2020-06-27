@@ -5,10 +5,6 @@
 
 //----------------------------------------------------------------------
 
-int ourclock = 120;		// time for all the flights in the game
-
-//----------------------------------------------------------------------
-
 enum {
     c_NStars = 64,
     c_DrenianMoveTime = 500
@@ -51,7 +47,7 @@ static void draw_space_window (void)
 	mvwaddch (_w, n+6, getmaxx(_w)/2, '|');
     }
     mvwaddstr (_w, _drenianLine, _drenianCol - 1, "/-\\"); // Drenian ship
-    mvwprintw (_w, getmaxy(_w)-1, 21, "TORPEDOES: %3d  FUEL: %3d  TIME: %3d", torps, fuel, ourclock);
+    mvwprintw (_w, getmaxy(_w)-1, 21, "TORPEDOES: %3u  FUEL: %3u", torps, fuel);
 }
 
 int visual (void)
@@ -74,7 +70,6 @@ int visual (void)
 		_drenianLine += _dr;
 	    if (_drenianCol+_dc < getmaxx(_w)-1 && _drenianCol+_dc > 0)
 		_drenianCol += _dc;
-	    --ourclock;
 	    _drenianNextMove = now + c_DrenianMoveTime;
 	}
 	draw_space_window();
@@ -111,15 +106,10 @@ int visual (void)
 	    return 0;
 	} else if (k == KEY_RESIZE)
 	    create_space_window();
-	if (fuel < 0) {
-	    fuel = 0;
+	if (!fuel) {
 	    mvwaddstr (_w, 0, 60, "*** Out of fuel ***");
 	    sleep (1);
 	    break;
-	}
-	if (ourclock <= 0) {
-	    endwin();
-	    die();
 	}
     }
     endwin();

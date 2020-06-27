@@ -3,35 +3,34 @@
 
 #include "extern.h"
 
-void writedes(void)
+void write_location_short_description (void)
 {
-    putchar ('\n');
-    if (beenthere[position] < ROOMDESC || game_state (IS_VERBOSE))
-	putchar ('\t');
-    printf ("%s\n", location[position].name);
-    if (beenthere[position] < ROOMDESC || game_state (IS_VERBOSE)) {
-	putchar ('\n');
-	const char* desc = game_state (IS_NIGHT)
-	    ? location[position].night_desc
-	    : location[position].day_desc;
-	unsigned compass = NORTH;
-	for (char c; (c = *desc++) != 0;) {
-	    if (c != '-' && c != '*' && c != '+') {
-		if (c == '=')
-		    putchar ('-');
-		else
-		    putchar (c);
-	    } else {
-		if (c != '*')
-		    printf (truedirec (compass, c));
-		++compass;
-	    }
-	}
-	putchar ('\n');
-    }
+    puts (location[position].name);
 }
 
-void update_relative_directions (void)
+void write_location_long_description (void)
+{
+    printf ("\n\t%s\n\n", location[position].name);
+    const char* desc = game_state (IS_NIGHT)
+	? location[position].night_desc
+	: location[position].day_desc;
+    unsigned compass = NORTH;
+    for (char c; (c = *desc++) != 0;) {
+	if (c != '-' && c != '*' && c != '+') {
+	    if (c == '=')
+		putchar ('-');
+	    else
+		putchar (c);
+	} else {
+	    if (c != '*')
+		printf (truedirec (compass, c));
+	    ++compass;
+	}
+    }
+    putchar ('\n');
+}
+
+location_t relative_destination (enum CommandId relway)
 {
     struct room here = location [position];
 
@@ -50,36 +49,50 @@ void update_relative_directions (void)
 
     // Set relative destinations based on facing direction
     switch (direction) {
+	default:
 	case NORTH:
-	    left = here.dir.west;
-	    right = here.dir.east;
-	    ahead = here.dir.north;
-	    back = here.dir.south;
+	    switch (relway) {
+		default:
+		case AHEAD:	return here.dir.north;
+		case BACK:	return here.dir.south;
+		case LEFT:	return here.dir.west;
+		case RIGHT:	return here.dir.east;
+	    }
 	    break;
 	case SOUTH:
-	    left = here.dir.east;
-	    right = here.dir.west;
-	    ahead = here.dir.south;
-	    back = here.dir.north;
+	    switch (relway) {
+		default:
+		case AHEAD:	return here.dir.south;
+		case BACK:	return here.dir.north;
+		case LEFT:	return here.dir.east;
+		case RIGHT:	return here.dir.west;
+	    }
 	    break;
 	case EAST:
-	    left = here.dir.north;
-	    right = here.dir.south;
-	    ahead = here.dir.east;
-	    back = here.dir.west;
+	    switch (relway) {
+		default:
+		case AHEAD:	return here.dir.east;
+		case BACK:	return here.dir.west;
+		case LEFT:	return here.dir.north;
+		case RIGHT:	return here.dir.south;
+	    }
 	    break;
 	case WEST:
-	    left = here.dir.south;
-	    right = here.dir.north;
-	    ahead = here.dir.west;
-	    back = here.dir.east;
+	    switch (relway) {
+		default:
+		case AHEAD:	return here.dir.west;
+		case BACK:	return here.dir.east;
+		case LEFT:	return here.dir.south;
+		case RIGHT:	return here.dir.north;
+	    }
 	    break;
     }
 }
 
-const char* truedirec (int way, char option)
+const char* truedirec (enum CommandId way, char option)
 {
     switch (way) {
+	default:
 	case NORTH:
 	    switch (direction) {
 		case NORTH: return "ahead";
@@ -113,35 +126,44 @@ const char* truedirec (int way, char option)
     return "!!";
 }
 
-void newway (int thisway)
+enum CommandId compass_direction (enum CommandId thisway)
 {
     switch (direction) {
+	default:
 	case NORTH:
 	    switch (thisway) {
-		case LEFT: direction = WEST; break;
-		case RIGHT: direction = EAST; break;
-		case BACK: direction = SOUTH; break;
+		default:
+		case AHEAD: return NORTH;
+		case LEFT: return WEST;
+		case RIGHT: return EAST;
+		case BACK: return SOUTH;
 	    }
 	    break;
 	case SOUTH:
 	    switch (thisway) {
-		case LEFT: direction = EAST; break;
-		case RIGHT: direction = WEST; break;
-		case BACK: direction = NORTH; break;
+		default:
+		case AHEAD: return SOUTH;
+		case LEFT: return EAST;
+		case RIGHT: return WEST;
+		case BACK: return NORTH;
 	    }
 	    break;
 	case EAST:
 	    switch (thisway) {
-		case LEFT: direction = NORTH; break;
-		case RIGHT: direction = SOUTH; break;
-		case BACK: direction = WEST; break;
+		default:
+		case AHEAD: return EAST;
+		case LEFT: return NORTH;
+		case RIGHT: return SOUTH;
+		case BACK: return WEST;
 	    }
 	    break;
 	case WEST:
 	    switch (thisway) {
-		case LEFT: direction = SOUTH; break;
-		case RIGHT: direction = NORTH; break;
-		case BACK: direction = EAST; break;
+		default:
+		case AHEAD: return WEST;
+		case LEFT: return SOUTH;
+		case RIGHT: return NORTH;
+		case BACK: return EAST;
 	    }
 	    break;
     }
@@ -2088,7 +2110,7 @@ const struct room location [NUMOFROOMS+1] = {
 	"This seems to be a working mine. Many different tunnels wander off following\n"
 	 "glowing veins of precious metal. The floor is flooded here since we must\n"
 	 "be nearly at sea level. A ladder leads up.****",
-	{ 264, 265, 0, 266, 262, 0, 0, 1 }
+	{ 264, 265, 0, MINE_CHAMBER, 262, 0, 0, 1 }
     },{ // 264
 	"The tunnel here is blocked by broken rocks.",
 	"The way is blocked, but if you had some dynamite, we might be able to blast our\n"
@@ -2105,7 +2127,7 @@ const struct room location [NUMOFROOMS+1] = {
 	 "The flooding is already up to my waist. Large crystals overhead shimmer\n"
 	 "rainbows of reflected light.***  Let's go -.",
 	{ 0, 0, 0, 263, 0, 0, 0, 0 }
-    },{ // 266
+    },{ // 266, MINE_CHAMBER
 	"The mine is less flooded here.",
 	"A meandering gold laden vein of quartz and blooming crystals of diamonds\n"
 	 "and topaz burst from the walls of the cave. A passage goes -.***",
