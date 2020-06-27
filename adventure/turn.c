@@ -108,10 +108,10 @@ void describe (void)
 	rspeak (141);
     if (dark())
 	rspeak (16);
-    else if (visited[loc])
+    else if (visited_location (loc))
 	descsh(loc);
     else {
-	visited[loc] = true;
+	set_location_visited (loc);
 	desclg(loc);
     }
     if (loc == Y2_ROOM && pct(25) && !closing)
@@ -161,7 +161,7 @@ static void domove (void)
 	    break;
 	case GO_LOOK:
 	    wzdark = 0;
-	    visited[loc] = false;
+	    set_location_not_visited (loc);
 	    newloc = loc;
 	    loc = 0;
 	    break;
@@ -330,62 +330,6 @@ void dwarfend (void)
 {
     death();
     normend();
-}
-
-// normal end of game
-_Noreturn void normend (void)
-{
-    score();
-    exit (EXIT_SUCCESS);
-}
-
-// scoring
-void score (void)
-{
-    unsigned k = 0, s = 0;
-    for (obj_t i = NUGGET; i <= MAXTRS; ++i) {
-	if (i == CHEST)
-	    k = 14;
-	else if (i > CHEST)
-	    k = 16;
-	else
-	    k = 12;
-	if (prop[i] >= 0)
-	    s += 2;
-	if (place[i] == WELLHOUSE && prop[i] == 0)
-	    s += k - 2;
-    }
-    printf ("%-20s%d\n", "Treasures:", s);
-    unsigned t = (MAXDIE - numdie) * 10;
-    if (t)
-	printf("%-20s%d\n", "Survival:", t);
-    s += t;
-    if (!gaveup)
-	s += 4;
-    t = dflag ? 25 : 0;
-    if (t)
-	printf("%-20s%d\n", "Getting well in:", t);
-    s += t;
-    t = closing ? 25 : 0;
-    if (t)
-	printf("%-20s%d\n", "Masters section:", t);
-    s += t;
-    if (closed) {
-	if (bonus == 0)
-	    t = 10;
-	else if (bonus == 135)
-	    t = 25;
-	else if (bonus == 134)
-	    t = 30;
-	else if (bonus == 133)
-	    t = 45;
-	printf("%-20s%d\n", "Bonus:", t);
-	s += t;
-    }
-    if (place[MAGAZINE] == 108)
-	s += 1;
-    s += 2;
-    printf ("%-20s%d\n", "Score:", s);
 }
 
 // Routine to handle the passing on of one of the player's incarnations...

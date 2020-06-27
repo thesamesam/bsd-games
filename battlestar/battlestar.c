@@ -22,11 +22,16 @@ uint8_t godready = 0;
 uint8_t win = 1;
 uint8_t beenthere [(NUMOFROOMS+1+7)/8] = {};
 
-const char* username = "player";
-
 //}}}-------------------------------------------------------------------
 
 static bool restore (void);
+static uint16_t savegame_checksum (void);
+static const char* player_rating (const struct GameScore* score);
+static unsigned total_score (const struct GameScore* score);
+static int compare_scores (const void* v1, const void* v2);
+static void save_score (void);
+static void on_crash (int sig);
+static void install_crash_handler (void);
 
 //----------------------------------------------------------------------
 
@@ -34,8 +39,8 @@ int main (void)
 {
     initialize_curses();
     endwin();
+    install_crash_handler();
     atexit (cleanup_objects);
-    username = player_name();
     if (!restore()) {
 	place_default_objects();
 	puts (BOLD_ON "\n"
@@ -121,13 +126,14 @@ static bool restore (void)
 	close (fd);
 	exit (EXIT_FAILURE);
     }
+    close (fd);
+
     if (memcmp (header.magictext, "btlstr", sizeof(header.magictext)) != 0
-	|| header.sum != savegame_checksum()) {
+	|| header.sum != savegame_checksum()
+	|| position > NUMOFROOMS || direction < NORTH || direction > WEST) {
 	printf ("Error: saved game '%s' is corrupt. Please delete it.\n", savename);
-	close (fd);
 	exit (EXIT_FAILURE);
     }
-    close (fd);
     unlink (savename);
     return true;
 }
@@ -160,6 +166,133 @@ bool save (void)
 	return false;
     }
     return true;
+}
+
+//}}}-------------------------------------------------------------------
+//{{{ Scoring
+
+_Noreturn void die (void)
+{
+    puts ("\nYou die.\n");
+    print_score();
+    save_score();
+    exit (EXIT_SUCCESS);
+}
+
+_Noreturn void live (void)
+{
+    puts ("\nYou win!\n");
+    print_score();
+    save_score();
+    exit (EXIT_SUCCESS);
+}
+
+void print_score (void)
+{
+    printf ("\tPLEASURE\tPOWER\t\tEGO\n");
+    printf ("\t%3u\t\t%3u\t\t%3u\n\n", game_score.pleasure, game_score.power, game_score.ego);
+    printf ("This gives you the rating of %s in %u turns.\n", player_rating (&game_score), ourtime);
+    unsigned nvisited = locations_visited();
+    printf ("You have visited %u out of %u rooms this run (%u%%).\n", nvisited, NUMOFROOMS, nvisited * 100 / NUMOFROOMS);
+}
+
+static const char* player_rating (const struct GameScore* score)
+{
+    unsigned msc = max_i (max_i (score->pleasure, score->power), score->ego);
+    if (msc == score->pleasure) {
+	if (msc < 5)		return "novice";
+	else if (msc < 20)	return "junior voyeur";
+	else if (msc < 35)	return "Don Juan";
+	else			return "Marquis De Sade";
+    } else if (msc == score->power) {
+	if (msc < 5)		return "serf";
+	else if (msc < 8)	return "Samurai";
+	else if (msc < 13)	return "Klingon";
+	else if (msc < 22)	return "Darth Vader";
+	else			return "Sauron the Great";
+    } else {
+	if (msc < 5)		return "Polyanna";
+	else if (msc < 10)	return "philanthropist";
+	else if (msc < 20)	return "Tattoo";
+	else			return "Mr.Roarke";
+    }
+}
+
+//----------------------------------------------------------------------
+
+struct Score {
+    struct GameScore score;
+    char name [10];
+};
+
+static unsigned total_score (const struct GameScore* score)
+    { return score->pleasure + score->power + score->ego; }
+
+static int compare_scores (const void* v1, const void* v2)
+{
+    const struct Score *s1 = v1, *s2 = v2;
+    return sign (total_score (&s2->score) - total_score (&s1->score));
+}
+
+static void save_score (void)
+{
+    struct Score scores [MAXSCORES] = {};
+    read_score_file (BATTLESTAR_SCOREFILE, SCOREFILE_MAGIC, scores, sizeof(scores));
+
+    // Check each score and zero if invalid
+    for (struct Score *s = scores, *send = &scores[ArraySize(scores)]; s < send; ++s)
+	if (!s->name[0] || s->name[sizeof(s->name)-1])
+	    memset (s, 0, sizeof(*s));
+    // Resort to account for the above zeroing
+    qsort (ArrayBlock(scores), sizeof(scores[0]), compare_scores);
+
+    // Add this game's score, if it is high enough
+    struct Score* lowscore = &scores[ArraySize(scores)-1];
+    const char* username = player_name();
+    if (total_score (&lowscore->score) < total_score (&game_score)) {
+	lowscore->score = game_score;
+	snprintf (ArrayBlock (lowscore->name), "%s", username);
+	// Resort the new score
+	qsort (ArrayBlock(scores), sizeof(scores[0]), compare_scores);
+	// And write the score file
+	write_score_file (BATTLESTAR_SCOREFILE, SCOREFILE_MAGIC, scores, sizeof(scores));
+    }
+
+    // List top scores
+    if (!scores[0].name[0])
+	return;
+    puts ("\n-#--Name-----Rating-----------Sco--Ple-Pow-Ego");
+    for (unsigned i = 0; i < ArraySize(scores) && scores[i].name[0]; ++i) {
+	if (game_score.pleasure == scores[i].score.pleasure
+		&& game_score.power == scores[i].score.power
+		&& game_score.ego == scores[i].score.ego
+		&& 0 == strcmp (username, scores[i].name))
+	    printf (BOLD_ON);
+	printf ("%2u: %-8s %-16s %3u  %3u %3u %3u\n" BOLD_OFF, i+1, scores[i].name, player_rating (&scores[i].score), total_score (&scores[i].score), scores[i].score.pleasure, scores[i].score.power, scores[i].score.ego);
+    }
+}
+
+//}}}-------------------------------------------------------------------
+//{{{ Crash handler
+
+// This will be set to on_fatal_signal in common/ui.c,
+// which is what initialize_curses installs.
+static void (*s_old_handler)(int) = NULL;
+
+static void on_crash (int sig)
+{
+    static volatile _Atomic(bool) s_once = false;
+    if (false == atomic_exchange (&s_once, true))
+	save();
+    s_old_handler (sig);
+}
+
+static void install_crash_handler (void)
+{
+    // Install crashing signal handler to save the game
+    static const uint8_t c_crash_sig[] = { SIGILL, SIGBUS, SIGABRT, SIGFPE, SIGSYS, SIGSEGV, SIGHUP };
+    for (unsigned i = 0; i < ArraySize(c_crash_sig); ++i)
+	s_old_handler = signal (c_crash_sig[i], on_crash);
 }
 
 //}}}-------------------------------------------------------------------

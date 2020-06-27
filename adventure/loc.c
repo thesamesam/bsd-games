@@ -1487,7 +1487,7 @@ static const struct location c_locs [MAXLOC] = {
 //}}}-------------------------------------------------------------------
 //{{{ cond - location status
 
-const uint8_t cond [MAXLOC] = {
+const uint8_t cond [MAXLOC+1] = {
     0,LIGHT|LIQUID,LIGHT,LIGHT|LIQUID,LIGHT|LIQUID,LIGHT,LIGHT,LIGHT|LIQUID,HINTC|LIGHT,LIGHT,
     LIGHT,0,0,HINTB,0,0,WATOIL,0,0,HINTS,
     WATOIL,WATOIL,WATOIL,0,WATOIL|LIQUID,0,WATOIL,0,0,0,

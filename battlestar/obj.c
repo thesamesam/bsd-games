@@ -300,16 +300,22 @@ void create_object_at (enum ObjectId oid, location_t l)
 
 void remove_object_from (enum ObjectId oid, location_t l)
 {
-    for (size_t i = 0; i < s_objects.size; ++i)
-	if (s_objects.d[i].obj == oid && s_objects.d[i].room == l)
+    for (size_t i = 0; i < s_objects.size; ++i) {
+	if (s_objects.d[i].obj == oid && s_objects.d[i].room == l) {
 	    vector_erase (&s_objects, i--);
+	    break;
+	}
+    }
 }
 
 void move_object_to (enum ObjectId oid, location_t f, location_t t)
 {
-    for (size_t i = 0; i < s_objects.size; ++i)
-	if (s_objects.d[i].obj == oid && s_objects.d[i].room == f)
+    for (size_t i = 0; i < s_objects.size; ++i) {
+	if (s_objects.d[i].obj == oid && s_objects.d[i].room == f) {
 	    s_objects.d[i].room = t;
+	    break;
+	}
+    }
 }
 
 unsigned count_objects_at (location_t l)
@@ -373,6 +379,7 @@ static const struct ObjLoc c_nightobjs[] = {
     { ELF,		182	},
     { HALBERD,		182	},
     { SHIELD,		182	},
+    { POTION,		190	},
     { ELF,		198	},
     { HALBERD,		198	},
     { SHIELD,		198	},
@@ -392,7 +399,7 @@ static const struct ObjLoc c_nightobjs[] = {
     { ELF,		228	},
     { HALBERD,		228	},
     { SHIELD,		228	},
-    { NATIVE_GIRL,		235	},
+    { NATIVE_GIRL,	235	},
     { LAMPON,		236	},
     { FOOT,		249	},
     { FOOT,		250	}
@@ -483,7 +490,6 @@ static const struct ObjLoc c_dayobjs[] = {
     { DEADWOOD,		172	},
     { MALLET,		172	},
     { WOODSMAN,		172	},
-    { POTION,		190	},
     { TWO_HANDED,	190	},
     { COCONUTS,		192	},
     { COCONUTS,		204	},
@@ -533,6 +539,13 @@ int read_objects_array (int fd)
     unsigned vbs = sizeof(s_objects.d[0])*nobjs;
     if (vbs != read (fd, vector_begin(&s_objects), vbs))
 	return -1;
+    // Because the values are used for direct indexing, need to verify ranges
+    vector_foreach (const struct ObjLoc, o, s_objects) {
+	if (o->obj >= NUMOFOBJECTS || o->room > WEARING) {
+	    vector_clear (&s_objects);
+	    return -1;
+	}
+    }
     return sizeof(nobjs)+vbs;
 }
 

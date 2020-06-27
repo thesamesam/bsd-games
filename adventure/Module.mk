@@ -25,13 +25,18 @@ ${adventure/EXE}:	${adventure/OBJS} ${COMLIB}
 ifdef BINDIR
 adventure/EXEI	:= ${BINDIR}/${adventure/NAME}
 adventure/MANI	:= ${MANDIR}/man6/${adventure/NAME}.6.gz
+adventure/SCOREI:= ${STATEDIR}/adventure.scores
+
 
 install:		adventure/install
-adventure/install:	${adventure/EXEI} ${adventure/MANI}
+adventure/install:	${adventure/EXEI} ${adventure/MANI} ${adventure/SCOREI}
 ${adventure/EXEI}:	${adventure/EXE}
 	@echo "Installing $@ ..."
 	@${INSTALLEXE} $< $@
 ${adventure/MANI}:	adventure/${adventure/NAME}.6
+${adventure/SCOREI}:
+	@echo "Creating initial score file $@ ..."
+	@${INSTALLSCORE} /dev/null $@
 
 uninstall:		adventure/uninstall
 adventure/uninstall:

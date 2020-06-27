@@ -23,10 +23,6 @@ const char ouch [NUMOFINJURIES][24] = {
 
 //}}}-------------------------------------------------------------------
 
-static _Noreturn void post (char ch);
-
-//----------------------------------------------------------------------
-
 // Parsed command line variables, in parse.c
 extern struct Word words [NWORDS];
 extern uint8_t wordcount;
@@ -1065,60 +1061,6 @@ bool land (void)
     ++ourtime;
     puts ("You land.");
     return true;
-}
-
-_Noreturn void die (void)
-{
-    printf ("Bye.\nYour rating was %s.\n", player_rating());
-    post (' ');
-}
-
-_Noreturn void live (void)
-{
-    puts ("\nYou win!");
-    post ('!');
-}
-
-static _Noreturn void post (char ch UNUSED)
-{
-#if 0	// TODO: Write scores properly
-    time_t tv = time(NULL);
-    const char* date = ctime (&tv);
-    date[24] = '\0';
-
-    FILE* score_fp = fopen (_PATH_SCORE, "a");
-    if (!score_fp)
-	return;
-    fprintf (score_fp, "%s  %8s  %c%20s", date, username, ch, player_rating());
-    if (game_state (IS_WIZARD))
-	fprintf (score_fp, "   WIZARD!\n");
-    else
-	fprintf (score_fp, "\n");
-    fclose (score_fp);
-#endif
-    exit (EXIT_SUCCESS);
-}
-
-const char* player_rating (void)
-{
-    unsigned score = max_i (max_i (game_score.pleasure, game_score.power), game_score.ego);
-    if (score == game_score.pleasure) {
-	if (score < 5)		return "novice";
-	else if (score < 20)	return "junior voyeur";
-	else if (score < 35)	return "Don Juan";
-	else			return "Marquis De Sade";
-    } else if (score == game_score.power) {
-	if (score < 5)		return "serf";
-	else if (score < 8)	return "Samurai";
-	else if (score < 13)	return "Klingon";
-	else if (score < 22)	return "Darth Vader";
-	else			return "Sauron the Great";
-    } else {
-	if (score < 5)		return "Polyanna";
-	else if (score < 10)	return "philanthropist";
-	else if (score < 20)	return "Tattoo";
-	else			return "Mr.Roarke";
-    }
 }
 
 int drive (void)

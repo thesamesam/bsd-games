@@ -5,17 +5,19 @@
 
 //{{{ Game constants ---------------------------------------------------
 
+#define	ADVENTURE_SCOREFILE	_PATH_GAME_STATE "adventure.scores"
 #define ADVENTURE_SAVE_NAME	_PATH_SAVED_GAMES "adventure.save"
+#define SCOREFILE_MAGIC		"advent"
 
 enum {
     MAXOBJ	= 100,	// max # of objects in cave
-    MAXLOC	= 140,	// max # of cave locations
     MAXWORDLEN	= 20,	// max # of chars in commands
     MAXMSG	= 201,	// max # of long location descr
     MAXTRAV	= 16+1,	// max # of travel directions from loc, +1 for terminator travel[x].tdest=-1
     MAXDWARVES	= 7,	// max # of nasty dwarves
     MAXDIE	= 3,	// max # of deaths before close
-    MAXTRS	= 79	// max # of
+    MAXTRS	= 79,	// max # of
+    MAXSCORES	= 10
 };
 
 // Object definitions
@@ -58,7 +60,8 @@ enum Location {
     DRAGON_LAIR	= 120,
     CHASM_NE	= 122,
     CHEST_ROOM2	= 140,
-    CARRIED	= 255
+    MAXLOC	= CHEST_ROOM2,
+    CARRIED
 };
 
 enum MotionWords {
@@ -120,6 +123,16 @@ struct trav {
 typedef uint8_t loc_t;
 typedef uint8_t obj_t;
 
+struct Score {
+    uint16_t	total;
+    uint8_t	treasures;
+    uint8_t	survival;
+    uint8_t	wellin;
+    uint8_t	masters;
+    uint8_t	bonus;
+    char	name [9];
+};
+
 //}}}-------------------------------------------------------------------
 //{{{ Global variable declartions
 
@@ -164,7 +177,7 @@ extern bool	gaveup;		// 1 if he quit early
 
 extern bool	saveflg;	// if game being saved
 
-extern bool	visited [MAXLOC];	// >0 if has been here
+extern uint8_t	visited [(MAXLOC+1+7)/8]; // bit set if has been here
 extern loc_t	dloc [MAXDWARVES];	// dwarf locations
 extern bool	dseen [MAXDWARVES];	// dwarf seen flag
 extern loc_t	odloc [MAXDWARVES];	// dwarf old locations
@@ -175,7 +188,9 @@ extern loc_t	fixed [MAXOBJ];		// second object loc
 extern int8_t	prop [MAXOBJ];		// status of object
 
 // Location status, in loc.c
-extern const uint8_t cond [MAXLOC];
+extern const uint8_t cond [MAXLOC+1];
+
+extern struct Score game_score;
 
 //}}}-------------------------------------------------------------------
 //{{{ Function prototypes
@@ -241,6 +256,14 @@ void outwords (void);
 
 //}}}-------------------------------------------------------------------
 //{{{ Inline functions
+
+// visited array interface
+inline static bool visited_location (loc_t l)
+    { return visited[l/8] & (1u<<(l%8)); }
+inline static void set_location_visited (loc_t l)
+    { visited[l/8] |= (1u<<(l%8)); }
+inline static void set_location_not_visited (loc_t l)
+    { visited[l/8] &= ~(1u<<(l%8)); }
 
 // Routine true x% of the time.
 inline static bool pct (unsigned x)

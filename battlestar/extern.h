@@ -8,8 +8,9 @@
 
 //{{{ Game constants ---------------------------------------------------
 
-#define	_PATH_SCORE		_PATH_GAME_STATE "battlestar.scores"
+#define	BATTLESTAR_SCOREFILE	_PATH_GAME_STATE "battlestar.scores"
 #define BATTLESTAR_SAVE_NAME	_PATH_SAVED_GAMES "battlestar.save"
+#define SCOREFILE_MAGIC		"btlstr"
 
 #define BOLD_ON		"\033[1m"
 #define BOLD_OFF	"\033[22m"
@@ -128,7 +129,8 @@ enum {
     TANKFULL	= 250,
     TORPEDOES	= 10,
     MAXWEIGHT	= 60,
-    MAXCUMBER	= 10
+    MAXCUMBER	= 10,
+    MAXSCORES	= 10
 };
 
 enum EDayOrNight { TODAY, TONIGHT };
@@ -219,8 +221,6 @@ extern uint8_t godready;
 extern uint8_t win;
 extern uint8_t beenthere [(NUMOFROOMS+1+7)/8];
 
-extern const char *username;
-
 //}}}-------------------------------------------------------------------
 //{{{ Inlines for state access
 
@@ -276,13 +276,15 @@ inline static bool is_outside (void)
 
 // battlestar.c
 bool save (void);
+_Noreturn void die (void);
+_Noreturn void live (void);
+void print_score (void);
 
 // cmd.c
 void bury(void);
 void chime(void);
 void crash(void);
 int process_command(void);
-_Noreturn void die(void);
 void dig(void);
 void dooropen(void);
 int draw(void);
@@ -298,14 +300,12 @@ void kiss(void);
 bool land (void);
 bool launch (void);
 void light(void);
-_Noreturn void live(void);
 void love(void);
 bool moveplayer (location_t thatway, enum CommandId token);
 void murder(void);
 void news(void);
 int put(void);
 int puton(void);
-const char* player_rating (void);
 int ride(void);
 int shoot(void);
 int take (uint16_t fromloc);

@@ -616,13 +616,9 @@ int process_command (void)
 		    puts("You aren't a wizard.");
 		break;
 
-	    case SCORE: {
-		printf ("\tPLEASURE\tPOWER\t\tEGO\n");
-		printf ("\t%3u\t\t%3u\t\t%3u\n\n", game_score.pleasure, game_score.power, game_score.ego);
-		printf ("This gives you the rating of %s in %u turns.\n", player_rating(), ourtime);
-		unsigned nvisited = locations_visited();
-		printf ("You have visited %u out of %u rooms this run (%u%%).\n", nvisited, NUMOFROOMS, nvisited * 100 / NUMOFROOMS);
-		} break;
+	    case SCORE:
+		print_score();
+		break;
 
 	    case SAVE:
 		if (save())

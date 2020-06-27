@@ -48,12 +48,14 @@ bool		gaveup	= false;	// true if he quit early
 
 bool		saveflg	= false;	// if game being saved
 
-bool	visited [MAXLOC] = {};	// true if has been here
+uint8_t	visited [(MAXLOC+1+7)/8] = {};	// true if has been here
 
 // dwarf locations
 loc_t	dloc [MAXDWARVES]  = { 0,KING_HALL,FISSURE_W,Y2_ROOM,44,CO_JUNCTION,CHEST_ROOM1 };
 bool	dseen [MAXDWARVES] = {};	// dwarf seen flag
 loc_t	odloc [MAXDWARVES] = {};	// dwarf old locations
+
+struct Score game_score = {};
 
 //}}}-------------------------------------------------------------------
 //{{{ Local prototypes
@@ -62,6 +64,8 @@ static void initialize (void);
 static _Noreturn void on_fatal_signal (int sig);
 static uint16_t sum_save_array (void);
 static bool save (void);
+static int compare_scores (const void* v1, const void* v2);
+static void save_score (void);
 
 //}}}-------------------------------------------------------------------
 
@@ -80,6 +84,14 @@ int main (void)
     if (saveflg)
 	save();
     return EXIT_SUCCESS;
+}
+
+// normal end of game
+_Noreturn void normend (void)
+{
+    score();
+    save_score();
+    exit (EXIT_SUCCESS);
 }
 
 //{{{ initialize and signal handling -----------------------------------
@@ -201,6 +213,32 @@ static bool save (void)
     return true;
 }
 
+static bool verify_locations (void)
+{
+    if (loc > MAXLOC
+	|| newloc > MAXLOC
+	|| oldloc > MAXLOC
+	|| oldloc2 > MAXLOC
+	|| knfloc > CARRIED
+	|| chloc > MAXLOC
+	|| chloc2 > MAXLOC
+	|| daltloc > MAXLOC)
+	return false;
+    for (unsigned i = 0; i < ArraySize(place); ++i)
+	if (place[i] > CARRIED)
+	    return false;
+    for (unsigned i = 0; i < ArraySize(fixed); ++i)
+	if (fixed[i] > CARRIED)
+	    return false;
+    for (unsigned i = 0; i < ArraySize(dloc); ++i)
+	if (dloc[i] > MAXLOC)
+	    return false;
+    for (unsigned i = 0; i < ArraySize(odloc); ++i)
+	if (odloc[i] > MAXLOC)
+	    return false;
+    return true;
+}
+
 bool restore (void)
 {
     char savename [PATH_MAX];
@@ -216,15 +254,110 @@ bool restore (void)
 	close (fd);
 	exit (EXIT_FAILURE);
     }
+    close (fd);
     if (memcmp (header.magictext, "advent", sizeof(header.magictext)) != 0
-	|| header.sum != sum_save_array()) {
+	|| header.sum != sum_save_array()
+	|| !verify_locations()) {
 	printf ("Error: saved game '%s' is corrupt. Please delete it.\n", savename);
-	close (fd);
 	exit (EXIT_FAILURE);
     }
-    close (fd);
     unlink (savename);
     return true;
+}
+
+//}}}-------------------------------------------------------------------
+//{{{ Scoring
+
+// scoring
+void score (void)
+{
+    unsigned k = 0, s = 0;
+    for (obj_t i = NUGGET; i <= MAXTRS; ++i) {
+	if (i == CHEST)
+	    k = 14;
+	else if (i > CHEST)
+	    k = 16;
+	else
+	    k = 12;
+	if (prop[i] >= 0)
+	    s += 2;
+	if (place[i] == WELLHOUSE && prop[i] == 0)
+	    s += k - 2;
+    }
+    game_score.treasures = s;
+    unsigned t = (MAXDIE - numdie) * 10;
+    game_score.survival = t;
+    s += t;
+    if (!gaveup)
+	s += 4;
+    t = dflag ? 25 : 0;
+    game_score.wellin = t;
+    s += t;
+    t = closing ? 25 : 0;
+    game_score.masters = t;
+    s += t;
+    if (closed) {
+	if (bonus == 0)
+	    t = 10;
+	else if (bonus == 135)
+	    t = 25;
+	else if (bonus == 134)
+	    t = 30;
+	else if (bonus == 133)
+	    t = 45;
+	game_score.bonus = t;
+	s += t;
+    }
+    if (place[MAGAZINE] == 108)
+	s += 1;
+    s += 2;
+    game_score.total = s;
+    snprintf (ArrayBlock (game_score.name), "%s", player_name());
+
+    printf ("%-20s%u\n", "Treasures:", game_score.treasures);
+    if (game_score.survival)
+	printf("%-20s%u\n", "Survival:", game_score.survival);
+    if (game_score.wellin)
+	printf("%-20s%d\n", "Getting well in:", game_score.wellin);
+    if (game_score.masters)
+	printf("%-20s%d\n", "Masters section:", game_score.masters);
+    if (game_score.bonus)
+	printf("%-20s%d\n", "Bonus:", game_score.bonus);
+    printf ("%-20s%d\n", "Score:", game_score.total);
+}
+
+static int compare_scores (const void* v1, const void* v2)
+    { return sign (((const struct Score*)v2)->total - ((const struct Score*)v1)->total); }
+
+static void save_score (void)
+{
+    struct Score scores [MAXSCORES] = {};
+    read_score_file (ADVENTURE_SCOREFILE, SCOREFILE_MAGIC, scores, sizeof(scores));
+
+    // Check each score and zero if invalid
+    for (struct Score *s = scores, *send = &scores[ArraySize(scores)]; s < send; ++s)
+	if (!s->name[0] || s->name[sizeof(s->name)-1] || s->total > 350)
+	    memset (s, 0, sizeof(*s));
+    // Resort to account for the above zeroing
+    qsort (ArrayBlock(scores), sizeof(scores[0]), compare_scores);
+
+    // Add this game's score, if it is high enough
+    struct Score* lowscore = &scores[ArraySize(scores)-1];
+    if (game_score.name[0] && lowscore->total < game_score.total) {
+	*lowscore = game_score;
+	// Resort the new score
+	qsort (ArrayBlock(scores), sizeof(scores[0]), compare_scores);
+	// And write the score file
+	write_score_file (ADVENTURE_SCOREFILE, SCOREFILE_MAGIC, scores, sizeof(scores));
+    }
+
+    // List top scores
+    puts ("\n-#--Name-----Sco----T---E---M---B");
+    for (unsigned i = 0; i < ArraySize(scores) && scores[i].total; ++i) {
+	if (game_score.total == scores[i].total && game_score.treasures == scores[i].treasures && 0 == strcmp (game_score.name, scores[i].name))
+	    printf (BOLD_ON);
+	printf ("%2u: %-8s %3u  %3u %3u %3u %3u\n" BOLD_OFF, i+1, scores[i].name, scores[i].total, scores[i].treasures, scores[i].wellin, scores[i].masters, scores[i].bonus);
+    }
 }
 
 //}}}-------------------------------------------------------------------
