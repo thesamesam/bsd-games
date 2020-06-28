@@ -202,10 +202,10 @@ extern unsigned		_humanPlayer;		// which player is human
 //----------------------------------------------------------------------
 
 void initialize_field_window (void);
-void bdisp(void);
+void bdisp (void);
 void display_game_result_message (unsigned i, bool humanPlayer);
 int usermove (void);
-int pickmove(int);
-int makemove(int, int);
+int pickmove (int);
+int makemove (int, int);
 
 //----------------------------------------------------------------------

@@ -1,7 +1,6 @@
 // Copyright (c) 1983 The Regents of the University of California.
+// Copyright (c) 1983 Ken Arnold
 // This file is free software, distributed under the BSD license.
-//
-// This game written by Ken Arnold.
 
 #include "../config.h"
 #include <sys/stat.h>

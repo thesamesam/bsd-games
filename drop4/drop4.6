@@ -1,37 +1,4 @@
-.\"	$NetBSD: drop4.6,v 1.10 2003/08/07 09:37:48 agc Exp $
-.\"
-.\" Copyright (c) 1992, 1993
-.\"	The Regents of the University of California.  All rights reserved.
-.\"
-.\" This code is derived from software contributed to Berkeley by
-.\" Nancy L. Tinkham and Darren F. Provine.
-.\"
-.\" Redistribution and use in source and binary forms, with or without
-.\" modification, are permitted provided that the following conditions
-.\" are met:
-.\" 1. Redistributions of source code must retain the above copyright
-.\"    notice, this list of conditions and the following disclaimer.
-.\" 2. Redistributions in binary form must reproduce the above copyright
-.\"    notice, this list of conditions and the following disclaimer in the
-.\"    documentation and/or other materials provided with the distribution.
-.\" 3. Neither the name of the University nor the names of its contributors
-.\"    may be used to endorse or promote products derived from this software
-.\"    without specific prior written permission.
-.\"
-.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
-.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
-.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-.\" SUCH DAMAGE.
-.\"
-.\"	@(#)drop4.6	8.1 (Berkeley) 5/31/93
-.\"
+.\" This file is free software, distributed under the BSD license.
 .Dd May 31, 1993
 .Dt drop4 6
 .Os
@@ -44,14 +11,12 @@
 .Op Fl k Ar keys
 .Op Fl l Ar level
 .Sh DESCRIPTION
-The
 .Nm
-command runs display-based game which must be played on a CRT terminal.
-The object is to fit the shapes together forming complete rows, which
-then vanish.  When the shapes fill up to the top, the game ends.  You can
-optionally select a level of play.
+is a tetromino packing game. The object is to fit the shapes together
+forming complete rows, which then vanish. When the shapes fill up to
+the top, the game ends. You can optionally select a level of play.
 .Pp
-The default level of play is 2.
+The default level of play is 1.
 .Pp
 The default control keys are as follows:
 .Pp
@@ -89,17 +54,6 @@ them together, completed horizontal rows vanish, and any blocks above
 fall down to fill in. When the blocks stack up to the top of the screen,
 the game is over.
 .Sh SCORING
-You get one point for every block you fit into the stack, and one point
-for every space a block falls when you hit the drop key. (Dropping the
-blocks is therefore a good way to increase your score.) Your total score
-is the product of the level of play and your accumulated
-.ie t points\(em200
-.el points -- 200
-points on level 3 gives you a score of 600. Each player gets at most one
-entry on any level, for a total of nine scores in the high scores file.
-Players who no longer have accounts are limited to one score. Also,
-scores over 7 years old are expired.
-.Pp
 The score list is produced at the end of the game. The printout includes
 each player's overall ranking, name, score, and how many points were
 scored on what level.
@@ -109,8 +63,6 @@ scored on what level.
 .It /var/lib/bsdgames/drop4.scores
 high score file
 .El
-.Sh BUGS
-The higher levels are unplayable without a fast terminal connection.
 .Sh AUTHORS
 Adapted from a 1989 International Obfuscated C Code Contest winner by
 Chris Torek and Darren F. Provine.

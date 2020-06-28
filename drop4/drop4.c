@@ -138,8 +138,8 @@ enum {
     color_Last
 };
 
-#define _PATH_SCOREFILE	_PATH_GAME_STATE "drop4.scores"
-#define SCOREFILE_MAGIC		"drop4\0"
+#define DROP4_SCOREFILE	_PATH_GAME_STATE "drop4.scores"
+#define SCOREFILE_MAGIC	"drop4\0"
 
 struct highscore {
     char	name [16];	// login name
@@ -520,7 +520,7 @@ static void check_scores (void)
 
 static void savescore (unsigned score, unsigned level)
 {
-    read_score_file (_PATH_SCOREFILE, SCOREFILE_MAGIC, _scores, sizeof(_scores));
+    read_score_file (DROP4_SCOREFILE, SCOREFILE_MAGIC, _scores, sizeof(_scores));
     check_scores();
     struct highscore* nsc = &_scores[MAXHISCORES-1];
     if (nsc->score*nsc->level > score*level)
@@ -534,5 +534,5 @@ static void savescore (unsigned score, unsigned level)
     nsc->level = level;
     nsc->time = time (NULL);
     check_scores();
-    write_score_file (_PATH_SCOREFILE, SCOREFILE_MAGIC, _scores, sizeof(_scores));
+    write_score_file (DROP4_SCOREFILE, SCOREFILE_MAGIC, _scores, sizeof(_scores));
 }

@@ -1,3 +1,6 @@
+// Copyright (c) 2016 by Mike Sharov <msharov@users.sourceforge.net>
+// This file is free software, distributed under the BSD license.
+
 #include "../config.h"
 
 //----------------------------------------------------------------------

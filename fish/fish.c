@@ -1,10 +1,9 @@
-// Copyright (c) 1990 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
 #include "../config.h"
 #include <sys/wait.h>
 
-#define	_PATH_INSTR	_PATH_GAME_DATA "fish.instr"
+//----------------------------------------------------------------------
 
 enum {
     RANKS	= 13,

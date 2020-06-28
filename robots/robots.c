@@ -10,8 +10,8 @@
 
 //----------------------------------------------------------------------
 
-#define	_PATH_SCOREFILE	_PATH_GAME_STATE "robots.scores"
-#define SCOREFILE_MAGIC	"robots"
+#define	ROBOTS_SCOREFILE	_PATH_GAME_STATE "robots.scores"
+#define SCOREFILE_MAGIC		"robots"
 
 enum {
     MAXLEVELS		= 4,
@@ -329,7 +329,7 @@ static int compare_scores (const void* v1, const void* v2)
 
 static void save_score (void)
 {
-    read_score_file (_PATH_SCOREFILE, SCOREFILE_MAGIC, _scores, sizeof(_scores));
+    read_score_file (ROBOTS_SCOREFILE, SCOREFILE_MAGIC, _scores, sizeof(_scores));
     // Check each score and zero if invalid
     for (struct Score *s = _scores, *send = &_scores[ArraySize(_scores)]; s < send; ++s)
 	if (!s->name[0] || s->name[sizeof(s->name)-1] || s->score > MAXSCORE)
@@ -348,7 +348,7 @@ static void save_score (void)
 	// Resort the new score
 	qsort (_scores, ArraySize(_scores), sizeof(_scores[0]), compare_scores);
 	// And write the score file
-	write_score_file (_PATH_SCOREFILE, SCOREFILE_MAGIC, _scores, sizeof(_scores));
+	write_score_file (ROBOTS_SCOREFILE, SCOREFILE_MAGIC, _scores, sizeof(_scores));
     }
     // Now show the scores in the field window
     werase (_whelp);

@@ -9,7 +9,7 @@
 
 #include "../config.h"
 
-#define _PATH_SCOREFILE	_PATH_GAME_STATE "snake.scores"
+#define SNAKE_SCOREFILE	_PATH_GAME_STATE "snake.scores"
 #define SCOREFILE_MAGIC	"snake"
 
 enum {
@@ -433,7 +433,7 @@ static int compare_scores (const void *x, const void *y)
 
 static bool read_scores (void)
 {
-    if (!read_score_file (_PATH_SCOREFILE, SCOREFILE_MAGIC, _scores, sizeof(_scores)))
+    if (!read_score_file (SNAKE_SCOREFILE, SCOREFILE_MAGIC, _scores, sizeof(_scores)))
 	return false;
     // Check each score and zero if invalid
     for (unsigned i = 0; i < ArraySize(_scores); ++i)
@@ -492,6 +492,6 @@ static bool save_score (unsigned score, bool won)
     }
     // Save the scores if the new score is better than the lowest
     qsort (_scores, ArraySize(_scores), sizeof(_scores[0]), compare_scores);
-    write_score_file (_PATH_SCOREFILE, SCOREFILE_MAGIC, _scores, sizeof(_scores));
+    write_score_file (SNAKE_SCOREFILE, SCOREFILE_MAGIC, _scores, sizeof(_scores));
     return true;
 }

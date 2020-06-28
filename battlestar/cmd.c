@@ -1,7 +1,6 @@
-// Copyright (c) 1983 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include "extern.h"
+#include "battlestar.h"
 
 //{{{ ouch -------------------------------------------------------------
 

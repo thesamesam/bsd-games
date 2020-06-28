@@ -1,10 +1,6 @@
-// Copyright (c) 1980 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
-//
-// Worm.  Written by Michael Toy UCSC
 
 #include "../config.h"
-#include <signal.h>
 
 enum {
     color_None,
