@@ -61,7 +61,6 @@ static void move_wump(void);
 static bool pit_nearby (void);
 static bool room_has_door_to (uint8_t from, uint8_t to);
 static bool validate_cave_parameters (void);
-static void write_instructions (int fd);
 static bool wump_nearby (void);
 
 static inline const char* plural (int n) { return n == 1 ? "" : "s"; }
@@ -492,10 +491,9 @@ static void cave_init (void)
 //}}}-------------------------------------------------------------------
 //{{{ Instructions
 
-static void write_instructions (int fd)
+static void instructions (void)
 {
-    static const char c_Instructions[] =
-	"	Welcome to the game of Hunt the Wumpus.\n"
+    puts ("\n\tWelcome to the game of Hunt the Wumpus.\n"
 	"\n"
 	"The Wumpus typically lives in a cave of twenty rooms, with each room\n"
 	"having three tunnels connecting it to other rooms in the cavern. Caves\n"
@@ -513,9 +511,14 @@ static void write_instructions (int fd)
 	"	    in the cave.\n"
 	"\n"
 	"  Wumpus -- If you happen to walk into the room the Wumpus is in you'll\n"
-	"	    find that he has quite an appetite for young adventurous humans!\n"
-	"\n"
-	"The Wumpus is not bothered by the hazards since he has sucker feet and\n"
+	"	    find that he has quite an appetite for young adventurous humans!\n");
+
+    const char* lines = getenv ("LINES");
+    if (lines && atoi(lines) < 35) {
+	printf ("--enter for more--");
+	getchar();
+    }
+    puts ("The Wumpus is not bothered by the hazards since he has sucker feet and\n"
 	"is too big for a bat to lift. He is a sedentary creature by nature,\n"
 	"but if you try to shoot him and miss, there is a chance that he'll up\n"
 	"and move himself into another room.\n"
@@ -529,41 +532,7 @@ static void write_instructions (int fd)
 	"through. You might just end up shooting yourself in the foot if you're\n"
 	"not careful!  On the other hand, if you shoot the Wumpus you've WON!\n"
 	"\n"
-	"Good luck.\n";
-
-    for (const char *itext = c_Instructions, *itextend = itext+strlen(c_Instructions); itext < itextend;) {
-	ssize_t bw = write (fd, itext, itextend-itext);
-	if (bw <= 0 && errno != EINTR)
-	    break;
-	itext += bw;
-    }
-}
-
-static void instructions (void)
-{
-    int pfd[2];
-    if (0 > pipe (pfd))
-	return perror ("pipe");
-    pid_t pid = fork();
-    switch (pid) {
-	case -1:
-	    close (pfd[0]);
-	    close (pfd[1]);
-	    return perror ("fork");
-	case 0:
-	    close (pfd[1]);
-	    dup2 (pfd[0], STDIN_FILENO);
-	    execlp (_PATH_PAGER, _PATH_PAGER, NULL);
-	    perror ("execlp");
-	    exit (EXIT_FAILURE);
-	default: {
-	    close (pfd[0]);
-	    write_instructions (pfd[1]);
-	    close (pfd[1]);
-	    int status;
-	    waitpid (pid, &status, 0);
-	    } break;
-    }
+	"Good luck.");
 }
 
 //}}}-------------------------------------------------------------------

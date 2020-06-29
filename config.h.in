@@ -19,13 +19,7 @@
 // Path to saved game files, in user's home directory
 #define _PATH_SAVED_GAMES	"%s/.local/share/"
 
-// Path to game configuration files, in user's home directory
-#define _PATH_USER_CONFIG	"%s/.config/"
-
 // Path to the system dictionary
 #define _PATH_WORDLIST		"@wordlist@"
-
-// The pager
-#define _PATH_PAGER		"@PAGER@"
 
 #include "common/common.h"
