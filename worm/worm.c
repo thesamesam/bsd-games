@@ -171,7 +171,7 @@ static void play (void)
 	} else
 	    growing--;
 	display(head, BODY);
-	char fc = mvwinch(tv, y, x);
+	chtype fc = mvwinch(tv, y, x);
 	if (isdigit(fc)) {
 	    growing += fc - '0';
 	    prize();

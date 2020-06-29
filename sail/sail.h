@@ -228,7 +228,7 @@ _Noreturn void play(void);
 void initscreen(void);
 _Noreturn void leave(int);
 void Signal (const char* fmt, const struct Ship* s, ...) PRINTFLIKE(1,3);
-void makesignal (const struct Ship *from, const char *fmt, const struct Ship *ship, ...) PRINTFLIKE(2,4);
+void makesignal (const struct Ship *from, const char *fmt, const struct Ship *ship, ...);
 void makemsg (const struct Ship *from, const char *fmt, ...) PRINTFLIKE(2,3);
 void Msg (const char*, ...) PRINTFLIKE(1,2);
 int sgetch(const char *, struct Ship *, int);

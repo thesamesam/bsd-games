@@ -202,7 +202,7 @@ static void vdrop (void)
 // LOCK, UNLOCK, OPEN, CLOSE etc.
 void vopen (void)
 {
-    char msg = 33;
+    unsigned msg = 33;
     switch (object) {
 	case CLAM:
 	case OYSTER: {
@@ -330,7 +330,7 @@ static void vwave (void)
 // ATTACK, KILL etc.
 void vkill (void)
 {
-    char msg = 44;
+    unsigned msg = 44;
     switch (object) {
 	case BIRD:
 	    if (closed)
@@ -428,7 +428,7 @@ static void vpour (void)
 // EAT
 void veat (void)
 {
-    char msg;
+    unsigned msg;
     switch (object) {
 	case FOOD:
 	    destroy_object (FOOD);
@@ -500,7 +500,7 @@ static void vthrow (void)
     }
 
     // AXE is THROWN
-    char msg = 48;
+    unsigned msg = 48;
     unsigned i = dcheck();
     if (i) { // at a dwarf...
 	if (pct(33)) {
@@ -535,7 +535,7 @@ static void vthrow (void)
 // INVENTORY, FIND etc.
 static void vfind (void)
 {
-    char msg;
+    unsigned msg;
     if (toting(object))
 	msg = 24;
     else if (closed)
@@ -554,7 +554,7 @@ static void vfind (void)
 // FILL
 void vfill (void)
 {
-    char msg = 29;
+    unsigned msg = 29;
     switch (object) {
 	case BOTTLE:
 	    if (liq() != 0)
@@ -588,7 +588,7 @@ void vfill (void)
 // FEED
 static void vfeed (void)
 {
-    char msg = 14;
+    unsigned msg = 14;
     switch (object) {
 	case BIRD:
 	    msg = 100;
@@ -646,7 +646,7 @@ static void vread (void)
 	printf ("It's too dark to see the %s.\n", probj(object));
 	return;
     }
-    char msg;
+    unsigned msg;
     switch (object) {
 	case MAGAZINE:	msg = 190;	break;
 	case TABLET:	msg = 196;	break;
@@ -678,7 +678,7 @@ void vblast (void)
 // BREAK etc.
 static void vbreak (void)
 {
-    char msg;
+    unsigned msg;
     if (object == MIRROR) {
 	msg = 148;
 	if (closed) {

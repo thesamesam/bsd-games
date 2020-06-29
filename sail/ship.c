@@ -146,7 +146,7 @@ void table (struct Ship *from, struct Ship *on, int rig, int shot, int hittable,
 		printf ("Bad Rhit = %d", Rhit);
 		exit (EXIT_FAILURE);
 	}
-	makemsg (on, message);
+	makemsg (on, "%s", message);
     } else if (roll == 6) {
 	switch (Hhit) {
 	    case 0:	message = "anchor cables severed"; break;
@@ -165,7 +165,7 @@ void table (struct Ship *from, struct Ship *on, int rig, int shot, int hittable,
 		printf ("Bad Hhit = %d", Hhit);
 		exit (EXIT_FAILURE);
 	}
-	makemsg (on, message);
+	makemsg (on, "%s", message);
     }
     // if (Chit > 1 && on->status.readyL&R_INITIAL && on->status.readyR&R_INITIAL) {
     // --on->specs.qual;

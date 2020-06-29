@@ -22,7 +22,7 @@ void write_location_long_description (void)
 		putchar (c);
 	} else {
 	    if (c != '*')
-		printf (truedirec (compass, c));
+		printf ("%s", truedirec (compass, c));
 	    ++compass;
 	}
     }

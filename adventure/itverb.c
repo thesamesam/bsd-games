@@ -178,7 +178,7 @@ static void ivfill (void)
 static void ivfoo (void)
 {
     char k = parse_magic_word (word1);
-    char msg = 42;
+    unsigned msg = 42;
     if (foobar != 1 - k) {
 	if (foobar != 0)
 	    msg = 151;
@@ -208,7 +208,7 @@ static void ivfoo (void)
 // INVENTORY 
 static void inventory (void)
 {
-    char msg = 98;
+    unsigned msg = 98;
     for (unsigned i = 1; i <= MAXOBJ; ++i) {
 	if (i == BEAR || !toting(i))
 	    continue;

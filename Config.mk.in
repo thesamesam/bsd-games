@@ -33,8 +33,6 @@ else
     cxxflags	:= -Os -g0 -DNDEBUG=1
     ldflags	:= -s
 endif
-CFLAGS		:= -Wall -Wextra -Wstrict-prototypes -Wpointer-arith \
-		   -Wcast-align -Wmissing-prototypes -Wwrite-strings \
-		   -Wcast-qual -Wredundant-decls -Wshadow
+CFLAGS		:= -Wall -Wextra -Wstrict-prototypes -Wshadow
 cflags		+= -std=c11 @pkgcflags@ ${CFLAGS}
 ldflags		+= @pkgldflags@ ${LDFLAGS}

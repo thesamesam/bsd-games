@@ -530,7 +530,7 @@ static void try(struct Ship *f, struct Ship *t, char *command, char *temp, int m
     if ((n = str_end(temp)) < '1' || n > '9') {
 	for (n = 1; vma - n >= 0; ++n) {
 	    char st[4];
-	    snprintf (ArrayBlock(st), "%hhd", n);
+	    snprintf (ArrayBlock(st), "%d", n);
 	    strcat (temp, st);
 	    new = score (f, t, temp, rakeme);
 	    if (new > *high && (!rakeme || (gunsbear(f, t) && !gunsbear(t, f)))) {

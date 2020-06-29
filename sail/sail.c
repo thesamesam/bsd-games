@@ -392,7 +392,7 @@ static void acceptsignal(void)
     while (*p++) {}
     p[-1] = '"';
     *p = 0;
-    makemsg (_ms, buf);
+    makemsg (_ms, "%s", buf);
 }
 
 static void lookout(void)

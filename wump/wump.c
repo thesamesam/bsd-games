@@ -109,9 +109,9 @@ int main (int argc, char* const* argv)
     // and we're OFF!  da dum, da dum, da dum, da dum...
     printf ("Hunt the Wumpus!\n"
 	    "\n"
-	    "You're in a cave with %hhu rooms and %hhu tunnels leading from each room.\n"
-	    "There are %hhu bat%s and %hhu pit%s scattered throughout the cave, and your\n"
-	    "quiver holds %hhu custom super anti-evil Wumpus arrows. Good luck.\n",
+	    "You're in a cave with %u rooms and %u tunnels leading from each room.\n"
+	    "There are %u bat%s and %u pit%s scattered throughout the cave, and your\n"
+	    "quiver holds %u custom super anti-evil Wumpus arrows. Good luck.\n",
 	    cave.rooms, cave.doors, cave.bats, plural(cave.bats),
 	    cave.pits, plural(cave.pits), cave.arrows);
 
@@ -130,7 +130,7 @@ int main (int argc, char* const* argv)
 	else if (answer[0] == 'm') {
 	    uint8_t dest = atoi (&answer[1]);
 	    if (!dest || (!room_has_door_to (cave.player_loc, dest-1) && dest-1 != cave.rooms)) {	// dest == cave.rooms results in entering a random magic tunnel
-		printf (" > Move where? Try saying 'm%hhu'.\n", cave.room[cave.player_loc].tunnel[0]+1);
+		printf (" > Move where? Try saying 'm%u'.\n", cave.room[cave.player_loc].tunnel[0]+1);
 		continue;
 	    }
 	    if (do_move (dest-1))
@@ -142,7 +142,7 @@ int main (int argc, char* const* argv)
 	    for (char* numend; pathsz < ArraySize(path) && (path[pathsz] = strtoul (nlist, &numend, 10)); nlist = numend)
 		--path[pathsz++];
 	    if (!pathsz) {
-		printf (" > Shoot into which room? Try saying 's%hhu'.\n", cave.room[cave.player_loc].tunnel[0]+1);
+		printf (" > Shoot into which room? Try saying 's%u'.\n", cave.room[cave.player_loc].tunnel[0]+1);
 		continue;
 	    }
 	    if (do_shoot (path, pathsz))
@@ -158,7 +158,7 @@ static void display_room_stats(void)
     // Routine will explain what's going on with the current room, as well
     // as describe whether there are pits, bats, & wumpii nearby. It's
     // all pretty mindless, really.
-    printf ("\nYou are in room %hhu of the cave, and have %hhu arrow%s left.\n", cave.player_loc+1, cave.arrows, plural(cave.arrows));
+    printf ("\nYou are in room %u of the cave, and have %u arrow%s left.\n", cave.player_loc+1, cave.arrows, plural(cave.arrows));
 
     if (bats_nearby())
 	printf("*rustle* *rustle* (must be bats nearby)\n");
@@ -167,12 +167,12 @@ static void display_room_stats(void)
     if (wump_nearby())
 	printf("*sniff* (I can smell the evil Wumpus nearby!)\n");
 
-    printf("There are tunnels to rooms %hhu", cave.room[cave.player_loc].tunnel[0]+1);
+    printf("There are tunnels to rooms %u", cave.room[cave.player_loc].tunnel[0]+1);
 
     for (unsigned i = 1; i < cave.doors-1u; i++)
 	if (cave.room[cave.player_loc].tunnel[i] <= cave.rooms)
-	    printf(", %hhu", cave.room[cave.player_loc].tunnel[i]+1);
-    printf(", and %hhu.\n", cave.room[cave.player_loc].tunnel[cave.doors-1]+1);
+	    printf(", %u", cave.room[cave.player_loc].tunnel[i]+1);
+    printf(", and %u.\n", cave.room[cave.player_loc].tunnel[cave.doors-1]+1);
 }
 
 // Returns true if game is over
@@ -182,7 +182,7 @@ static bool do_move (uint8_t destroom)
 	destroom = nrand(cave.rooms);
 	printf ("\nWith a jaunty step you enter the magic tunnel. As you do, you\n"
 		"notice that the walls are shimmering and glowing. Suddenly you feel\n"
-		"a very curious, warm sensation and find yourself in room %hhu!!\n", destroom+1);
+		"a very curious, warm sensation and find yourself in room %u!!\n", destroom+1);
     }
     cave.player_loc = destroom;
     for (bool just_moved_by_bats = false;;) {
@@ -240,12 +240,12 @@ static bool do_shoot (const uint8_t* path, uint8_t pathsz)
 	    puts ("A faint gleam tells you the arrow has gone through a magic tunnel!");
 	    arrow_loc = nrand (cave.rooms);
 	} else {
-	    printf ("*thunk* The arrow can't find a way from %hhu to %hhu\n", arrow_loc+1, destroom+1);
+	    printf ("*thunk* The arrow can't find a way from %u to %u\n", arrow_loc+1, destroom+1);
 	    arrow_loc = cave.room[arrow_loc].tunnel[nrand(cave.doors)];
 	    if (arrow_loc == cave.player_loc)
 		printf ("\tIt flies back into your room!\n");
 	    else
-		printf ("\tIt flies randomly into room %hhu!\n", arrow_loc+1);
+		printf ("\tIt flies randomly into room %u!\n", arrow_loc+1);
 	}
 
 	// now we've gotten into the new room let us see if El Wumpo is
@@ -465,7 +465,7 @@ static void cave_init (void)
 	    batroom = nrand (cave.rooms);
 	} while (cave.room[batroom].has_a_bat);
 	cave.room[batroom].has_a_bat = true;
-	DEBUG_PRINTF ("<bat in room %hhu>\n", batroom+1);
+	DEBUG_PRINTF ("<bat in room %u>\n", batroom+1);
     }
 
     // Place pits
@@ -475,12 +475,12 @@ static void cave_init (void)
 	    pitroom = nrand (cave.rooms);
 	} while (cave.room[pitroom].has_a_pit);
 	cave.room[pitroom].has_a_pit = true;
-	DEBUG_PRINTF ("<pit in room %hhu>\n", pitroom+1);
+	DEBUG_PRINTF ("<pit in room %u>\n", pitroom+1);
     }
 
     // Place wumpus anywhere
     cave.wumpus_loc = nrand (cave.rooms);
-    DEBUG_PRINTF ("<wumpus in room %hhu>\n", cave.wumpus_loc+1);
+    DEBUG_PRINTF ("<wumpus in room %u>\n", cave.wumpus_loc+1);
 
     // Place player in any empty room
     do {

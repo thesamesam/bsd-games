@@ -64,7 +64,7 @@ static inline void vector_detach (void* vv)
 static inline __attribute__((nonnull)) void vector_attach (void* vv, void* e, size_t n) {
     struct CharVector* v = vv;
     assert (!v->d && "This vector is already attached to something. Detach or deallocate first.");
-    assert (e && "Attaching requires a non-null pointer");
+    assert (e != NULL && "Attaching requires a non-null pointer");
     v->d = e; v->size = v->allocated = n;
 }
 static inline __attribute__((nonnull)) void vector_resize (void* vv, size_t sz) {
