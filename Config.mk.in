@@ -1,8 +1,4 @@
-################ Build options #######################################
-
-NAME		:= @PKG_NAME@
-
-#DEBUG		:= 1
+name		:= @pkg_name@
 
 ################ Programs ############################################
 
@@ -10,34 +6,35 @@ CC		:= @CC@
 AR		:= @AR@
 RANLIB		:= @RANLIB@
 INSTALL		:= @INSTALL@
-
-INSTALLEXE	:= ${INSTALL} -D -p -m 755 -s
-INSTALLDATA	:= ${INSTALL} -D -p -m 644
-INSTALLSCORE	:= ${INSTALL} -D -p -m 664 -g users
-RMPATH		:= rmdir -p --ignore-fail-on-non-empty
+INSTALL_DATA	:= ${INSTALL} -m 644
+INSTALL_PROGRAM	:= ${INSTALL} -m 755 -s
+INSTALL_SCORE	:= ${INSTALL} -m 664 -g users /dev/null
 
 ################ Destination #########################################
 
 prefix		:= @prefix@
-BINDIR		:= @bindir@
-MANDIR		:= @mandir@
-STATEDIR	:= @localstatedir@/${NAME}
-DATADIR		:= @datadir@/${NAME}
-WORDLIST	:= @wordlist@
+bindir		:= @bindir@
+datadir		:= @datadir@
+mandir		:= @mandir@
+man6dir		:= @man6dir@
+scoredir	:= @localstatedir@/${name}
+TMPDIR		:= @TMPDIR@
+builddir	:= @builddir@/${name}
+O		:= .o/
 
 ################ Compiler options ####################################
 
+#debug		:= 1
+libs		:= @pkglibs@
+ifdef debug
+    cflags	:= -O0 -ggdb3
+    ldflags	:= -g -rdynamic
+else
+    cxxflags	:= -Os -g0 -DNDEBUG=1
+    ldflags	:= -s
+endif
 CFLAGS		:= -Wall -Wextra -Wstrict-prototypes -Wpointer-arith \
 		   -Wcast-align -Wmissing-prototypes -Wwrite-strings \
-		   -Wcast-qual -Wshadow -Wredundant-decls \
-		   -std=c11 @CUSTOMINCDIR@
-LDFLAGS		:= @CUSTOMLIBDIR@
-CURSES_LIBS	:= -lncurses
-ifdef DEBUG
-    CFLAGS	+= -O0 -ggdb3
-else
-    CFLAGS	+= -Os -g0 -DNDEBUG=1
-    LDFLAGS	+= -s
-endif
-BUILDDIR	:= @builddir@/${NAME}
-O		:= .o/
+		   -Wcast-qual -Wredundant-decls -Wshadow
+cflags		+= -std=c11 @pkgcflags@ ${CFLAGS}
+ldflags		+= @pkgldflags@ ${LDFLAGS}

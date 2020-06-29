@@ -1,45 +1,61 @@
 ################ Source files ##########################################
 
-fish/NAME	:= fish
-fish/EXE	:= $Ofish/${fish/NAME}
-fish/SRCS	:= $(wildcard fish/*.c)
-fish/OBJS	:= $(addprefix $O,$(fish/SRCS:.c=.o))
-fish/DEPS	:= $(fish/OBJS:.o=.d)
-fish/LIBS	:= ${COMLIB} ${CURSES_LIBS}
+fish/name	:= fish
+fish/exe	:= $Ofish/${fish/name}
+fish/srcs	:= $(wildcard fish/*.c)
+fish/objs	:= $(addprefix $O,$(fish/srcs:.c=.o))
+fish/mans	:= $(wildcard fish/*.6)
+fish/manz	:= $(addprefix $O,$(fish/mans:.6=.6.gz))
+fish/deps	:= $(fish/objs:.o=.d)
 
 ################ Compilation ###########################################
 
-.PHONY:	fish/all fish/clean fish/run fish/install fish/uninstall
+.PHONY:	fish/all fish/clean fish/run
 
 all:		fish/all
-fish/all:	${fish/EXE}
-fish/run:	${fish/EXE}
-	@${fish/EXE}
+fish/all:	${fish/exe}
 
-${fish/EXE}:	${fish/OBJS} ${COMLIB}
+fish/run:	${fish/exe}
+	@${fish/exe}
+
+${fish/exe}:	${fish/objs} ${comlib}
 	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ ${fish/OBJS} ${fish/LIBS}
+	@${CC} ${ldflags} -o $@ $^ ${libs}
 
 ################ Installation ##########################################
 
-ifdef BINDIR
-fish/EXEI	:= ${BINDIR}/${fish/NAME}
-fish/MANI	:= ${MANDIR}/man6/${fish/NAME}.6.gz
+.PHONY: fish/install fish/uninstall fish/uninstall-man
+
+ifdef exed
+fish/exei	:= ${exed}/${fish/name}
+
+${fish/exei}:	${fish/exe} | ${exed}
+	@echo "Installing $@ ..."
+	@${INSTALL_PROGRAM} $< $@
 
 install:		fish/install
-fish/install:	${fish/EXEI} ${fish/MANI}
-${fish/EXEI}:	${fish/EXE}
-	@echo "Installing $@ ..."
-	@${INSTALLEXE} $< $@
-${fish/MANI}:	fish/${fish/NAME}.6
-	@echo "Installing $@ ..."
-	@gzip -9 -c $< > $@ && chmod 644 $@
-
+fish/install:	${fish/exei}
 uninstall:		fish/uninstall
 fish/uninstall:
-	@if [ -f ${fish/EXEI} ]; then\
-	    echo "Removing ${fish/EXEI} ...";\
-	    rm -f ${fish/EXEI} ${fish/MANI};\
+	@if [ -f ${fish/exei} ]; then\
+	    echo "Removing ${fish/exei} ...";\
+	    rm -f ${fish/exei};\
+	fi
+endif
+
+ifdef mand
+fish/mani	:= $(addprefix ${mand}/,$(notdir ${fish/manz}))
+
+${fish/mani}: ${mand}/%:	$Ofish/% | ${mand}
+	@echo "Installing $@ ..."
+	@${INSTALL_DATA} $< $@
+
+fish/install:	${fish/mani}
+fish/uninstall:	fish/uninstall-man
+fish/uninstall-man:
+	@if [ -f ${fish/mani} ]; then\
+	    echo "Removing ${fish/mani} ...";\
+	    rm -f ${fish/mani};\
 	fi
 endif
 
@@ -48,13 +64,10 @@ endif
 clean:	fish/clean
 fish/clean:
 	@if [ -d $O/fish ]; then\
-	    rm -f ${fish/EXE} ${fish/OBJS} ${fish/DEPS} $Ofish/.d;\
+	    rm -f ${fish/exe} ${fish/objs} ${fish/deps} ${fish/manz} $Ofish/.d;\
 	    rmdir $O/fish;\
 	fi
 
-$Ofish/.d:	$O.d
-	@[ -d $Ofish ] || mkdir $Ofish && touch $Ofish/.d
+${fish/objs}: Makefile ${confs} fish/Module.mk $Ofish/.d
 
-${fish/OBJS}: ${CONFS} fish/Module.mk $Ofish/.d
-
--include ${fish/DEPS}
+-include ${fish/deps}

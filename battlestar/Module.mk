@@ -1,48 +1,71 @@
 ################ Source files ##########################################
 
-battlestar/NAME	:= battlestar
-battlestar/EXE	:= $Obattlestar/${battlestar/NAME}
-battlestar/SRCS	:= $(wildcard battlestar/*.c)
-battlestar/OBJS	:= $(addprefix $O,$(battlestar/SRCS:.c=.o))
-battlestar/DEPS	:= $(battlestar/OBJS:.o=.d)
-battlestar/LIBS	:= ${COMLIB} ${CURSES_LIBS}
+battlestar/name	:= battlestar
+battlestar/exe	:= $Obattlestar/${battlestar/name}
+battlestar/srcs	:= $(wildcard battlestar/*.c)
+battlestar/objs	:= $(addprefix $O,$(battlestar/srcs:.c=.o))
+battlestar/mans	:= $(wildcard battlestar/*.6)
+battlestar/manz	:= $(addprefix $O,$(battlestar/mans:.6=.6.gz))
+battlestar/deps	:= $(battlestar/objs:.o=.d)
 
 ################ Compilation ###########################################
 
-.PHONY:	battlestar/all battlestar/clean battlestar/run battlestar/install battlestar/uninstall
+.PHONY:	battlestar/all battlestar/clean battlestar/run
 
 all:		battlestar/all
-battlestar/all:	${battlestar/EXE}
-battlestar/run:	${battlestar/EXE}
-	@${battlestar/EXE}
+battlestar/all:	${battlestar/exe}
 
-${battlestar/EXE}:	${battlestar/OBJS} ${COMLIB}
+battlestar/run:	${battlestar/exe}
+	@${battlestar/exe}
+
+${battlestar/exe}:	${battlestar/objs} ${comlib}
 	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ ${battlestar/OBJS} ${battlestar/LIBS}
+	@${CC} ${ldflags} -o $@ $^ ${libs}
 
 ################ Installation ##########################################
 
-ifdef BINDIR
-battlestar/EXEI	:= ${BINDIR}/${battlestar/NAME}
-battlestar/MANI	:= ${MANDIR}/man6/${battlestar/NAME}.6.gz
-battlestar/SCOREI	:= ${STATEDIR}/battlestar.scores
+.PHONY: battlestar/install battlestar/uninstall battlestar/uninstall-man
+
+ifdef exed
+battlestar/exei	:= ${exed}/${battlestar/name}
+
+${battlestar/exei}:	${battlestar/exe} | ${exed}
+	@echo "Installing $@ ..."
+	@${INSTALL_PROGRAM} $< $@
 
 install:		battlestar/install
-battlestar/install:	${battlestar/EXEI} ${battlestar/MANI} ${battlestar/SCOREI}
-${battlestar/EXEI}:	${battlestar/EXE}
-	@echo "Installing $@ ..."
-	@${INSTALLEXE} $< $@
-${battlestar/MANI}:	battlestar/${battlestar/NAME}.6
-${battlestar/SCOREI}:
-	@echo "Creating initial score file $@ ..."
-	@${INSTALLSCORE} /dev/null $@
-
+battlestar/install:	${battlestar/exei}
 uninstall:		battlestar/uninstall
 battlestar/uninstall:
-	@if [ -f ${battlestar/EXEI} ]; then\
-	    echo "Removing ${battlestar/EXEI} ...";\
-	    rm -f ${battlestar/EXEI} ${battlestar/MANI} ${battlestar/SCOREI};\
+	@if [ -f ${battlestar/exei} ]; then\
+	    echo "Removing ${battlestar/exei} ...";\
+	    rm -f ${battlestar/exei};\
 	fi
+endif
+
+ifdef mand
+battlestar/mani	:= $(addprefix ${mand}/,$(notdir ${battlestar/manz}))
+
+${battlestar/mani}: ${mand}/%:	$Obattlestar/% | ${mand}
+	@echo "Installing $@ ..."
+	@${INSTALL_DATA} $< $@
+
+battlestar/install:	${battlestar/mani}
+battlestar/uninstall:	battlestar/uninstall-man
+battlestar/uninstall-man:
+	@if [ -f ${battlestar/mani} ]; then\
+	    echo "Removing ${battlestar/mani} ...";\
+	    rm -f ${battlestar/mani};\
+	fi
+endif
+
+ifdef scored
+battlestar/scorei:= ${scored}/battlestar.scores
+${battlestar/scorei}:	| ${scored}
+	@echo "Creating initial score file $@ ..."
+	@${INSTALL_SCORE} $@
+
+battlestar/install:	${battlestar/scorei}
 endif
 
 ################ Maintenance ###########################################
@@ -50,13 +73,10 @@ endif
 clean:	battlestar/clean
 battlestar/clean:
 	@if [ -d $O/battlestar ]; then\
-	    rm -f ${battlestar/EXE} ${battlestar/OBJS} ${battlestar/DEPS} $Obattlestar/.d;\
+	    rm -f ${battlestar/exe} ${battlestar/objs} ${battlestar/deps} ${battlestar/manz} $Obattlestar/.d;\
 	    rmdir $O/battlestar;\
 	fi
 
-$Obattlestar/.d:	$O.d
-	@[ -d $Obattlestar ] || mkdir $Obattlestar && touch $Obattlestar/.d
+${battlestar/objs}: Makefile ${confs} battlestar/Module.mk $Obattlestar/.d
 
-${battlestar/OBJS}: ${CONFS} battlestar/Module.mk $Obattlestar/.d
-
--include ${battlestar/DEPS}
+-include ${battlestar/deps}

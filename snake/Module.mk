@@ -1,50 +1,71 @@
 ################ Source files ##########################################
 
-snake/NAME	:= snake
-snake/EXE	:= $Osnake/${snake/NAME}
-snake/SRCS	:= $(wildcard snake/*.c)
-snake/OBJS	:= $(addprefix $O,$(snake/SRCS:.c=.o))
-snake/DEPS	:= $(snake/OBJS:.o=.d)
-snake/LIBS	:= ${COMLIB} ${CURSES_LIBS}
+snake/name	:= snake
+snake/exe	:= $Osnake/${snake/name}
+snake/srcs	:= $(wildcard snake/*.c)
+snake/objs	:= $(addprefix $O,$(snake/srcs:.c=.o))
+snake/mans	:= $(wildcard snake/*.6)
+snake/manz	:= $(addprefix $O,$(snake/mans:.6=.6.gz))
+snake/deps	:= $(snake/objs:.o=.d)
 
 ################ Compilation ###########################################
 
-.PHONY:	snake/all snake/clean snake/run snake/install snake/uninstall
+.PHONY:	snake/all snake/clean snake/run
 
 all:		snake/all
-snake/all:	${snake/EXE}
-snake/run:	${snake/EXE}
-	@${snake/EXE}
+snake/all:	${snake/exe}
 
-${snake/EXE}:	$Osnake/snake.o ${COMLIB}
+snake/run:	${snake/exe}
+	@${snake/exe}
+
+${snake/exe}:	${snake/objs} ${comlib}
 	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ $Osnake/snake.o ${snake/LIBS}
+	@${CC} ${ldflags} -o $@ $^ ${libs}
 
 ################ Installation ##########################################
 
-ifdef BINDIR
-snake/EXEI	:= ${BINDIR}/${snake/NAME}
-snake/MANI	:= ${MANDIR}/man6/${snake/NAME}.6.gz
-snake/SCOREI	:= ${STATEDIR}/snake.scores
+.PHONY: snake/install snake/uninstall snake/uninstall-man
+
+ifdef exed
+snake/exei	:= ${exed}/${snake/name}
+
+${snake/exei}:	${snake/exe} | ${exed}
+	@echo "Installing $@ ..."
+	@${INSTALL_PROGRAM} $< $@
 
 install:		snake/install
-snake/install:	${snake/EXEI} ${snake/MANI} ${snake/SCOREI}
-${snake/EXEI}:	${snake/EXE}
-	@echo "Installing $@ ..."
-	@${INSTALLEXE} $< $@
-${snake/MANI}:	snake/${snake/NAME}.6
-	@echo "Installing $@ ..."
-	@gzip -9 -c $< > $@ && chmod 644 $@
-${snake/SCOREI}:
-	@echo "Creating initial score file $@ ..."
-	@${INSTALLSCORE} /dev/null $@
-
+snake/install:	${snake/exei}
 uninstall:		snake/uninstall
 snake/uninstall:
-	@if [ -f ${snake/EXEI} ]; then\
-	    echo "Removing ${snake/EXEI} ...";\
-	    rm -f ${snake/EXEI} ${snake/MANI} ${snake/SCOREI};\
+	@if [ -f ${snake/exei} ]; then\
+	    echo "Removing ${snake/exei} ...";\
+	    rm -f ${snake/exei};\
 	fi
+endif
+
+ifdef mand
+snake/mani	:= $(addprefix ${mand}/,$(notdir ${snake/manz}))
+
+${snake/mani}: ${mand}/%:	$Osnake/% | ${mand}
+	@echo "Installing $@ ..."
+	@${INSTALL_DATA} $< $@
+
+snake/install:	${snake/mani}
+snake/uninstall:	snake/uninstall-man
+snake/uninstall-man:
+	@if [ -f ${snake/mani} ]; then\
+	    echo "Removing ${snake/mani} ...";\
+	    rm -f ${snake/mani};\
+	fi
+endif
+
+ifdef scored
+snake/scorei:= ${scored}/snake.scores
+${snake/scorei}:	| ${scored}
+	@echo "Creating initial score file $@ ..."
+	@${INSTALL_SCORE} $@
+
+snake/install:	${snake/scorei}
 endif
 
 ################ Maintenance ###########################################
@@ -52,13 +73,10 @@ endif
 clean:	snake/clean
 snake/clean:
 	@if [ -d $O/snake ]; then\
-	    rm -f ${snake/EXE} ${snake/OBJS} ${snake/DEPS} $Osnake/.d;\
+	    rm -f ${snake/exe} ${snake/objs} ${snake/deps} ${snake/manz} $Osnake/.d;\
 	    rmdir $O/snake;\
 	fi
 
-$Osnake/.d:	$O.d
-	@[ -d $Osnake ] || mkdir $Osnake && touch $Osnake/.d
+${snake/objs}: Makefile ${confs} snake/Module.mk $Osnake/.d
 
-${snake/OBJS}: ${CONFS} snake/Module.mk $Osnake/.d
-
--include ${snake/DEPS}
+-include ${snake/deps}

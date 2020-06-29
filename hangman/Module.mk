@@ -1,45 +1,61 @@
 ################ Source files ##########################################
 
-hangman/NAME	:= hangman
-hangman/EXE	:= $Ohangman/${hangman/NAME}
-hangman/SRCS	:= $(wildcard hangman/*.c)
-hangman/OBJS	:= $(addprefix $O,$(hangman/SRCS:.c=.o))
-hangman/DEPS	:= $(hangman/OBJS:.o=.d)
-hangman/LIBS	:= ${COMLIB} ${CURSES_LIBS}
+hangman/name	:= hangman
+hangman/exe	:= $Ohangman/${hangman/name}
+hangman/srcs	:= $(wildcard hangman/*.c)
+hangman/objs	:= $(addprefix $O,$(hangman/srcs:.c=.o))
+hangman/mans	:= $(wildcard hangman/*.6)
+hangman/manz	:= $(addprefix $O,$(hangman/mans:.6=.6.gz))
+hangman/deps	:= $(hangman/objs:.o=.d)
 
 ################ Compilation ###########################################
 
-.PHONY:	hangman/all hangman/clean hangman/run hangman/install hangman/uninstall
+.PHONY:	hangman/all hangman/clean hangman/run
 
 all:		hangman/all
-hangman/all:	${hangman/EXE}
-hangman/run:	${hangman/EXE}
-	@${hangman/EXE}
+hangman/all:	${hangman/exe}
 
-${hangman/EXE}:	${hangman/OBJS} ${COMLIB}
+hangman/run:	${hangman/exe}
+	@${hangman/exe}
+
+${hangman/exe}:	${hangman/objs} ${comlib}
 	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ ${hangman/OBJS} ${hangman/LIBS}
+	@${CC} ${ldflags} -o $@ $^ ${libs}
 
 ################ Installation ##########################################
 
-ifdef BINDIR
-hangman/EXEI	:= ${BINDIR}/${hangman/NAME}
-hangman/MANI	:= ${MANDIR}/man6/${hangman/NAME}.6.gz
+.PHONY: hangman/install hangman/uninstall hangman/uninstall-man
+
+ifdef exed
+hangman/exei	:= ${exed}/${hangman/name}
+
+${hangman/exei}:	${hangman/exe} | ${exed}
+	@echo "Installing $@ ..."
+	@${INSTALL_PROGRAM} $< $@
 
 install:		hangman/install
-hangman/install:	${hangman/EXEI} ${hangman/MANI}
-${hangman/EXEI}:	${hangman/EXE}
-	@echo "Installing $@ ..."
-	@${INSTALLEXE} $< $@
-${hangman/MANI}:	hangman/${hangman/NAME}.6
-	@echo "Installing $@ ..."
-	@gzip -9 -c $< > $@ && chmod 644 $@
-
+hangman/install:	${hangman/exei}
 uninstall:		hangman/uninstall
 hangman/uninstall:
-	@if [ -f ${hangman/EXEI} ]; then\
-	    echo "Removing ${hangman/EXEI} ...";\
-	    rm -f ${hangman/EXEI} ${hangman/MANI};\
+	@if [ -f ${hangman/exei} ]; then\
+	    echo "Removing ${hangman/exei} ...";\
+	    rm -f ${hangman/exei};\
+	fi
+endif
+
+ifdef mand
+hangman/mani	:= $(addprefix ${mand}/,$(notdir ${hangman/manz}))
+
+${hangman/mani}: ${mand}/%:	$Ohangman/% | ${mand}
+	@echo "Installing $@ ..."
+	@${INSTALL_DATA} $< $@
+
+hangman/install:	${hangman/mani}
+hangman/uninstall:	hangman/uninstall-man
+hangman/uninstall-man:
+	@if [ -f ${hangman/mani} ]; then\
+	    echo "Removing ${hangman/mani} ...";\
+	    rm -f ${hangman/mani};\
 	fi
 endif
 
@@ -48,13 +64,10 @@ endif
 clean:	hangman/clean
 hangman/clean:
 	@if [ -d $O/hangman ]; then\
-	    rm -f ${hangman/EXE} ${hangman/OBJS} ${hangman/DEPS} $Ohangman/.d;\
+	    rm -f ${hangman/exe} ${hangman/objs} ${hangman/deps} ${hangman/manz} $Ohangman/.d;\
 	    rmdir $O/hangman;\
 	fi
 
-$Ohangman/.d:	$O.d
-	@[ -d $Ohangman ] || mkdir $Ohangman && touch $Ohangman/.d
+${hangman/objs}: Makefile ${confs} hangman/Module.mk $Ohangman/.d
 
-${hangman/OBJS}: ${CONFS} hangman/Module.mk $Ohangman/.d
-
--include ${hangman/DEPS}
+-include ${hangman/deps}

@@ -1,45 +1,61 @@
 ################ Source files ##########################################
 
-wump/NAME	:= wump
-wump/EXE	:= $Owump/${wump/NAME}
-wump/SRCS	:= $(wildcard wump/*.c)
-wump/OBJS	:= $(addprefix $O,$(wump/SRCS:.c=.o))
-wump/DEPS	:= $(wump/OBJS:.o=.d)
-wump/LIBS	:= ${COMLIB}
+wump/name	:= wump
+wump/exe	:= $Owump/${wump/name}
+wump/srcs	:= $(wildcard wump/*.c)
+wump/objs	:= $(addprefix $O,$(wump/srcs:.c=.o))
+wump/mans	:= $(wildcard wump/*.6)
+wump/manz	:= $(addprefix $O,$(wump/mans:.6=.6.gz))
+wump/deps	:= $(wump/objs:.o=.d)
 
 ################ Compilation ###########################################
 
-.PHONY:	wump/all wump/clean wump/run wump/install wump/uninstall
+.PHONY:	wump/all wump/clean wump/run
 
 all:		wump/all
-wump/all:	${wump/EXE}
-wump/run:	${wump/EXE}
-	@${wump/EXE}
+wump/all:	${wump/exe}
 
-${wump/EXE}:	${wump/OBJS} ${COMLIB}
+wump/run:	${wump/exe}
+	@${wump/exe}
+
+${wump/exe}:	${wump/objs} ${comlib}
 	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ ${wump/OBJS} ${wump/LIBS}
+	@${CC} ${ldflags} -o $@ $^
 
 ################ Installation ##########################################
 
-ifdef BINDIR
-wump/EXEI	:= ${BINDIR}/${wump/NAME}
-wump/MANI	:= ${MANDIR}/man6/${wump/NAME}.6.gz
+.PHONY: wump/install wump/uninstall wump/uninstall-man
 
-install:		wump/install
-wump/install:	${wump/EXEI} ${wump/MANI}
-${wump/EXEI}:	${wump/EXE}
-	@echo "Installing $@ ..."
-	@${INSTALLEXE} $< $@
-${wump/MANI}:	wump/${wump/NAME}.6
-	@echo "Installing $@ ..."
-	@gzip -9 -c $< > $@ && chmod 644 $@
+ifdef exed
+wump/exei	:= ${exed}/${wump/name}
 
-uninstall:		wump/uninstall
+${wump/exei}:	${wump/exe} | ${exed}
+	@echo "Installing $@ ..."
+	@${INSTALL_PROGRAM} $< $@
+
+install:	wump/install
+wump/install:	${wump/exei}
+uninstall:	wump/uninstall
 wump/uninstall:
-	@if [ -f ${wump/EXEI} ]; then\
-	    echo "Removing ${wump/EXEI} ...";\
-	    rm -f ${wump/EXEI} ${wump/MANI};\
+	@if [ -f ${wump/exei} ]; then\
+	    echo "Removing ${wump/exei} ...";\
+	    rm -f ${wump/exei};\
+	fi
+endif
+
+ifdef mand
+wump/mani	:= $(addprefix ${mand}/,$(notdir ${wump/manz}))
+
+${wump/mani}: ${mand}/%:	$Owump/% | ${mand}
+	@echo "Installing $@ ..."
+	@${INSTALL_DATA} $< $@
+
+wump/install:	${wump/mani}
+wump/uninstall:	wump/uninstall-man
+wump/uninstall-man:
+	@if [ -f ${wump/mani} ]; then\
+	    echo "Removing ${wump/mani} ...";\
+	    rm -f ${wump/mani};\
 	fi
 endif
 
@@ -48,13 +64,10 @@ endif
 clean:	wump/clean
 wump/clean:
 	@if [ -d $O/wump ]; then\
-	    rm -f ${wump/EXE} ${wump/OBJS} ${wump/DEPS} $Owump/.d;\
+	    rm -f ${wump/exe} ${wump/objs} ${wump/deps} ${wump/manz} $Owump/.d;\
 	    rmdir $O/wump;\
 	fi
 
-$Owump/.d:	$O.d
-	@[ -d $Owump ] || mkdir $Owump && touch $Owump/.d
+${wump/objs}: Makefile ${confs} wump/Module.mk $Owump/.d
 
-${wump/OBJS}: ${CONFS} wump/Module.mk $Owump/.d
-
--include ${wump/DEPS}
+-include ${wump/deps}

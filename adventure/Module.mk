@@ -1,49 +1,71 @@
 ################ Source files ##########################################
 
-adventure/NAME	:= adventure
-adventure/EXE	:= $Oadventure/${adventure/NAME}
-adventure/SRCS	:= $(wildcard adventure/*.c)
-adventure/OBJS	:= $(addprefix $O,$(adventure/SRCS:.c=.o))
-adventure/DEPS	:= $(adventure/OBJS:.o=.d)
-adventure/TXTS	:= $(wildcard adventure/*.txt)
+adventure/name	:= adventure
+adventure/exe	:= $Oadventure/${adventure/name}
+adventure/srcs	:= $(wildcard adventure/*.c)
+adventure/objs	:= $(addprefix $O,$(adventure/srcs:.c=.o))
+adventure/mans	:= $(wildcard adventure/*.6)
+adventure/manz	:= $(addprefix $O,$(adventure/mans:.6=.6.gz))
+adventure/deps	:= $(adventure/objs:.o=.d)
 
 ################ Compilation ###########################################
 
-.PHONY:	adventure/all adventure/clean adventure/run adventure/install adventure/uninstall
+.PHONY:	adventure/all adventure/clean adventure/run
 
 all:		adventure/all
-adventure/all:	${adventure/EXE}
-adventure/run:	${adventure/EXE}
-	@${adventure/EXE}
+adventure/all:	${adventure/exe}
 
-${adventure/EXE}:	${adventure/OBJS} ${COMLIB}
+adventure/run:	${adventure/exe}
+	@${adventure/exe}
+
+${adventure/exe}:	${adventure/objs} ${comlib}
 	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ $^
+	@${CC} ${ldflags} -o $@ $^
 
 ################ Installation ##########################################
 
-ifdef BINDIR
-adventure/EXEI	:= ${BINDIR}/${adventure/NAME}
-adventure/MANI	:= ${MANDIR}/man6/${adventure/NAME}.6.gz
-adventure/SCOREI:= ${STATEDIR}/adventure.scores
+.PHONY: adventure/install adventure/uninstall adventure/uninstall-man
 
+ifdef exed
+adventure/exei	:= ${exed}/${adventure/name}
+
+${adventure/exei}:	${adventure/exe} | ${exed}
+	@echo "Installing $@ ..."
+	@${INSTALL_PROGRAM} $< $@
 
 install:		adventure/install
-adventure/install:	${adventure/EXEI} ${adventure/MANI} ${adventure/SCOREI}
-${adventure/EXEI}:	${adventure/EXE}
-	@echo "Installing $@ ..."
-	@${INSTALLEXE} $< $@
-${adventure/MANI}:	adventure/${adventure/NAME}.6
-${adventure/SCOREI}:
-	@echo "Creating initial score file $@ ..."
-	@${INSTALLSCORE} /dev/null $@
-
+adventure/install:	${adventure/exei}
 uninstall:		adventure/uninstall
 adventure/uninstall:
-	@if [ -f ${adventure/EXEI} ]; then\
-	    echo "Removing ${adventure/EXEI} ...";\
-	    rm -f ${adventure/EXEI} ${adventure/MANI};\
+	@if [ -f ${adventure/exei} ]; then\
+	    echo "Removing ${adventure/exei} ...";\
+	    rm -f ${adventure/exei};\
 	fi
+endif
+
+ifdef mand
+adventure/mani	:= $(addprefix ${mand}/,$(notdir ${adventure/manz}))
+
+${adventure/mani}: ${mand}/%:	$Oadventure/% | ${mand}
+	@echo "Installing $@ ..."
+	@${INSTALL_DATA} $< $@
+
+adventure/install:	${adventure/mani}
+adventure/uninstall:	adventure/uninstall-man
+adventure/uninstall-man:
+	@if [ -f ${adventure/mani} ]; then\
+	    echo "Removing ${adventure/mani} ...";\
+	    rm -f ${adventure/mani};\
+	fi
+endif
+
+ifdef scored
+adventure/scorei:= ${scored}/adventure.scores
+${adventure/scorei}:	| ${scored}
+	@echo "Creating initial score file $@ ..."
+	@${INSTALL_SCORE} $@
+
+adventure/install:	${adventure/scorei}
 endif
 
 ################ Maintenance ###########################################
@@ -51,13 +73,10 @@ endif
 clean:	adventure/clean
 adventure/clean:
 	@if [ -d $O/adventure ]; then\
-	    rm -f ${adventure/EXE} ${adventure/OBJS} ${adventure/DEPS} $Oadventure/.d;\
+	    rm -f ${adventure/exe} ${adventure/objs} ${adventure/deps} ${adventure/manz} $Oadventure/.d;\
 	    rmdir $O/adventure;\
 	fi
 
-$Oadventure/.d:	$O.d
-	@[ -d $Oadventure ] || mkdir $Oadventure && touch $Oadventure/.d
+${adventure/objs}: Makefile ${confs} adventure/Module.mk $Oadventure/.d
 
-${adventure/OBJS}: ${CONFS} adventure/Module.mk $Oadventure/.d
-
--include ${adventure/DEPS}
+-include ${adventure/deps}

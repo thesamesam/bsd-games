@@ -1,43 +1,61 @@
 ################ Source files ##########################################
 
-cribbage/NAME	:= cribbage
-cribbage/EXE	:= $Ocribbage/${cribbage/NAME}
-cribbage/SRCS	:= $(wildcard cribbage/*.c)
-cribbage/OBJS	:= $(addprefix $O,$(cribbage/SRCS:.c=.o))
-cribbage/DEPS	:= $(cribbage/OBJS:.o=.d)
-cribbage/LIBS	:= ${COMLIB} ${CURSES_LIBS}
+cribbage/name	:= cribbage
+cribbage/exe	:= $Ocribbage/${cribbage/name}
+cribbage/srcs	:= $(wildcard cribbage/*.c)
+cribbage/objs	:= $(addprefix $O,$(cribbage/srcs:.c=.o))
+cribbage/mans	:= $(wildcard cribbage/*.6)
+cribbage/manz	:= $(addprefix $O,$(cribbage/mans:.6=.6.gz))
+cribbage/deps	:= $(cribbage/objs:.o=.d)
 
 ################ Compilation ###########################################
 
-.PHONY:	cribbage/all cribbage/clean cribbage/run cribbage/install cribbage/uninstall
+.PHONY:	cribbage/all cribbage/clean cribbage/run
 
 all:		cribbage/all
-cribbage/all:	${cribbage/EXE}
-cribbage/run:	${cribbage/EXE}
-	@${cribbage/EXE}
+cribbage/all:	${cribbage/exe}
 
-${cribbage/EXE}:	${cribbage/OBJS} ${COMLIB}
+cribbage/run:	${cribbage/exe}
+	@${cribbage/exe}
+
+${cribbage/exe}:	${cribbage/objs} ${comlib}
 	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ ${cribbage/OBJS} ${cribbage/LIBS}
+	@${CC} ${ldflags} -o $@ $^ ${libs}
 
 ################ Installation ##########################################
 
-ifdef BINDIR
-cribbage/EXEI	:= ${BINDIR}/${cribbage/NAME}
-cribbage/MANI	:= ${MANDIR}/man6/${cribbage/NAME}.6.gz
+.PHONY: cribbage/install cribbage/uninstall cribbage/uninstall-man
+
+ifdef exed
+cribbage/exei	:= ${exed}/${cribbage/name}
+
+${cribbage/exei}:	${cribbage/exe} | ${exed}
+	@echo "Installing $@ ..."
+	@${INSTALL_PROGRAM} $< $@
 
 install:		cribbage/install
-cribbage/install:	${cribbage/EXEI} ${cribbage/MANI}
-${cribbage/EXEI}:	${cribbage/EXE}
-	@echo "Installing $@ ..."
-	@${INSTALLEXE} $< $@
-${cribbage/MANI}:	cribbage/${cribbage/NAME}.6
-
+cribbage/install:	${cribbage/exei}
 uninstall:		cribbage/uninstall
 cribbage/uninstall:
-	@if [ -f ${cribbage/EXEI} ]; then\
-	    echo "Removing ${cribbage/EXEI} ...";\
-	    rm -f ${cribbage/EXEI} ${cribbage/MANI};\
+	@if [ -f ${cribbage/exei} ]; then\
+	    echo "Removing ${cribbage/exei} ...";\
+	    rm -f ${cribbage/exei};\
+	fi
+endif
+
+ifdef mand
+cribbage/mani	:= $(addprefix ${mand}/,$(notdir ${cribbage/manz}))
+
+${cribbage/mani}: ${mand}/%:	$Ocribbage/% | ${mand}
+	@echo "Installing $@ ..."
+	@${INSTALL_DATA} $< $@
+
+cribbage/install:	${cribbage/mani}
+cribbage/uninstall:	cribbage/uninstall-man
+cribbage/uninstall-man:
+	@if [ -f ${cribbage/mani} ]; then\
+	    echo "Removing ${cribbage/mani} ...";\
+	    rm -f ${cribbage/mani};\
 	fi
 endif
 
@@ -46,13 +64,10 @@ endif
 clean:	cribbage/clean
 cribbage/clean:
 	@if [ -d $O/cribbage ]; then\
-	    rm -f ${cribbage/EXE} ${cribbage/OBJS} ${cribbage/DEPS} $Ocribbage/.d;\
+	    rm -f ${cribbage/exe} ${cribbage/objs} ${cribbage/deps} ${cribbage/manz} $Ocribbage/.d;\
 	    rmdir $O/cribbage;\
 	fi
 
-$Ocribbage/.d:	$O.d
-	@[ -d $Ocribbage ] || mkdir $Ocribbage && touch $Ocribbage/.d
+${cribbage/objs}: Makefile ${confs} cribbage/Module.mk $Ocribbage/.d
 
-${cribbage/OBJS}: ${CONFS} cribbage/Module.mk $Ocribbage/.d
-
--include ${cribbage/DEPS}
+-include ${cribbage/deps}

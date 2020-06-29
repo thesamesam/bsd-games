@@ -1,49 +1,61 @@
 ################ Source files ##########################################
 
-sail/NAME	:= sail
-sail/EXE	:= $Osail/${sail/NAME}
-sail/SRCS	:= $(wildcard sail/*.c)
-sail/OBJS	:= $(addprefix $O,$(sail/SRCS:.c=.o))
-sail/DEPS	:= $(sail/OBJS:.o=.d)
-sail/LIBS	:= ${COMLIB} ${CURSES_LIBS}
+sail/name	:= sail
+sail/exe	:= $Osail/${sail/name}
+sail/srcs	:= $(wildcard sail/*.c)
+sail/objs	:= $(addprefix $O,$(sail/srcs:.c=.o))
+sail/mans	:= $(wildcard sail/*.6)
+sail/manz	:= $(addprefix $O,$(sail/mans:.6=.6.gz))
+sail/deps	:= $(sail/objs:.o=.d)
 
 ################ Compilation ###########################################
 
-.PHONY:	sail/all sail/clean sail/run sail/install sail/uninstall
+.PHONY:	sail/all sail/clean sail/run
 
 all:		sail/all
-sail/all:	${sail/EXE}
-sail/run:	${sail/EXE}
-	@${sail/EXE}
+sail/all:	${sail/exe}
 
-${sail/EXE}:	${sail/OBJS} ${COMLIB}
+sail/run:	${sail/exe}
+	@${sail/exe}
+
+${sail/exe}:	${sail/objs} ${comlib}
 	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ ${sail/OBJS} ${sail/LIBS}
+	@${CC} ${ldflags} -o $@ $^ ${libs}
 
 ################ Installation ##########################################
 
-ifdef BINDIR
-sail/EXEI	:= ${BINDIR}/${sail/NAME}
-sail/MANI	:= ${MANDIR}/man6/${sail/NAME}.6.gz
-sail/SCOREI	:= ${STATEDIR}/sail.scores
+.PHONY: sail/install sail/uninstall sail/uninstall-man
+
+ifdef exed
+sail/exei	:= ${exed}/${sail/name}
+
+${sail/exei}:	${sail/exe} | ${exed}
+	@echo "Installing $@ ..."
+	@${INSTALL_PROGRAM} $< $@
 
 install:		sail/install
-sail/install:	${sail/EXEI} ${sail/MANI} ${sail/SCOREI}
-${sail/EXEI}:	${sail/EXE}
-	@echo "Installing $@ ..."
-	@${INSTALLEXE} $< $@
-${sail/MANI}:	sail/${sail/NAME}.6
-	@echo "Installing $@ ..."
-	@gzip -9 -c $< > $@ && chmod 644 $@
-${sail/SCOREI}:
-	@echo "Creating initial score file $@ ..."
-	@${INSTALLSCORE} /dev/null $@
-
+sail/install:	${sail/exei}
 uninstall:		sail/uninstall
 sail/uninstall:
-	@if [ -f ${sail/EXEI} ]; then\
-	    echo "Removing ${sail/EXEI} ...";\
-	    rm -f ${sail/EXEI} ${sail/MANI} ${sail/SCOREI};\
+	@if [ -f ${sail/exei} ]; then\
+	    echo "Removing ${sail/exei} ...";\
+	    rm -f ${sail/exei};\
+	fi
+endif
+
+ifdef mand
+sail/mani	:= $(addprefix ${mand}/,$(notdir ${sail/manz}))
+
+${sail/mani}: ${mand}/%:	$Osail/% | ${mand}
+	@echo "Installing $@ ..."
+	@${INSTALL_DATA} $< $@
+
+sail/install:	${sail/mani}
+sail/uninstall:	sail/uninstall-man
+sail/uninstall-man:
+	@if [ -f ${sail/mani} ]; then\
+	    echo "Removing ${sail/mani} ...";\
+	    rm -f ${sail/mani};\
 	fi
 endif
 
@@ -52,13 +64,10 @@ endif
 clean:	sail/clean
 sail/clean:
 	@if [ -d $O/sail ]; then\
-	    rm -f ${sail/EXE} ${sail/OBJS} ${sail/DEPS} $Osail/.d;\
+	    rm -f ${sail/exe} ${sail/objs} ${sail/deps} ${sail/manz} $Osail/.d;\
 	    rmdir $O/sail;\
 	fi
 
-$Osail/.d:	$O.d
-	@[ -d $Osail ] || mkdir $Osail && touch $Osail/.d
+${sail/objs}: Makefile ${confs} sail/Module.mk $Osail/.d
 
-${sail/OBJS}: ${CONFS} sail/Module.mk $Osail/.d
-
--include ${sail/DEPS}
+-include ${sail/deps}

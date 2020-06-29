@@ -1,47 +1,61 @@
 ################ Source files ##########################################
 
-caesar/NAME	:= caesar
-caesar/EXE	:= $Ocaesar/${caesar/NAME}
-caesar/SRCS	:= $(wildcard caesar/*.c)
-caesar/OBJS	:= $(addprefix $O,$(caesar/SRCS:.c=.o))
-caesar/DEPS	:= $(caesar/OBJS:.o=.d)
-caesar/LIBS	:= ${COMLIB}
+caesar/name	:= caesar
+caesar/exe	:= $Ocaesar/${caesar/name}
+caesar/srcs	:= $(wildcard caesar/*.c)
+caesar/objs	:= $(addprefix $O,$(caesar/srcs:.c=.o))
+caesar/mans	:= $(wildcard caesar/*.6)
+caesar/manz	:= $(addprefix $O,$(caesar/mans:.6=.6.gz))
+caesar/deps	:= $(caesar/objs:.o=.d)
 
 ################ Compilation ###########################################
 
-.PHONY:	caesar/all caesar/clean caesar/run caesar/install caesar/uninstall
+.PHONY:	caesar/all caesar/clean caesar/run
 
 all:		caesar/all
-caesar/all:	${caesar/EXE} ${caesar/EXE2}
-caesar/run:	${caesar/EXE}
-	@${caesar/EXE}
+caesar/all:	${caesar/exe}
 
-${caesar/EXE}:	$Ocaesar/caesar.o ${COMLIB}
+caesar/run:	${caesar/exe}
+	@${caesar/exe}
+
+${caesar/exe}:	${caesar/objs} ${comlib}
 	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ $Ocaesar/caesar.o ${caesar/LIBS}
+	@${CC} ${ldflags} -o $@ $^
 
 ################ Installation ##########################################
 
-ifdef BINDIR
-caesar/EXEI	:= ${BINDIR}/${caesar/NAME}
-caesar/EXE2I	:= ${BINDIR}/rot13
-caesar/MANI	:= ${MANDIR}/man6/${caesar/NAME}.6.gz
+.PHONY: caesar/install caesar/uninstall caesar/uninstall-man
+
+ifdef exed
+caesar/exei	:= ${exed}/${caesar/name}
+
+${caesar/exei}:	${caesar/exe} | ${exed}
+	@echo "Installing $@ ..."
+	@${INSTALL_PROGRAM} $< $@
 
 install:		caesar/install
-caesar/install:	${caesar/EXEI} ${caesar/EXE2I} ${caesar/MANI}
-${caesar/EXEI}:	${caesar/EXE}
-	@echo "Installing $@ ..."
-	@${INSTALLEXE} $< $@
-${caesar/EXE2I}:	${caesar/EXEI}
-	@echo "Installing $@ ..."
-	@(cd ${BINDIR}; rm -f rot13; ln ${caesar/NAME} rot13)
-${caesar/MANI}:	caesar/${caesar/NAME}.6
-
+caesar/install:	${caesar/exei}
 uninstall:		caesar/uninstall
 caesar/uninstall:
-	@if [ -f ${caesar/EXEI} ]; then\
-	    echo "Removing ${caesar/EXEI} ...";\
-	    rm -f ${caesar/EXEI} ${caesar/EXE2I} ${caesar/MANI};\
+	@if [ -f ${caesar/exei} ]; then\
+	    echo "Removing ${caesar/exei} ...";\
+	    rm -f ${caesar/exei};\
+	fi
+endif
+
+ifdef mand
+caesar/mani	:= $(addprefix ${mand}/,$(notdir ${caesar/manz}))
+
+${caesar/mani}: ${mand}/%:	$Ocaesar/% | ${mand}
+	@echo "Installing $@ ..."
+	@${INSTALL_DATA} $< $@
+
+caesar/install:	${caesar/mani}
+caesar/uninstall:	caesar/uninstall-man
+caesar/uninstall-man:
+	@if [ -f ${caesar/mani} ]; then\
+	    echo "Removing ${caesar/mani} ...";\
+	    rm -f ${caesar/mani};\
 	fi
 endif
 
@@ -50,13 +64,10 @@ endif
 clean:	caesar/clean
 caesar/clean:
 	@if [ -d $O/caesar ]; then\
-	    rm -f ${caesar/EXE} ${caesar/OBJS} ${caesar/DEPS} $Ocaesar/.d;\
+	    rm -f ${caesar/exe} ${caesar/objs} ${caesar/deps} ${caesar/manz} $Ocaesar/.d;\
 	    rmdir $O/caesar;\
 	fi
 
-$Ocaesar/.d:	$O.d
-	@[ -d $Ocaesar ] || mkdir $Ocaesar && touch $Ocaesar/.d
+${caesar/objs}: Makefile ${confs} caesar/Module.mk $Ocaesar/.d
 
-${caesar/OBJS}: ${CONFS} caesar/Module.mk $Ocaesar/.d
-
--include ${caesar/DEPS}
+-include ${caesar/deps}

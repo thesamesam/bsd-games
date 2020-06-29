@@ -1,23 +1,21 @@
 ################ Source files ##########################################
 
-common/NAME	:= common
-common/LIB	:= $Ocommon/libcommon.a
-common/SRCS	:= $(wildcard common/*.c)
-common/OBJS	:= $(addprefix $O,$(common/SRCS:.c=.o))
-common/DEPS	:= $(common/OBJS:.o=.d)
-
-COMLIB		:= ${common/LIB}
+common/name	:= common
+common/srcs	:= $(wildcard common/*.c)
+common/objs	:= $(addprefix $O,$(common/srcs:.c=.o))
+common/deps	:= $(common/objs:.o=.d)
+comlib		:= $Ocommon/libcommon.a
 
 ################ Compilation ###########################################
 
-.PHONY:	common/all common/clean common/run common/install common/uninstall
+.PHONY:	common/all common/clean
 
-common/all:	${common/LIB}
+common/all:	${comlib}
 
-${common/LIB}:	${common/OBJS}
+${comlib}:	${common/objs}
 	@echo "Linking $@ ..."
 	@rm -f $@
-	@${AR} -qc $@ ${common/OBJS}
+	@${AR} -qc $@ $^
 	@${RANLIB} $@
 
 ################ Maintenance ###########################################
@@ -25,13 +23,10 @@ ${common/LIB}:	${common/OBJS}
 clean:	common/clean
 common/clean:
 	@if [ -d $O/common ]; then\
-	    rm -f ${common/LIB} ${common/OBJS} ${common/DEPS} $Ocommon/.d;\
+	    rm -f ${comlib} ${common/objs} ${common/deps} $Ocommon/.d;\
 	    rmdir $O/common;\
 	fi
 
-$Ocommon/.d:	$O.d
-	@[ -d $Ocommon ] || mkdir $Ocommon && touch $Ocommon/.d
+${common/objs}:	Makefile ${confs} common/Module.mk $Ocommon/.d
 
-${common/OBJS}: ${CONFS} common/Module.mk $Ocommon/.d
-
--include ${common/DEPS}
+-include ${common/deps}

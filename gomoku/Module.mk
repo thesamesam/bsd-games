@@ -1,45 +1,61 @@
 ################ Source files ##########################################
 
-gomoku/NAME	:= gomoku
-gomoku/EXE	:= $Ogomoku/${gomoku/NAME}
-gomoku/SRCS	:= $(wildcard gomoku/*.c)
-gomoku/OBJS	:= $(addprefix $O,$(gomoku/SRCS:.c=.o))
-gomoku/DEPS	:= $(gomoku/OBJS:.o=.d)
-gomoku/LIBS	:= ${COMLIB} ${CURSES_LIBS}
+gomoku/name	:= gomoku
+gomoku/exe	:= $Ogomoku/${gomoku/name}
+gomoku/srcs	:= $(wildcard gomoku/*.c)
+gomoku/objs	:= $(addprefix $O,$(gomoku/srcs:.c=.o))
+gomoku/mans	:= $(wildcard gomoku/*.6)
+gomoku/manz	:= $(addprefix $O,$(gomoku/mans:.6=.6.gz))
+gomoku/deps	:= $(gomoku/objs:.o=.d)
 
 ################ Compilation ###########################################
 
-.PHONY:	gomoku/all gomoku/clean gomoku/run gomoku/install gomoku/uninstall
+.PHONY:	gomoku/all gomoku/clean gomoku/run
 
 all:		gomoku/all
-gomoku/all:	${gomoku/EXE}
-gomoku/run:	${gomoku/EXE}
-	@${gomoku/EXE}
+gomoku/all:	${gomoku/exe}
 
-${gomoku/EXE}:	${gomoku/OBJS} ${COMLIB}
+gomoku/run:	${gomoku/exe}
+	@${gomoku/exe}
+
+${gomoku/exe}:	${gomoku/objs} ${comlib}
 	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ ${gomoku/OBJS} ${gomoku/LIBS}
+	@${CC} ${ldflags} -o $@ $^ ${libs}
 
 ################ Installation ##########################################
 
-ifdef BINDIR
-gomoku/EXEI	:= ${BINDIR}/${gomoku/NAME}
-gomoku/MANI	:= ${MANDIR}/man6/${gomoku/NAME}.6.gz
+.PHONY: gomoku/install gomoku/uninstall gomoku/uninstall-man
+
+ifdef exed
+gomoku/exei	:= ${exed}/${gomoku/name}
+
+${gomoku/exei}:	${gomoku/exe} | ${exed}
+	@echo "Installing $@ ..."
+	@${INSTALL_PROGRAM} $< $@
 
 install:		gomoku/install
-gomoku/install:	${gomoku/EXEI} ${gomoku/MANI}
-${gomoku/EXEI}:	${gomoku/EXE}
-	@echo "Installing $@ ..."
-	@${INSTALLEXE} $< $@
-${gomoku/MANI}:	gomoku/${gomoku/NAME}.6
-	@echo "Installing $@ ..."
-	@gzip -9 -c $< > $@ && chmod 644 $@
-
+gomoku/install:	${gomoku/exei}
 uninstall:		gomoku/uninstall
 gomoku/uninstall:
-	@if [ -f ${gomoku/EXEI} ]; then\
-	    echo "Removing ${gomoku/EXEI} ...";\
-	    rm -f ${gomoku/EXEI} ${gomoku/MANI};\
+	@if [ -f ${gomoku/exei} ]; then\
+	    echo "Removing ${gomoku/exei} ...";\
+	    rm -f ${gomoku/exei};\
+	fi
+endif
+
+ifdef mand
+gomoku/mani	:= $(addprefix ${mand}/,$(notdir ${gomoku/manz}))
+
+${gomoku/mani}: ${mand}/%:	$Ogomoku/% | ${mand}
+	@echo "Installing $@ ..."
+	@${INSTALL_DATA} $< $@
+
+gomoku/install:	${gomoku/mani}
+gomoku/uninstall:	gomoku/uninstall-man
+gomoku/uninstall-man:
+	@if [ -f ${gomoku/mani} ]; then\
+	    echo "Removing ${gomoku/mani} ...";\
+	    rm -f ${gomoku/mani};\
 	fi
 endif
 
@@ -48,13 +64,10 @@ endif
 clean:	gomoku/clean
 gomoku/clean:
 	@if [ -d $O/gomoku ]; then\
-	    rm -f ${gomoku/EXE} ${gomoku/OBJS} ${gomoku/DEPS} $Ogomoku/.d;\
+	    rm -f ${gomoku/exe} ${gomoku/objs} ${gomoku/deps} ${gomoku/manz} $Ogomoku/.d;\
 	    rmdir $O/gomoku;\
 	fi
 
-$Ogomoku/.d:	$O.d
-	@[ -d $Ogomoku ] || mkdir $Ogomoku && touch $Ogomoku/.d
+${gomoku/objs}: Makefile ${confs} gomoku/Module.mk $Ogomoku/.d
 
-${gomoku/OBJS}: ${CONFS} gomoku/Module.mk $Ogomoku/.d
-
--include ${gomoku/DEPS}
+-include ${gomoku/deps}

@@ -1,45 +1,61 @@
 ################ Source files ##########################################
 
-klondike/NAME	:= klondike
-klondike/EXE	:= $Oklondike/${klondike/NAME}
-klondike/SRCS	:= $(wildcard klondike/*.c)
-klondike/OBJS	:= $(addprefix $O,$(klondike/SRCS:.c=.o))
-klondike/DEPS	:= $(klondike/OBJS:.o=.d)
-klondike/LIBS	:= ${COMLIB} ${CURSES_LIBS}
+klondike/name	:= klondike
+klondike/exe	:= $Oklondike/${klondike/name}
+klondike/srcs	:= $(wildcard klondike/*.c)
+klondike/objs	:= $(addprefix $O,$(klondike/srcs:.c=.o))
+klondike/mans	:= $(wildcard klondike/*.6)
+klondike/manz	:= $(addprefix $O,$(klondike/mans:.6=.6.gz))
+klondike/deps	:= $(klondike/objs:.o=.d)
 
 ################ Compilation ###########################################
 
-.PHONY:	klondike/all klondike/clean klondike/run klondike/install klondike/uninstall
+.PHONY:	klondike/all klondike/clean klondike/run
 
 all:		klondike/all
-klondike/all:	${klondike/EXE}
-klondike/run:	${klondike/EXE}
-	@${klondike/EXE}
+klondike/all:	${klondike/exe}
 
-${klondike/EXE}:	${klondike/OBJS} ${COMLIB}
+klondike/run:	${klondike/exe}
+	@${klondike/exe}
+
+${klondike/exe}:	${klondike/objs} ${comlib}
 	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ ${klondike/OBJS} ${klondike/LIBS}
+	@${CC} ${ldflags} -o $@ $^ ${libs}
 
 ################ Installation ##########################################
 
-ifdef BINDIR
-klondike/EXEI	:= ${BINDIR}/${klondike/NAME}
-klondike/MANI	:= ${MANDIR}/man6/${klondike/NAME}.6.gz
+.PHONY: klondike/install klondike/uninstall klondike/uninstall-man
+
+ifdef exed
+klondike/exei	:= ${exed}/${klondike/name}
+
+${klondike/exei}:	${klondike/exe} | ${exed}
+	@echo "Installing $@ ..."
+	@${INSTALL_PROGRAM} $< $@
 
 install:		klondike/install
-klondike/install:	${klondike/EXEI} ${klondike/MANI}
-${klondike/EXEI}:	${klondike/EXE}
-	@echo "Installing $@ ..."
-	@${INSTALLEXE} $< $@
-${klondike/MANI}:	klondike/${klondike/NAME}.6
-	@echo "Installing $@ ..."
-	@gzip -9 -c $< > $@ && chmod 644 $@
-
+klondike/install:	${klondike/exei}
 uninstall:		klondike/uninstall
 klondike/uninstall:
-	@if [ -f ${klondike/EXEI} ]; then\
-	    echo "Removing ${klondike/EXEI} ...";\
-	    rm -f ${klondike/EXEI} ${klondike/MANI};\
+	@if [ -f ${klondike/exei} ]; then\
+	    echo "Removing ${klondike/exei} ...";\
+	    rm -f ${klondike/exei};\
+	fi
+endif
+
+ifdef mand
+klondike/mani	:= $(addprefix ${mand}/,$(notdir ${klondike/manz}))
+
+${klondike/mani}: ${mand}/%:	$Oklondike/% | ${mand}
+	@echo "Installing $@ ..."
+	@${INSTALL_DATA} $< $@
+
+klondike/install:	${klondike/mani}
+klondike/uninstall:	klondike/uninstall-man
+klondike/uninstall-man:
+	@if [ -f ${klondike/mani} ]; then\
+	    echo "Removing ${klondike/mani} ...";\
+	    rm -f ${klondike/mani};\
 	fi
 endif
 
@@ -48,13 +64,10 @@ endif
 clean:	klondike/clean
 klondike/clean:
 	@if [ -d $O/klondike ]; then\
-	    rm -f ${klondike/EXE} ${klondike/OBJS} ${klondike/DEPS} $Oklondike/.d;\
+	    rm -f ${klondike/exe} ${klondike/objs} ${klondike/deps} ${klondike/manz} $Oklondike/.d;\
 	    rmdir $O/klondike;\
 	fi
 
-$Oklondike/.d:	$O.d
-	@[ -d $Oklondike ] || mkdir $Oklondike && touch $Oklondike/.d
+${klondike/objs}: Makefile ${confs} klondike/Module.mk $Oklondike/.d
 
-${klondike/OBJS}: ${CONFS} klondike/Module.mk $Oklondike/.d
-
--include ${klondike/DEPS}
+-include ${klondike/deps}

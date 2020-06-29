@@ -1,43 +1,61 @@
 ################ Source files ##########################################
 
-dab/NAME	:= dab
-dab/EXE		:= $Odab/${dab/NAME}
-dab/SRCS	:= $(wildcard dab/*.c)
-dab/OBJS	:= $(addprefix $O,$(dab/SRCS:.c=.o))
-dab/DEPS	:= $(dab/OBJS:.o=.d)
-dab/LIBS	:= ${COMLIB} ${CURSES_LIBS}
+dab/name	:= dab
+dab/exe		:= $Odab/${dab/name}
+dab/srcs	:= $(wildcard dab/*.c)
+dab/objs	:= $(addprefix $O,$(dab/srcs:.c=.o))
+dab/mans	:= $(wildcard dab/*.6)
+dab/manz	:= $(addprefix $O,$(dab/mans:.6=.6.gz))
+dab/deps	:= $(dab/objs:.o=.d)
 
 ################ Compilation ###########################################
 
-.PHONY:	dab/all dab/clean dab/run dab/install dab/uninstall
+.PHONY:	dab/all dab/clean dab/run
 
 all:		dab/all
-dab/all:	${dab/EXE}
-dab/run:	${dab/EXE}
-	@${dab/EXE}
+dab/all:	${dab/exe}
 
-${dab/EXE}:	${dab/OBJS} ${COMLIB}
+dab/run:	${dab/exe}
+	@${dab/exe}
+
+${dab/exe}:	${dab/objs} ${comlib}
 	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ ${dab/OBJS} ${dab/LIBS}
+	@${CC} ${ldflags} -o $@ $^ ${libs}
 
 ################ Installation ##########################################
 
-ifdef BINDIR
-dab/EXEI	:= ${BINDIR}/${dab/NAME}
-dab/MANI	:= ${MANDIR}/man6/${dab/NAME}.6.gz
+.PHONY: dab/install dab/uninstall dab/uninstall-man
 
-install:		dab/install
-dab/install:	${dab/EXEI} ${dab/MANI}
-${dab/EXEI}:	${dab/EXE}
+ifdef exed
+dab/exei	:= ${exed}/${dab/name}
+
+${dab/exei}:	${dab/exe} | ${exed}
 	@echo "Installing $@ ..."
-	@${INSTALLEXE} $< $@
-${dab/MANI}:	dab/${dab/NAME}.6
+	@${INSTALL_PROGRAM} $< $@
 
-uninstall:		dab/uninstall
+install:	dab/install
+dab/install:	${dab/exei}
+uninstall:	dab/uninstall
 dab/uninstall:
-	@if [ -f ${dab/EXEI} ]; then\
-	    echo "Removing ${dab/EXEI} ...";\
-	    rm -f ${dab/EXEI} ${dab/MANI};\
+	@if [ -f ${dab/exei} ]; then\
+	    echo "Removing ${dab/exei} ...";\
+	    rm -f ${dab/exei};\
+	fi
+endif
+
+ifdef mand
+dab/mani	:= $(addprefix ${mand}/,$(notdir ${dab/manz}))
+
+${dab/mani}: ${mand}/%:	$Odab/% | ${mand}
+	@echo "Installing $@ ..."
+	@${INSTALL_DATA} $< $@
+
+dab/install:	${dab/mani}
+dab/uninstall:	dab/uninstall-man
+dab/uninstall-man:
+	@if [ -f ${dab/mani} ]; then\
+	    echo "Removing ${dab/mani} ...";\
+	    rm -f ${dab/mani};\
 	fi
 endif
 
@@ -46,13 +64,10 @@ endif
 clean:	dab/clean
 dab/clean:
 	@if [ -d $O/dab ]; then\
-	    rm -f ${dab/EXE} ${dab/OBJS} ${dab/DEPS} $Odab/.d;\
+	    rm -f ${dab/exe} ${dab/objs} ${dab/deps} ${dab/manz} $Odab/.d;\
 	    rmdir $O/dab;\
 	fi
 
-$Odab/.d:	$O.d
-	@[ -d $Odab ] || mkdir $Odab && touch $Odab/.d
+${dab/objs}: Makefile ${confs} dab/Module.mk $Odab/.d
 
-${dab/OBJS}: ${CONFS} dab/Module.mk $Odab/.d
-
--include ${dab/DEPS}
+-include ${dab/deps}

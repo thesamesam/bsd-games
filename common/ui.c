@@ -52,10 +52,12 @@ void initialize_curses (void)
 	signal (c_FatalSignals[i], on_fatal_signal);
 
     // Setup locale and check whether it has UTF8 output support
-    setlocale (LC_ALL, "");
-    const char* lang = getenv ("LANG");
-    if (lang && strstr (lang, "utf8"))
-	g_has_utf8 = true;
+    #if NCURSES_WIDECHAR
+	setlocale (LC_ALL, "");
+	const char* lang = getenv ("LANG");
+	if (lang && strstr (lang, "utf8"))
+	    g_has_utf8 = true;
+    #endif
 
     // Setup the screen for UI
     if (!initscr()) {
@@ -82,10 +84,16 @@ void init_pairs (const struct color_pair* cps, size_t ncps)
 
 void mvwadd_wchw (WINDOW* w, int l, int c, wchar_t wch, attr_t a, short color)
 {
-    wchar_t wchzs[2] = { wch, 0 };
-    cchar_t ch = {};
-    setcchar (&ch, wchzs, a, color, NULL);
-    mvwadd_wch (w, l, c, &ch);
+    #if NCURSES_WIDECHAR
+	wchar_t wchzs[2] = { wch, 0 };
+	cchar_t ch = {};
+	setcchar (&ch, wchzs, a, color, NULL);
+	mvwadd_wch (w, l, c, &ch);
+    #else
+	wmove (w, l, c);
+	wattr_set (w, a, color, NULL);
+	waddch (w, (char) wch);
+    #endif
 }
 
 wchar_t get_card_suit_char (enum CardSuit suit)

@@ -1,50 +1,71 @@
 ################ Source files ##########################################
 
-robots/NAME	:= robots
-robots/EXE	:= $Orobots/${robots/NAME}
-robots/SRCS	:= $(wildcard robots/*.c)
-robots/OBJS	:= $(addprefix $O,$(robots/SRCS:.c=.o))
-robots/DEPS	:= $(robots/OBJS:.o=.d)
-robots/LIBS	:= ${COMLIB} ${CURSES_LIBS}
+robots/name	:= robots
+robots/exe	:= $Orobots/${robots/name}
+robots/srcs	:= $(wildcard robots/*.c)
+robots/objs	:= $(addprefix $O,$(robots/srcs:.c=.o))
+robots/mans	:= $(wildcard robots/*.6)
+robots/manz	:= $(addprefix $O,$(robots/mans:.6=.6.gz))
+robots/deps	:= $(robots/objs:.o=.d)
 
 ################ Compilation ###########################################
 
-.PHONY:	robots/all robots/clean robots/run robots/install robots/uninstall
+.PHONY:	robots/all robots/clean robots/run
 
 all:		robots/all
-robots/all:	${robots/EXE}
-robots/run:	${robots/EXE}
-	@${robots/EXE}
+robots/all:	${robots/exe}
 
-${robots/EXE}:	${robots/OBJS} ${COMLIB}
+robots/run:	${robots/exe}
+	@${robots/exe}
+
+${robots/exe}:	${robots/objs} ${comlib}
 	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ ${robots/OBJS} ${robots/LIBS}
+	@${CC} ${ldflags} -o $@ $^ ${libs}
 
 ################ Installation ##########################################
 
-ifdef BINDIR
-robots/EXEI	:= ${BINDIR}/${robots/NAME}
-robots/MANI	:= ${MANDIR}/man6/${robots/NAME}.6.gz
-robots/SCOREI	:= ${STATEDIR}/robots.scores
+.PHONY: robots/install robots/uninstall robots/uninstall-man
+
+ifdef exed
+robots/exei	:= ${exed}/${robots/name}
+
+${robots/exei}:	${robots/exe} | ${exed}
+	@echo "Installing $@ ..."
+	@${INSTALL_PROGRAM} $< $@
 
 install:		robots/install
-robots/install:	${robots/EXEI} ${robots/MANI} ${robots/SCOREI}
-${robots/EXEI}:	${robots/EXE}
-	@echo "Installing $@ ..."
-	@${INSTALLEXE} $< $@
-${robots/MANI}:	robots/${robots/NAME}.6
-	@echo "Installing $@ ..."
-	@gzip -9 -c $< > $@ && chmod 644 $@
-${robots/SCOREI}:
-	@echo "Creating initial score file $@ ..."
-	@${INSTALLSCORE} /dev/null $@
-
+robots/install:	${robots/exei}
 uninstall:		robots/uninstall
 robots/uninstall:
-	@if [ -f ${robots/EXEI} ]; then\
-	    echo "Removing ${robots/EXEI} ...";\
-	    rm -f ${robots/EXEI} ${robots/MANI} ${robots/SCOREI};\
+	@if [ -f ${robots/exei} ]; then\
+	    echo "Removing ${robots/exei} ...";\
+	    rm -f ${robots/exei};\
 	fi
+endif
+
+ifdef mand
+robots/mani	:= $(addprefix ${mand}/,$(notdir ${robots/manz}))
+
+${robots/mani}: ${mand}/%:	$Orobots/% | ${mand}
+	@echo "Installing $@ ..."
+	@${INSTALL_DATA} $< $@
+
+robots/install:	${robots/mani}
+robots/uninstall:	robots/uninstall-man
+robots/uninstall-man:
+	@if [ -f ${robots/mani} ]; then\
+	    echo "Removing ${robots/mani} ...";\
+	    rm -f ${robots/mani};\
+	fi
+endif
+
+ifdef scored
+robots/scorei:= ${scored}/robots.scores
+${robots/scorei}:	| ${scored}
+	@echo "Creating initial score file $@ ..."
+	@${INSTALL_SCORE} $@
+
+robots/install:	${robots/scorei}
 endif
 
 ################ Maintenance ###########################################
@@ -52,13 +73,10 @@ endif
 clean:	robots/clean
 robots/clean:
 	@if [ -d $O/robots ]; then\
-	    rm -f ${robots/EXE} ${robots/OBJS} ${robots/DEPS} $Orobots/.d;\
+	    rm -f ${robots/exe} ${robots/objs} ${robots/deps} ${robots/manz} $Orobots/.d;\
 	    rmdir $O/robots;\
 	fi
 
-$Orobots/.d:	$O.d
-	@[ -d $Orobots ] || mkdir $Orobots && touch $Orobots/.d
+${robots/objs}: Makefile ${confs} robots/Module.mk $Orobots/.d
 
-${robots/OBJS}: ${CONFS} robots/Module.mk $Orobots/.d
-
--include ${robots/DEPS}
+-include ${robots/deps}

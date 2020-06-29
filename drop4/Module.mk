@@ -1,48 +1,71 @@
 ################ Source files ##########################################
 
-drop4/NAME	:= drop4
-drop4/EXE	:= $Odrop4/${drop4/NAME}
-drop4/SRCS	:= $(wildcard drop4/*.c)
-drop4/OBJS	:= $(addprefix $O,$(drop4/SRCS:.c=.o))
-drop4/DEPS	:= $(drop4/OBJS:.o=.d)
-drop4/LIBS	:= ${COMLIB} ${CURSES_LIBS}
+drop4/name	:= drop4
+drop4/exe	:= $Odrop4/${drop4/name}
+drop4/srcs	:= $(wildcard drop4/*.c)
+drop4/objs	:= $(addprefix $O,$(drop4/srcs:.c=.o))
+drop4/mans	:= $(wildcard drop4/*.6)
+drop4/manz	:= $(addprefix $O,$(drop4/mans:.6=.6.gz))
+drop4/deps	:= $(drop4/objs:.o=.d)
 
 ################ Compilation ###########################################
 
-.PHONY:	drop4/all drop4/clean drop4/run drop4/install drop4/uninstall
+.PHONY:	drop4/all drop4/clean drop4/run
 
 all:		drop4/all
-drop4/all:	${drop4/EXE}
-drop4/run:	${drop4/EXE}
-	@${drop4/EXE}
+drop4/all:	${drop4/exe}
 
-${drop4/EXE}:	${drop4/OBJS} ${COMLIB}
+drop4/run:	${drop4/exe}
+	@${drop4/exe}
+
+${drop4/exe}:	${drop4/objs} ${comlib}
 	@echo "Linking $@ ..."
-	@${CC} ${LDFLAGS} -o $@ ${drop4/OBJS} ${drop4/LIBS}
+	@${CC} ${ldflags} -o $@ $^ ${libs}
 
 ################ Installation ##########################################
 
-ifdef BINDIR
-drop4/EXEI	:= ${BINDIR}/${drop4/NAME}
-drop4/MANI	:= ${MANDIR}/man6/${drop4/NAME}.6.gz
-drop4/SCOREI	:= ${STATEDIR}/drop4.scores
+.PHONY: drop4/install drop4/uninstall drop4/uninstall-man
 
-install:		drop4/install
-drop4/install:	${drop4/EXEI} ${drop4/MANI} ${drop4/SCOREI}
-${drop4/EXEI}:	${drop4/EXE}
+ifdef exed
+drop4/exei	:= ${exed}/${drop4/name}
+
+${drop4/exei}:	${drop4/exe} | ${exed}
 	@echo "Installing $@ ..."
-	@${INSTALLEXE} $< $@
-${drop4/MANI}:	drop4/${drop4/NAME}.6
-${drop4/SCOREI}:
-	@echo "Creating initial score file $@ ..."
-	@${INSTALLSCORE} /dev/null $@
+	@${INSTALL_PROGRAM} $< $@
 
-uninstall:		drop4/uninstall
+install:	drop4/install
+drop4/install:	${drop4/exei}
+uninstall:	drop4/uninstall
 drop4/uninstall:
-	@if [ -f ${drop4/EXEI} ]; then\
-	    echo "Removing ${drop4/EXEI} ...";\
-	    rm -f ${drop4/EXEI} ${drop4/MANI} ${drop4/SCOREI};\
+	@if [ -f ${drop4/exei} ]; then\
+	    echo "Removing ${drop4/exei} ...";\
+	    rm -f ${drop4/exei};\
 	fi
+endif
+
+ifdef mand
+drop4/mani	:= $(addprefix ${mand}/,$(notdir ${drop4/manz}))
+
+${drop4/mani}: ${mand}/%:	$Odrop4/% | ${mand}
+	@echo "Installing $@ ..."
+	@${INSTALL_DATA} $< $@
+
+drop4/install:	${drop4/mani}
+drop4/uninstall:	drop4/uninstall-man
+drop4/uninstall-man:
+	@if [ -f ${drop4/mani} ]; then\
+	    echo "Removing ${drop4/mani} ...";\
+	    rm -f ${drop4/mani};\
+	fi
+endif
+
+ifdef scored
+drop4/scorei:= ${scored}/drop4.scores
+${drop4/scorei}:	| ${scored}
+	@echo "Creating initial score file $@ ..."
+	@${INSTALL_SCORE} $@
+
+drop4/install:	${drop4/scorei}
 endif
 
 ################ Maintenance ###########################################
@@ -50,13 +73,10 @@ endif
 clean:	drop4/clean
 drop4/clean:
 	@if [ -d $O/drop4 ]; then\
-	    rm -f ${drop4/EXE} ${drop4/OBJS} ${drop4/DEPS} $Odrop4/.d;\
+	    rm -f ${drop4/exe} ${drop4/objs} ${drop4/deps} ${drop4/manz} $Odrop4/.d;\
 	    rmdir $O/drop4;\
 	fi
 
-$Odrop4/.d:	$O.d
-	@[ -d $Odrop4 ] || mkdir $Odrop4 && touch $Odrop4/.d
+${drop4/objs}: Makefile ${confs} drop4/Module.mk $Odrop4/.d
 
-${drop4/OBJS}: ${CONFS} drop4/Module.mk $Odrop4/.d
-
--include ${drop4/DEPS}
+-include ${drop4/deps}
