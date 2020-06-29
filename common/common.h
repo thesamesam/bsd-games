@@ -9,6 +9,9 @@
 #define __STDC_LIMIT_MACROS
 #define __STDC_CONSTANT_MACROS
 
+// BSD needs this defined to enable much of the libc API, like flock
+#define __BSD_VISIBLE 1
+
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>

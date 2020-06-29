@@ -1,6 +1,7 @@
 // This file is free software, distributed under the BSD license.
 
 #include "battlestar.h"
+#include <sys/stat.h>
 #include <sys/uio.h>
 
 //{{{ Global variables -------------------------------------------------
