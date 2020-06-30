@@ -30,7 +30,7 @@ void initialize_field_window (void)
 	};
 	init_pairs (ArrayBlock(c_Pairs));
     }
-    _w = newwin (BSZ2, BSZ2*2-1, LINES-BSZ2, (min_u(80,COLS)-BSZ2)/2);
+    _w = newwin (BSZ2, BSZ2*2-1, LINES-BSZ2, (COLS-(BSZ2*2-1))/2);
     keypad (_w, true);
     wbkgdset (_w, COLOR_PAIR(color_Field));
 }
