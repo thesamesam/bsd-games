@@ -89,12 +89,8 @@ int main (int argc, char* const* argv)
 	    case 'd': g_Debug = true; break;
 	#endif
 	    case 'p': cave.pits = atoi (optarg); break;
-	    case 'r':
-		cave.rooms = atoi (optarg);
-		break;
-	    case 't':
-		cave.doors = atoi (optarg);
-		break;
+	    case 'r': cave.rooms = atoi (optarg); break;
+	    case 't': cave.doors = atoi (optarg); break;
 	    case '?':
 	    default:
 		printf ("Usage: wump [-h] [-a arrows] [-b bats] [-p pits] [-r rooms] [-t tunnels]\n");

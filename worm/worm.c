@@ -46,13 +46,14 @@ static void newgrass (void);
 
 int main (int argc, char **argv)
 {
+    initialize_curses();
+
     // Initialize starting parameters; length if given
     if (argc == 2)
 	start_len = atoi(argv[1]);
     if (!start_len || start_len > max_length())
 	start_len = LENGTH;
 
-    initialize_curses();
     static const struct color_pair c_Pairs[] = {
 	{ COLOR_DEFAULT,COLOR_DEFAULT	},	// color_Text
 	{ COLOR_YELLOW,	COLOR_BLACK	},	// color_Field
@@ -198,7 +199,7 @@ static void play (void)
 
 static unsigned max_length (void)
 {
-    return (getmaxy(tv)-2) * (getmaxx(tv)-2) / 8u;
+    return LINES*COLS/8u;
 }
 
 static void prize (void)
