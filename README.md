@@ -1,21 +1,27 @@
 # BSD-GAMES
 
-This is the bsd-games package for Linux, containing ports of all the
-open source games from NetBSD-current. This particular version is a
-copy of version 2.17 released in 2005, forked with intent to clean up
-the code and build system to modern standards. Also, subprojects that
-are maintained elsewhere or are not games, have been removed.
+This is the bsd-games package for Linux, containing classic text mode
+games from UNIX folklore. Version 3.0 released here is the first update
+since 2005, when version 2.17 was released. It contains a comprehensive
+overhaul of the entire code base for readability and conformance to
+modern C coding standard. The build system is also updated for automatic
+installation and ease of packaging.
 
 ## Installation
 
-To install, you need ncurses, a c11-capable compiler, and a wordlist
-(needed for hangman, usually in /usr/share/dict). Then:
+Installation requirements:
+* C11 compiler:	gcc 4.6 or clang 3.2
+* ncurses:	[https://invisible-island.net/ncurses/](https://invisible-island.net/ncurses/)
+* wordlist:	for hangman. Usually already in /usr/share/dict.
 
 ```sh
-./configure --prefix=/usr
-make
-make install
+./configure --prefix=/usr && make install
 ```
+
+Unlike earlier bsd-games versions, this one does not install anything
+sgid. Scorefiles in /var/lib/bsdgames are owned and writable by the
+users group. For security, each game validates scores when loading.
+Saved game files are also validated and will not cause a crash.
 
 ## Contents
 
@@ -40,13 +46,10 @@ This package contains the following games:
 
 ## Removed
 
-Many programs that were in the original 2.17 distribution were removed to
-make the package more focused on actual gaming rather than preservation
-of useless junk of interest only to ancient computer history fanatics.
-Perhaps someone would like to maintain a separate bsd-junk package?
-Anyway, programs were removed for the following specific reasons:
+Many programs that were in the original 2.17 distribution were removed
+to focus on providing playable games, rather than a rusty junk pile.
 
-Some are already maintained as standalone packages:
+### Maintained elsewhere
 
 * backgammon:	[https://www.gnu.org/software/gnubg/](https://www.gnu.org/software/gnubg/)
 * banner:	[https://packages.debian.org/stable/bsdmainutils](https://packages.debian.org/stable/bsdmainutils)
@@ -56,15 +59,14 @@ Some are already maintained as standalone packages:
 * rogue:	[http://coredumpcentral.org/](http://coredumpcentral.org/)
 * hack:		[https://www.nethack.org](https://www.nethack.org), [https://github.com/msharov/hack](https://github.com/msharov/hack)
 
-Some were infringing on copyrights:
+### Infringing on copyrights
 
 * boggle:	Exactly like the eponymous game by Hasbro.
 * mille:	Mille Bornes is copyrighted by Hasbro.
 * monop:	Used Hasbro's Monopoly board and other content.
 * trek:		Used Star Trek universe and characters.
 
-Several were multiplayer games for people logged on to the same server,
-a situation that no longer exists anywhere.
+### Local multiplayer for mainframes
 
 * hunt:		multiplayer only, and has been broken for some time.
 * dm:		a way to stop other users from playing games.
@@ -73,7 +75,7 @@ a situation that no longer exists anywhere.
 		ending succession of monsters. There were no rewards,
 		score, fun hit descriptions, or anything else.
 
-Finally, a bunch of programs were of no use whatsoever.
+### Miscellaneous junk
 
 * arithmetic:	study aid. We have calculators now.
 * quiz:		quizzes on obscure and/or obsolete information.
