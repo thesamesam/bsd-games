@@ -53,6 +53,7 @@ enum Location {
     GIANT_ROOM	= 92,
     ORIENT_ROOM	= 97,
     PLOVER_ROOM	= 100,
+    WITTS_END	= 108,
     CHEST_ROOM1	= 114,
     REPOSITORY1	= 115,
     REPOSITORY2	= 116,

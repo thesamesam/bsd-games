@@ -30,8 +30,8 @@ uint8_t		dkill	= 0;		// dwarves killed
 uint8_t		dflag	= 0;		// dwarf flag
 uint8_t		foobar	= 0;		// fie fie foe foo...
 uint8_t		bonus	= 0;		// to pass to end
-loc_t		loc	= END_OF_ROAD;	// location variables
-loc_t		newloc	= WELLHOUSE;
+loc_t		loc	= WELLHOUSE;	// location variables
+loc_t		newloc	= END_OF_ROAD;
 loc_t		oldloc	= END_OF_ROAD;
 loc_t		oldloc2	= END_OF_ROAD;
 loc_t		knfloc	= 0;		// knife location
@@ -308,7 +308,7 @@ void score (void)
 	game_score.bonus = t;
 	s += t;
     }
-    if (place[MAGAZINE] == 108)
+    if (place[MAGAZINE] == WITTS_END)
 	s += 1;
     s += 2;
     game_score.total = s;

@@ -1056,7 +1056,7 @@ static const struct location c_locs [MAXLOC] = {
 	"		\"Witt construction company\"",
 	{	{ GO_UP,	CO_JUNCTION,	0 },
 		{ GO_WEST,	65,		0 },
-		{ GO_EAST,	108,		0 },
+		{ GO_EAST,	WITTS_END,	0 },
 		{ }}
     },{ // 107
 	"You are in a maze of twisty little passages, all different.",
@@ -1072,7 +1072,7 @@ static const struct location c_locs [MAXLOC] = {
 		{ GO_NORTH,	139,		0 },
 		{ GO_DOWN,	61,		0 },
 		{ }}
-    },{ // 108
+    },{ // 108, WITTS_END
 	"You're at Witt's end.",
 	"You are at Witt's end. Passages lead off in ALL directions.",
 	{	{ GO_EAST,	LMSG (56),	95 },
