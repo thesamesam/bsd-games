@@ -34,7 +34,7 @@ This package contains the following games:
 * cribbage:	cribbage card game
 * dab:		dots and boxes
 * drop4:	tetromino packing game
-* fish:		go fish card game
+* gofish:	go fish card game
 * gomoku:	connect-5 version of tic-tac-toe
 * hangman:	guess the word before it is too late
 * klondike:	curses-based solitaire

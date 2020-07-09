@@ -95,7 +95,7 @@ include caesar/Module.mk
 include cribbage/Module.mk
 include dab/Module.mk
 include drop4/Module.mk
-include fish/Module.mk
+include gofish/Module.mk
 include gomoku/Module.mk
 include hangman/Module.mk
 include klondike/Module.mk
