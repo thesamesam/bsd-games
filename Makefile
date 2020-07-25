@@ -102,5 +102,6 @@ include klondike/Module.mk
 include robots/Module.mk
 include sail/Module.mk
 include snake/Module.mk
+include spirhunt/Module.mk
 include worm/Module.mk
 include wump/Module.mk

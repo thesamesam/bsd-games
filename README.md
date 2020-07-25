@@ -41,6 +41,7 @@ This package contains the following games:
 * robots:	avoid the evil robots
 * sail:		sail your ship into battle
 * snake:	grab the cash, avoid the snake, and exit
+* spirhunt:	hunt space pirates
 * worm:		eat the numbers without running into anything
 * wump:		hunt the wumpus
 
@@ -64,7 +65,6 @@ to focus on providing playable games, rather than a rusty junk pile.
 * boggle:	Exactly like the eponymous game by Hasbro.
 * mille:	Mille Bornes is copyrighted by Hasbro.
 * monop:	Used Hasbro's Monopoly board and other content.
-* trek:		Used Star Trek universe and characters.
 
 ### Local multiplayer for mainframes
 
