@@ -223,8 +223,10 @@ void getcommand (void)
 	}
     } while (T_STATE != -1);
 
-    if (_level == 1)
+    if (_level == 1) {
+	update_planes();
 	return;
+    }
 
     _dest_type = T_NODEST;
     for (unsigned i = 0; i < _level; ++i) {
