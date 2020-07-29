@@ -37,6 +37,14 @@ int main (int argc, char* const argv[])
 	    case 's':	f_showscore = true; break;
 	}
     }
+    const char* scenarioname = default_scenario();
+    if (optind < argc) {
+	scenarioname = okay_scenario (argv[optind]);
+	if (!scenarioname) {
+	    printf ("'%s' is not available. ", argv[optind]);
+	    f_list = true;
+	}
+    }
     if (f_usage)
 	puts ("Usage: atc -[ls?] [scenario_name]");
     if (f_list)
@@ -45,12 +53,6 @@ int main (int argc, char* const argv[])
 	save_score (false);
     if (f_usage | f_showscore | f_list)
 	return EXIT_SUCCESS;
-
-    const char *scenarioname = (optind < argc ? argv[0] : NULL);
-    if (!scenarioname)
-	scenarioname = default_scenario();
-    else
-	scenarioname = okay_scenario (scenarioname);
     if (!scenarioname || load_scenario (scenarioname) < 0)
 	return EXIT_FAILURE;
 
