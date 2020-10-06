@@ -398,13 +398,19 @@ static const char* player_pronoun (unsigned p)
 
 static void draw_peg (uint8_t score, unsigned line)
 {
-    if (score >= WINSCORE)
-	score = 0;
-    unsigned x = score%LINESCORE + (score+4)/5;	// adjust for 5-marks
-    unsigned y = score/LINESCORE;
-    if (y)
-	x = BLINE_LENGTH-x;		// odd lines go backward
-    mvwaddch (_wboard, line+y, 1+x, '*');
+    unsigned x = 0, y = line;
+    if (score > LINESCORE)
+	++y;
+    if (score > 0 && score < WINSCORE) {
+	uint8_t lsc = score;
+	if (score > LINESCORE)
+	    lsc -= LINESCORE;
+	uint8_t lo = lsc + (lsc-1)/5;	// 5 adjusts for gaps
+	if (score > LINESCORE)
+	    lo = 1+BLINE_LENGTH - lo;	// second line backwards
+	x += lo;
+    }
+    mvwaddch (_wboard, y, x+1, '*');
 }
 
 static void draw_board (void)
