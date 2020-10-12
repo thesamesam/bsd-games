@@ -60,51 +60,53 @@ static WINDOW*	_wboard	= NULL;
 
 static struct Player	_p [NPLAYERS] = {{{0,{0}},{0,{0}},0,0,0}};
 static struct Hand	_crib = {0,{0}};
+static struct Hand	_play = {0,{0}};
 static card_t		_starter = 0;
 static uint8_t		_count = 0;
 static uint8_t		_dealer = HUMAN;	// Crib owner
+static uint8_t		_last_player = HUMAN;	// Who played last card
 static uint8_t		_curcard = 0;
 
 //}}}-------------------------------------------------------------------
 //{{{ Prototypes
 
-static enum CardRank card_rank(card_t c);
+static enum CardRank card_rank (card_t c);
 static enum CardSuit card_suit (card_t c);
-static unsigned card_value(card_t c);
-static unsigned n_permutations(unsigned handsz);
-static void swap_cards(card_t *c1, card_t *c2);
-static int compare_cards(const void *v1, const void *v2);
-static void sort_hand(struct Hand *h);
-static void move_card(struct Hand *from, unsigned ic, struct Hand *to);
-static void deal_cards(void);
-static void reverse_hand(card_t *hand, unsigned handsz);
-static void next_hand_permutation(struct Hand *hand);
-static struct Hand hand_with_starter(const struct Hand *hand);
-static void record_score(unsigned who, unsigned pts);
-static unsigned score_fifteens(const struct Hand *hand);
-static unsigned score_pairs(const struct Hand *hand);
-static unsigned score_runs(const struct Hand *hand);
-static unsigned score_flush(const struct Hand *hand);
-static unsigned score_nobs(const struct Hand *hand);
-static unsigned score_hand(const struct Hand *h, bool isCrib, bool explain);
-static unsigned score_play(card_t lastCard, bool printMessage);
-static unsigned n_playable_cards(const struct Hand *h);
-static void score_last_played_card(void);
-static const char *player_pronoun(unsigned p);
-static void draw_peg(uint8_t score, unsigned line);
-static void draw_board(void);
-static void draw_card(unsigned l, unsigned c, card_t v, bool selected);
-static void draw_hidden_card(unsigned l, unsigned c);
-static void draw_table(void);
-static void print_msg(const char *msg, ...);
-static void draw_screen(void);
-static void create_windows(void);
-static void move_windows(void);
-static unsigned select_card(void);
-static void computer_discard(void);
-static unsigned computer_select_play(void);
-static unsigned winning_player(void);
-static bool run_play(void);
+static unsigned card_value (card_t c);
+static unsigned n_permutations (unsigned handsz);
+static void swap_cards (card_t* c1, card_t* c2);
+static int compare_cards (const void* v1, const void* v2);
+static void sort_hand (struct Hand* h);
+static void move_card (struct Hand* from, unsigned ic, struct Hand* to);
+static void deal_cards (void);
+static void reverse_hand (card_t* hand, unsigned handsz);
+static void next_hand_permutation (struct Hand* hand);
+static struct Hand hand_with_starter (const struct Hand* hand);
+static void record_score (unsigned who, unsigned pts);
+static unsigned score_fifteens (const struct Hand* hand);
+static unsigned score_pairs (const struct Hand* hand);
+static unsigned score_runs (const struct Hand* hand);
+static unsigned score_flush (const struct Hand* hand);
+static unsigned score_nobs (const struct Hand* hand);
+static unsigned score_hand (const struct Hand* h, bool isCrib, bool explain);
+static unsigned score_play (card_t lastCard, bool printMessage);
+static unsigned n_playable_cards (const struct Hand* h);
+static void score_last_played_card (void);
+static const char* player_pronoun (unsigned p);
+static void draw_peg (uint8_t score, unsigned line);
+static void draw_board (void);
+static void draw_card (unsigned l, unsigned c, card_t v, bool selected);
+static void draw_hidden_card (unsigned l, unsigned c);
+static void draw_table (void);
+static void print_msg (const char* msg, ...);
+static void draw_screen (void);
+static void create_windows (void);
+static void move_windows (void);
+static unsigned select_card (void);
+static void computer_discard (void);
+static unsigned computer_select_play (void);
+static unsigned winning_player (void);
+static bool run_play (void);
 
 //}}}-------------------------------------------------------------------
 //{{{ Card operations
@@ -275,15 +277,20 @@ static unsigned score_flush (const struct Hand* hand)
     for (unsigned i = 0; i < hand->sz; ++i)
 	++counts[card_suit(hand->c[i])];
     unsigned score = 0;
-    for (unsigned i = 0; i < ArraySize(counts); ++i)
+    for (unsigned i = 0; i < ArraySize(counts); ++i) {
+	if (i == card_suit(_starter) && counts[i] == 4)
+	    --counts[i];		// 4 flush only counts in hand
 	score = max_u (score, counts[i]);
-    return score >= 4 ? score : 0;	// flush is 4 or 5
+    }
+    return score < 4 ? 0 : score;	// flush is 4 or 5
 }
 
 static unsigned score_nobs (const struct Hand* hand)
 {
     for (unsigned i = 0; i < hand->sz; ++i)
-	if (card_suit(hand->c[i]) == card_suit(_starter) && card_rank(hand->c[i]) == rank_Jack)
+	if (hand->c[i] != _starter
+		&& card_rank(hand->c[i]) == rank_Jack
+		&& card_suit(hand->c[i]) == card_suit(_starter))
 	    return 1;
     return 0;
 }
@@ -321,16 +328,13 @@ static unsigned score_hand (const struct Hand* h, bool isCrib, bool explain)
 
 static unsigned score_play (card_t lastCard, bool printMessage)
 {
-    struct Hand p = {0,{0}};
-    // Build the full played hand so far
-    unsigned nPlayed = _p[HUMAN].table.sz + _p[COMPUTER].table.sz;
-    for (unsigned i = 0, turn = !_dealer; i < nPlayed; ++i, turn = !turn)
-	p.c[p.sz++] = _p[turn].table.c[i/2];
-    // Add last card
+    struct Hand p = _play;
     p.c[p.sz++] = lastCard;
 
     // Compute count and points based on it
     unsigned cnt = _count + card_value(lastCard);
+    if (cnt > 31)
+	return 0;
     unsigned score = 0;
     if (!(cnt%15))
 	score += 2;
@@ -340,9 +344,9 @@ static unsigned score_play (card_t lastCard, bool printMessage)
 	print_msg ("%u", cnt);
 
     // Score pairs.
-    unsigned pairlen = 1;
-    for (unsigned i = 0; i < p.sz-1u; ++i)
-        pairlen += (card_rank(p.c[i]) == card_rank(lastCard));
+    unsigned pairlen = 0;
+    while (pairlen < p.sz && card_rank(p.c[p.sz-pairlen-1]) == card_rank(lastCard))
+	++pairlen;
     if (pairlen >= 2) {
 	static const uint8_t c_PairScore[] = { 2, 6, 12 };
 	score += c_PairScore[pairlen-2];
@@ -380,11 +384,10 @@ static unsigned n_playable_cards (const struct Hand* h)
 
 static void score_last_played_card (void)
 {
-    unsigned ncards = _p[HUMAN].table.sz + _p[COMPUTER].table.sz,
-		lastPlayer = _dealer^(ncards%2);
-    print_msg ("%s get 1 for last. Count reset.\n", player_pronoun(lastPlayer));
     _count = 0;
-    record_score (lastPlayer, 1);
+    _play.sz = 0;
+    print_msg ("%s get 1 for last. Count reset.\n", player_pronoun(_last_player));
+    record_score (_last_player, 1);
 }
 
 //}}}-------------------------------------------------------------------
@@ -639,15 +642,19 @@ static bool run_play (void)
     print_msg ("\n");
 
     // The play
+    _play.sz = 0;
     for (uint8_t turn = !_dealer; _p[HUMAN].hand.sz + _p[COMPUTER].hand.sz && winning_player() >= NPLAYERS; turn = !turn) {
 	if (!n_playable_cards(&_p[HUMAN].hand) && !n_playable_cards(&_p[COMPUTER].hand))
 	    score_last_played_card();
 	unsigned sc = (turn == HUMAN ? select_card() : computer_select_play());
 	print_msg ("%s say ", player_pronoun(turn));
 	if (sc < _p[turn].hand.sz) {
-	    unsigned pts = score_play (_p[turn].hand.c[sc], true);
-	    _count += card_value (_p[turn].hand.c[sc]);
+	    card_t c = _p[turn].hand.c[sc];
 	    move_card (&_p[turn].hand, sc, &_p[turn].table);
+	    unsigned pts = score_play (c, true);
+	    _count += card_value (c);
+	    _play.c[_play.sz++] = c;
+	    _last_player = turn;
 	    record_score (turn, pts);
 	} else
 	    print_msg ("go\n");
@@ -655,9 +662,11 @@ static bool run_play (void)
     if (winning_player() >= NPLAYERS)
 	score_last_played_card();
     _count = 0;
-    print_msg ("\n");
 
     // The show
+    print_msg ("\nPlay completed. Press space for show.\n");
+    draw_screen();
+    wgetch (_wtable);
     for (unsigned i = 0, turn = !_dealer; i < NPLAYERS && winning_player() >= NPLAYERS; ++i, turn = !turn) {
 	struct Hand ch = hand_with_starter (&_p[turn].table);
 	print_msg ("%s score ", player_pronoun(turn));
