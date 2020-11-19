@@ -6,7 +6,7 @@
 //{{{ Game constants ---------------------------------------------------
 
 #define	ADVENTURE_SCOREFILE	_PATH_GAME_STATE "adventure.scores"
-#define ADVENTURE_SAVE_NAME	_PATH_SAVED_GAMES "adventure.save"
+#define ADVENTURE_SAVE_NAME	"adventure"
 #define SCOREFILE_MAGIC		"advent"
 
 enum {

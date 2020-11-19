@@ -71,16 +71,33 @@ const char* player_name (void)
     return un;
 }
 
-// Returns the home directory. Never fails.
-const char* player_homedir (void)
+// Creates a saved game dir name from XDG vars
+const char* player_saved_game_dir (char* buf, size_t bufsz)
 {
+    const char* datahome = getenv ("XDG_DATA_HOME");
+    if (datahome) {
+	snprintf (buf, bufsz, "%s", datahome);
+	return buf;
+    }
     const char* homedir = getenv ("HOME");
-    if (homedir)
-	return homedir;
-    homedir = getenv ("TMPDIR");
-    if (homedir)
-	return homedir;
-    return _PATH_TMP;
+    if (homedir) {
+	snprintf (buf, bufsz, "%s/.local/share", homedir);
+	return buf;
+    }
+    datahome = getenv ("TMPDIR");
+    if (!datahome)
+	datahome = "/tmp";
+    snprintf (buf, bufsz, "%s", datahome);
+    return buf;
+}
+
+// Creates a saved game filename from its file suffix and XDG vars.
+const char* player_saved_game_file (char* buf, size_t bufsz, const char* file)
+{
+    const char* sgdir = player_saved_game_dir (buf, bufsz);
+    size_t sgdirlen = strlen (sgdir);
+    snprintf (&buf[sgdirlen], bufsz-sgdirlen, "/%s.save", file);
+    return buf;
 }
 
 void StringBuilder_skip (struct StringBuilder* sb, ssize_t n) {

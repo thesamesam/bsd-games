@@ -8,7 +8,7 @@
 //{{{ Game constants ---------------------------------------------------
 
 #define	BATTLESTAR_SCOREFILE	_PATH_GAME_STATE "battlestar.scores"
-#define BATTLESTAR_SAVE_NAME	_PATH_SAVED_GAMES "battlestar.save"
+#define BATTLESTAR_SAVE_NAME	"battlestar"
 #define SCOREFILE_MAGIC		"btlstr"
 
 #define BOLD_ON		"\033[1m"

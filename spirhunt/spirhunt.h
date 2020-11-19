@@ -187,7 +187,7 @@ extern struct Ship_struct Ship;
 //}}}-------------------------------------------------------------------
 //{{{ Game-related information
 
-#define SPIRHUNT_SAVE_NAME	_PATH_SAVED_GAMES "spirhunt.save"
+#define SPIRHUNT_SAVE_NAME	"spirhunt"
 
 struct Game_struct {
     int		pirates_killed;	// number of pirates killed

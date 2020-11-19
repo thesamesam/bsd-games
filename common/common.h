@@ -95,7 +95,8 @@ void srandrand (void);
 uint64_t time_ms (void);
 int mkpath (const char* path, mode_t mode);
 const char* player_name (void);
-const char* player_homedir (void);
+const char* player_saved_game_dir (char* buf, size_t bufsz);
+const char* player_saved_game_file (char* buf, size_t bufsz, const char* file);
 void StringBuilder_skip (struct StringBuilder* sb, ssize_t n);
 
 // ui.c

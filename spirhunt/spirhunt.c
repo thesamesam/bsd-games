@@ -561,16 +561,15 @@ struct save_header { char magictext[6]; uint16_t sum; };
 
 bool save (void)
 {
-    const char* homedir = player_homedir();
     char savename [PATH_MAX];
-    snprintf (ArrayBlock(savename), _PATH_SAVED_GAMES, homedir);
+    player_saved_game_dir (ArrayBlock(savename));
     if (0 != access (savename, R_OK))
 	mkpath (savename, S_IRWXU);
     if (0 != access (savename, W_OK)) {
 	printf ("Error: you are not allowed to write to '%s'\n", savename);
 	return false;
     }
-    snprintf (ArrayBlock(savename), SPIRHUNT_SAVE_NAME, homedir);
+    player_saved_game_file (ArrayBlock(savename), SPIRHUNT_SAVE_NAME);
 
     int fd = creat (savename, S_IRUSR| S_IWUSR);
     if (fd < 0) {
@@ -596,7 +595,7 @@ static bool verify_locations (void)
 static bool restore (void)
 {
     char savename [PATH_MAX];
-    snprintf (ArrayBlock(savename), SPIRHUNT_SAVE_NAME, player_homedir());
+    player_saved_game_file (ArrayBlock(savename), SPIRHUNT_SAVE_NAME);
     int fd = open (savename, O_RDONLY);
     if (fd < 0)
 	return false;
