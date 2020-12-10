@@ -3,12 +3,13 @@
 
 #include "spirhunt.h"
 #include "getpar.h"
-#include <math.h>
 
 //----------------------------------------------------------------------
 
+static float move_ship (int ramflag, struct xy to, float speed);
 static void move_to_random_location (void);
 static void ram (unsigned ix, unsigned iy);
+static void warp (int fl, struct xy to);
 
 //----------------------------------------------------------------------
 
@@ -29,137 +30,85 @@ static void ram (unsigned ix, unsigned iy);
 // tion of being able to be dropped into a sector which is com-
 // pletely surrounded by stars. Oh Well.
 //
-// If the SINS (Space Inertial Navigation System) is out, we ran-
-// domize the course accordingly before ever starting to move.
-// We will still move in a straight line.
+// Note that if your computer is out, you ram things anyway.
 //
-// Note that if your computer is out, you ram things anyway. In
-// other words, if your computer and sins are both out, you're in
-// potentially very bad shape.
+// Return value is the actual distance travelled, in quads.
 //
-// Pirates get a chance to zap you as you leave the quadrant.
-// By the way, they also try to follow you (heh heh).
-//
-// Return value is the actual amount of time used.
-//
-//
-// Uses trace flag 4.
-
-float move_ship (int ramflag, int course, float time, float speed)
+static float move_ship (int ramflag, struct xy to, float speed)
 {
-    float sectsize = NSECTS;
-    // initialize delta factors for move
-    float angle = course * 0.0174532925;
-    if (device_damaged (SINS))
-	angle += Param.navigcrud[1] * (fnrand() - 0.5);
-    else if (Ship.sinsbad)
-	angle += Param.navigcrud[0] * (fnrand() - 0.5);
-    float dx = -cos(angle);
-    float dy = sin(angle);
-    float bigger = fabs(dx);
-    float dist = fabs(dy);
-    if (dist > bigger)
-	bigger = dist;
-    dx /= bigger;
-    dy /= bigger;
+    struct xy from = absolute_sector_coord (Ship.quad, Ship.sect);
+    unsigned dist = sector_distance (from, to);
 
-    // check for long range tractor beams
-    //***  TEMPORARY CODE == DEBUGGING  ***
-    float evtime = Now.eventptr[E_LRTB]->date - Now.date;
-    if (time > evtime && Etc.npirates < 3) {
-	// then we got a LRTB
-	evtime += 0.005;
-	time = evtime;
-    } else
-	evtime = -1.0e50;
-    dist = time * speed;
+    // check for long range tractor beams during the move
+    const struct event* lrtb_event = next_event_of_type (E_LRTB);
+    if (lrtb_event) {
+        float lrtb_time = lrtb_event->date - Now.date;
+	if (lrtb_time >= 0 && current_quad()->pirates < 3) {
+	    unsigned dist_to_lrtb = lrtb_time * speed * NSECTS;
+	    if (dist_to_lrtb < dist)
+		dist = dist_to_lrtb;
+	}
+    }
 
-    // move within quadrant
-    Sect[Ship.sectx][Ship.secty] = EMPTY;
-    float x = Ship.sectx + 0.5;
-    float y = Ship.secty + 0.5;
-    float xn = NSECTS * dist * bigger;
-    int n = xn + 0.5;
-    Move.free = 0;
+    // now using time
+    Move.free = false;
 
-    int ix = 0, iy = 0;
-    for (int i = 0; i < n; ++i) {
-	ix = (x += dx);
-	iy = (y += dy);
-	if (x < 0.0 || y < 0.0 || x >= sectsize || y >= sectsize) {
-	    // enter new quadrant
-	    dx = Ship.quadx * NSECTS + Ship.sectx + dx * xn;
-	    dy = Ship.quady * NSECTS + Ship.secty + dy * xn;
-	    if (dx < 0.0)
-		ix = -1;
-	    else
-		ix = dx + 0.5;
-	    if (dy < 0.0)
-		iy = -1;
-	    else
-		iy = dy + 0.5;
-	    Ship.sectx = x;
-	    Ship.secty = y;
-	    comp_pirate_dist(0);
+    for (struct line_iterator li = make_line_iterator (from, to);;) {
+	advance_line_iterator (&li);
+	if (sector_distance (from, li.p) > dist)
+	    break;
+
+	struct xy quad = { li.p.x/NSECTS, li.p.y/NSECTS };
+	struct xy sect = { li.p.x%NSECTS, li.p.y%NSECTS };
+
+	// Check for quadrant change
+	if (quad.x != Ship.quad.x || quad.y != Ship.quad.y) {
+	    if (quad.x >= NQUADS || quad.y >= NQUADS)
+		break;	// should never happen, but let's not hang
 	    Move.newquad = 2;
-	    attack(0);
-	    checkcond();
-	    Ship.quadx = ix / NSECTS;
-	    Ship.quady = iy / NSECTS;
-	    Ship.sectx = ix % NSECTS;
-	    Ship.secty = iy % NSECTS;
-	    if (ix < 0 || Ship.quadx >= NQUADS || iy < 0 || Ship.quady >= NQUADS) {
-		if (device_damaged (COMPUTER))
-		    lose (L_NEGENB);
-		printf ("Computer applies full reverse power to avoid hitting the\n");
-		printf ("negative energy barrier. A space warp was entered.\n");
-		move_to_random_location();
-	    }
+	    Ship.quad = quad;
+	    Ship.sect = sect;
 	    initquad (false);
-	    n = 0;
-	    break;
-	}
-	if (Sect[ix][iy] != EMPTY) {
-	    // we just hit something
-	    if (!device_damaged (COMPUTER) && ramflag <= 0) {
-		ix = x - dx;
-		iy = y - dy;
-		printf ("Computer reports navigation error; stopped at %d,%d\n", ix, iy);
-		Ship.energy -= Param.stopengy * speed;
+	} else {
+	    // Check for obstacles and ramming
+	    enum SectorContents sc = sector_contents (sect.x, sect.y);
+	    if (sc != EMPTY) {
+		if (!device_damaged (COMPUTER) && ramflag <= 0) {
+		    printf ("Stopped by ");
+		    if (sc == STAR)
+			printf ("star");
+		    else if (sc == BASE)
+			printf ("starbase");
+		    else if (sc == HOLE)
+			printf ("black hole");
+		    else if (sc == PIRATE)
+			printf ("pirate");
+		    else if (sc == INHABIT)
+			printf ("planet");
+		    else
+			printf ("obstacle");
+		    printf (" at " SECT_FMT "\n", sect.x, sect.y);
+		    Ship.energy -= Param.stopengy * speed;
+		    break;
+		}
+		if (sc == HOLE) {
+		    printf ("You fall into a black hole.\n");
+		    move_to_random_location();
+		    initquad (false);
+		    break;
+		}
+		ram (sect.x, sect.y);
 		break;
 	    }
-	    // test for a black hole
-	    if (Sect[ix][iy] == HOLE) {
-		// get dumped elsewhere in the galaxy
-		printf ("You fall into a black hole.\n");
-		move_to_random_location();
-		initquad (false);
-		n = 0;
-		break;
-	    }
-	    ram(ix, iy);
-	    break;
+	    Ship.sect = sect;
 	}
     }
-    if (n > 0) {
-	dx = Ship.sectx - ix;
-	dy = Ship.secty - iy;
-	dist = sqrtf (dx * dx + dy * dy) / NSECTS;
-	time = dist / speed;
-	if (evtime > time)
-	    time = evtime;     // spring the LRTB trap
-	Ship.sectx = ix;
-	Ship.secty = iy;
-    }
-    Sect[Ship.sectx][Ship.secty] = YOURSHIP;
-    comp_pirate_dist (0);
-    return time;
+
+    // Return the actual distance travelled
+    return sector_distance (from, absolute_sector_coord (Ship.quad, Ship.sect)) / (float) NSECTS;
 }
 
 // Dump the starship somewhere in the galaxy
-//
-// Parameter is zero if bounce off of negative energy barrier,
-// one if through a black hole
 //
 // Note that the quadrant is NOT initialized here. This must
 // be done from the calling routine.
@@ -168,10 +117,10 @@ float move_ship (int ramflag, int course, float time, float speed)
 
 static void move_to_random_location (void)
 {
-    Ship.quadx = nrand (NQUADS);
-    Ship.quady = nrand (NQUADS);
-    Ship.sectx = nrand (NSECTS);
-    Ship.secty = nrand (NSECTS);
+    Ship.quad.x = nrand (NQUADS);
+    Ship.quad.y = nrand (NQUADS);
+    Ship.sect.x = nrand (NSECTS);
+    Ship.sect.y = nrand (NSECTS);
     float x = 1.5 * fnrand();
     Move.time += x;
     // bump repair dates forward
@@ -181,7 +130,7 @@ static void move_to_random_location (void)
 	    reschedule (e, (e->date - Now.date) + x);
     }
     events (1);
-    printf ("You are now in quadrant %u,%u. Today is %.2f\n", Ship.quadx, Ship.quady, Now.date);
+    printf ("You are now in quadrant " QUAD_FMT ". Today is %.2f\n", Ship.quad.x, Ship.quad.y, Now.date);
     Move.time = 0;
 }
 
@@ -196,10 +145,10 @@ static void move_to_random_location (void)
 //
 static void ram (unsigned ix, unsigned iy)
 {
-    printf ("\07RED ALERT\07: collision imminent\n");
-    char c = Sect[ix][iy];
+    printf (BOLD_ON "RED ALERT:" BOLD_OFF " collision imminent\n");
+    enum SectorContents c = sector_contents(ix,iy);
     if (c == PIRATE) {
-	printf ("Your ship rams pirate at %d,%d\n", ix, iy);
+	printf ("Your ship rams pirate at " SECT_FMT "\n", ix, iy);
 	kill_pirate (ix, iy);
     } else if (c == STAR || c == INHABIT) {
 	printf ("Captain, isn't it getting hot in here?\n");
@@ -207,16 +156,15 @@ static void ram (unsigned ix, unsigned iy)
 	printf ("Hull temperature approaching 550 Degrees Kelvin.\n");
 	lose (L_STAR);
     } else if (c == BASE) {
-	printf ("You ran into the starbase at %d,%d\n", ix, iy);
-	kill_starbase (Ship.quadx, Ship.quady);
-	if (!device_damaged (SINS))	// don't penalize the captain if it wasn't his fault
-	    ++Game.bases_killed;
+	printf ("You ran into the starbase at " SECT_FMT "\n", ix, iy);
+	kill_starbase (Ship.quad.x, Ship.quad.y);
+	++Game.bases_killed;
     }
     sleep (2);
     puts ("Your ship sustained heavy damage.");
 
-    unsigned deaths = 10 + nrand(40);	// Crew killed in the collision
-    Ship.shldup = false;		// No chance that your shields remained up in all that
+    Ship.shldup = false;	// No chance that your shields remained up in all that
+    unsigned deaths = min_u (Ship.crew, 10 + nrand(40)); // Crew killed in the collision
     Ship.crew -= deaths;
     Game.deaths += deaths;
     printf ("%u casualties reported.\n", deaths);
@@ -224,7 +172,7 @@ static void ram (unsigned ix, unsigned iy)
     // Damage devices with an 80% probability
     for (unsigned i = 0; i < NDEV; ++i)
 	if (nrand(100) < 80)
-	    damage_device (i, (2.5 * (fnrand() + fnrand()) + 1.0) * Param.damfac[i]);
+	    damage_device (i, (5*fnrand()+1) * Param.damfac[i]);
 }
 
 // SET WARP FACTOR
@@ -234,21 +182,19 @@ static void ram (unsigned ix, unsigned iy)
 void setwarp (int v UNUSED)
 {
     float warpfac = getfltpar("Warp factor");
-    if (warpfac < 0)
+    if (warpfac <= 0)
 	return;
     if (warpfac < 1) {
 	printf ("Minimum warp speed is 1\n");
 	return;
     }
-    if (warpfac > 10) {
-	printf ("Maximum speed is warp 10\n");
+    if (warpfac > 9.9) {
+	printf ("Maximum speed is warp 9.9\n");
 	return;
     }
     if (warpfac > 6)
 	printf ("Damage to warp engines may occur above warp 6\n");
-    Ship.warp = warpfac;
-    Ship.warp2 = Ship.warp * warpfac;
-    Ship.warp3 = Ship.warp2 * warpfac;
+    Ship.warp = warpfac*10;
 }
 
 // MOVE UNDER WARP POWER
@@ -267,14 +213,13 @@ void setwarp (int v UNUSED)
 
 void dowarp (int fl)
 {
-    int c;
-    float d;
-    if (getcodi (&c, &d))
+    struct xy to = getdest();
+    if (to.x > NQUADS*NSECTS || to.y > NQUADS*NSECTS)
 	return;
-    warp (fl, c, d);
+    warp (fl, to);
 }
 
-void warp (int fl, int c, float d)
+static void warp (int fl, struct xy to)
 {
     if (Ship.cond == DOCKED) {
 	printf ("You are docked\n");
@@ -285,11 +230,11 @@ void warp (int fl, int c, float d)
 	return;
     }
 
-    int course = c;
-    float dist = d;
+    struct xy from = absolute_sector_coord (Ship.quad, Ship.sect);
+    float dist = sector_distance (from, to) / (float) NSECTS;
 
     // check to see that we are not using an absurd amount of power
-    float power = (dist + 0.05) * Ship.warp3;
+    float power = (dist + 0.05) * (Ship.warp*Ship.warp*Ship.warp)/1000.f;
     unsigned percent = 100 * power / Ship.energy;
     if (percent >= 85) {
 	printf ("That would consume %u%% of our remaining energy.\n", percent);
@@ -298,7 +243,7 @@ void warp (int fl, int c, float d)
     }
 
     // compute the speed we will move at, and the time it will take
-    float speed = Ship.warp2 / Param.warptime;
+    float speed = (Ship.warp*Ship.warp) / (Param.warptime * 100.f);
     float time = dist / speed;
 
     // check to see that that value is not ridiculous
@@ -310,22 +255,20 @@ void warp (int fl, int c, float d)
     }
 
     // compute how far we will go if we get damages
-    if (Ship.warp > 6.0 && nrand(100) < 20 + 15 * (Ship.warp - 6.0)) {
+    if (Ship.warp > 60 && nrand(100) < 20 + 1.5f * (Ship.warp - 60)) {
 	float frac = fnrand();
 	dist *= frac;
 	time *= frac;
-	damage_device (WARP, (frac + 1.0) * Ship.warp * (fnrand() + 0.25) * 0.20);
+	damage_device (WARP, (frac + 1.0) * (Ship.warp/10.f) * (fnrand() + 0.25) * 0.20);
     }
 
     // do the move
-    Move.time = move_ship (fl, course, time, speed);
-
-    // see how far we actually went, and decrement energy appropriately
-    dist = Move.time * speed;
-    Ship.energy -= dist * Ship.warp3 * (Ship.shldup + 1);
+    dist = move_ship (fl, to, speed);
+    Move.time = dist / speed;
+    Ship.energy -= dist * Ship.warp * Ship.warp * Ship.warp * (Ship.shldup + 1) / 1000.f;
 
     // test for bizarre events
-    if (Ship.warp <= 9.0)
+    if (Ship.warp <= 90)
 	return;
     printf ("\n\n  ___ Speed exceeding warp nine ___\n\n");
     sleep(2);
@@ -342,9 +285,9 @@ void warp (int fl, int c, float d)
     percent = nrand(100);
     if (percent < 70) {
 	// time warp
-	if (percent < 35 || !Game.snap) {
+	if (percent < 35 || !Snapshot.now.date) {
 	    // positive time warp
-	    time = (Ship.warp - 8.0) * dist * (fnrand() + 1.0);
+	    time = ((Ship.warp - 80)/10.f) * dist * (fnrand() + 1.0);
 	    Now.date += time;
 	    printf ("Positive time portal entered -- we are now in %.2f\n", Now.date);
 	    for (unsigned i = 0; i < MAXEVENTS; ++i) {
@@ -357,12 +300,10 @@ void warp (int fl, int c, float d)
 
 	// got lucky: a negative time portal
 	time = Now.date;
-	char* p = (char*) Etc.snapshot;
-	memcpy (p, Quad, sizeof Quad);
-	p += sizeof Quad;
-	memcpy (p, Event, sizeof Event);
-	p += sizeof Event;
-	memcpy (p, &Now, sizeof Now);
+	Now = Snapshot.now;
+	memcpy (Quad, Snapshot.quads, sizeof(Quad));
+	memcpy (Event, Snapshot.events, sizeof(Event));
+	Snapshot.now.date = 0;
 	printf ("Negative time portal entered -- we are now in %.2f\n", Now.date);
 	for (unsigned i = 0; i < MAXEVENTS; ++i)
 	    if (Event[i].evcode == E_FIXDV)
@@ -390,10 +331,11 @@ void impulse (int v UNUSED)
 	announce_device_damage (IMPULSE);
 	return;
     }
-    int course;
-    float dist;
-    if (getcodi (&course, &dist))
+    struct xy to = getdest();
+    if (to.x > NQUADS*NSECTS || to.y > NQUADS*NSECTS)
 	return;
+    struct xy from = absolute_sector_coord (Ship.quad, Ship.sect);
+    float dist = sector_distance (from, to) / (float) NSECTS;
     unsigned energy = 20 + 100 * dist;
     unsigned percent = 100 * energy / Ship.energy;
     if (percent >= 85) {
@@ -411,8 +353,9 @@ void impulse (int v UNUSED)
 	    return;
 	printf ("(He's finally gone mad)\n");
     }
-    Move.time = move_ship (0, course, time, speed);
-    Ship.energy -= 20 + 100 * Move.time * speed;
+    dist = move_ship (0, to, speed);
+    Move.time = dist / speed;
+    Ship.energy -= 20 + 100 * dist;
 }
 
 // Automatic Override
@@ -433,18 +376,60 @@ void impulse (int v UNUSED)
 //
 void autover (void)
 {
-    printf ("\07RED ALERT: You are in a supernova quadrant\n"
+    printf ("RED ALERT: You are in a supernova quadrant\n"
 	    "*** Emergency override attempts to escape\n");
-    // let's get our ass out of here
-    Ship.warp = 6.0 + 2.0 * fnrand();
-    Ship.warp2 = Ship.warp * Ship.warp;
-    Ship.warp3 = Ship.warp2 * Ship.warp;
-    float dist = 0.75 * Ship.energy / (Ship.warp3 * (Ship.shldup + 1));
-    if (dist > 1.4142)
-	dist = 1.4142;
-    int course = nrand (360);
-    Etc.npirates = -1;
+    struct xy escapesect = { nrand (NSECTS), nrand (NSECTS) };
+    struct xy escapequad = { Ship.quad.x + nrand(3) - 1, Ship.quad.y + nrand(3) - 1 };
+    if (escapequad.x > NQUADS || escapequad.y > NQUADS)
+	lose (L_SNOVA);
     Ship.cond = RED;
-    warp (-1, course, dist);
+    Ship.warp = 60 + nrand(20);
+    warp (-1, absolute_sector_coord (escapequad, escapesect));
     attack (0);
+}
+
+// line_iterator does Bresenham's line algorithm in iterator form
+struct line_iterator make_line_iterator (struct xy from, struct xy to)
+{
+    struct line_iterator r = {};
+    r.p = from;
+    unsigned adx, ady;
+    if (to.x >= from.x) {
+	r.xs = 1;
+	adx = to.x - from.x;
+    } else {
+	r.xs = -1;
+	adx = from.x - to.x;
+    }
+    if (to.y >= from.y) {
+	r.ys = 1;
+	ady = to.y - from.y;
+    } else {
+	r.ys = -1;
+	ady = from.y - to.y;
+    }
+    r.xmajor = (adx >= ady);
+    if (r.xmajor) {
+	r.ds = ady;
+	r.dl = adx;
+    } else {
+	r.ds = adx;
+	r.dl = ady;
+    }
+    r.d = -r.dl;
+    r.ds *= 2;
+    r.dl *= 2;
+    return r;
+}
+
+void advance_line_iterator (struct line_iterator* li)
+{
+    li->d += li->ds;
+    bool sstep = (li->d >= 0);
+    if (sstep)
+	li->d -= li->dl;
+    if (li->xmajor || sstep)
+	li->p.x += li->xs;
+    if (!li->xmajor || sstep)
+	li->p.y += li->ys;
 }

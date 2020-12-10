@@ -32,6 +32,8 @@
 //{{{ Common function and variable attributes --------------------------
 #if __GNUC__ && !defined(UNUSED)
     #define UNUSED		__attribute__((unused))
+    #define CONST		__attribute__((const))
+    #define PURE		__attribute__((pure))
     #define PRINTFLIKE(f,a)	__attribute__((__format__(__printf__,f,a)))
     #ifndef __cplusplus
 	#define noexcept	__attribute__((nothrow))
@@ -56,7 +58,7 @@
 enum { COLOR_DEFAULT = -1 };
 // Escape key
 enum {
-    KEY_ESCAPE = '\e',
+    KEY_ESCAPE = '\033',
     KEY_BKSPACE = '~'+1
 };
 // Color pair definitions array
@@ -64,6 +66,11 @@ struct color_pair {
     int8_t	fg:4;
     int8_t	bg:4;
 };
+
+// For fancy output without curses
+#define TERM_CSI	"\033["
+#define BOLD_ON		TERM_CSI "1m"
+#define BOLD_OFF	TERM_CSI "22m"
 
 // For building string with multiple append calls
 struct StringBuilder {

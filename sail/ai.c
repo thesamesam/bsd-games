@@ -7,31 +7,31 @@
 
 static void unfoul (void);
 static void boardcomp (void);
-static int fightitout (struct Ship *from, struct Ship *to, int key);
+static int fightitout (struct Ship* from, struct Ship* to, int key);
 static void resolve (void);
 static void compcombat (void);
 static int next (void);
 static void thinkofgrapples (void);
 static void checkup (void);
 static void prizecheck (void);
-static int str_end (const char *str);
-static void closeon (struct Ship *from, struct Ship *to, char *command, int ta, int ma, int af);
-static int score (struct Ship *ship, struct Ship *to, char *movement, int onlytemp);
-static void move_ship (struct Ship *ship, const char *p, unsigned char *dir, short *row, short *col, char *drift);
-static void try (struct Ship *f, struct Ship *t, char *command, char *temp, int ma, int ta, int af, int vma, int dir, int *high, int rakeme);
-static void rmend (char *str);
+static int str_end (const char* str);
+static void closeon (struct Ship* from, struct Ship* to, char* command, int ta, int ma, int af);
+static int score (struct Ship* ship, struct Ship* to, char* movement, int onlytemp);
+static void move_ship (struct Ship* ship, const char* p, unsigned char* dir, short *row, short *col, char* drift);
+static void try_ship_cmd (struct Ship* f, struct Ship* t, char* command, char* temp, int ma, int ta, int af, int vma, int dir, int* high, int rakeme);
+static void rmend (char* str);
 static void moveall (void);
 static bool stillmoving (unsigned k);
-static bool is_isolated (const struct Ship *ship);
+static bool is_isolated (const struct Ship* ship);
 static int push (const struct Ship* from, const struct Ship* to);
 static void step (struct Ship* sp, int com, bool* moved);
-static void sendbp (struct Ship *from, struct Ship *to, int sections, int isdefense);
+static void sendbp (struct Ship* from, struct Ship* to, int sections, int isdefense);
 static unsigned is_toughmelee (const struct Ship* ship, const struct Ship* to, bool isdefense, int count);
 static void reload (void);
 static void checksails (void);
-static void ungrap (struct Ship *from, struct Ship *to);
-static void grap (struct Ship *from, struct Ship *to);
-static void subtract (struct Ship *from, int totalfrom, int pcfrom);
+static void ungrap (struct Ship* from, struct Ship* to);
+static void grap (struct Ship* from, struct Ship* to);
+static void subtract (struct Ship* from, int totalfrom, int pcfrom);
 static unsigned mensent (const struct Ship* from, const struct Ship* to, bool isdefense);
 
 //}}}-------------------------------------------------------------------
@@ -101,16 +101,16 @@ static void boardcomp(void)
 		case -4:
 		case -5:
 		    if (crew[0]) { // OBP
-			sendbp(sp, sq, crew[0] * 100, 0);
+			sendbp (sp, sq, crew[0] * 100, 0);
 			crew[0] = 0;
 		    } else if (crew[1]) { // OBP
-			sendbp(sp, sq, crew[1] * 10, 0);
+			sendbp (sp, sq, crew[1] * 10, 0);
 			crew[1] = 0;
 		    }
 		    break;
 		case -2:
 		    if (crew[0] || crew[1]) { // OBP
-			sendbp(sp, sq, crew[0] * 100 + crew[1] * 10, 0);
+			sendbp (sp, sq, crew[0] * 100 + crew[1] * 10, 0);
 			crew[0] = crew[1] = 0;
 		    }
 		    break;
@@ -118,7 +118,7 @@ static void boardcomp(void)
 		case 0:
 		case 1:
 		    if (crew[0]) { // OBP
-			sendbp(sp, sq, crew[0] * 100 + crew[1] * 10, 0);
+			sendbp (sp, sq, crew[0] * 100 + crew[1] * 10, 0);
 			crew[0] = crew[1] = 0;
 		    }
 		    break;
@@ -126,7 +126,7 @@ static void boardcomp(void)
 		case 3:
 		case 4:
 		case 5: // OBP
-		    sendbp(sp, sq, crew[0] * 100 + crew[1] * 10 + crew[2], 0);
+		    sendbp (sp, sq, crew[0] * 100 + crew[1] * 10 + crew[2], 0);
 		    crew[0] = crew[1] = crew[2] = 0;
 		    break;
 	    }
@@ -134,7 +134,7 @@ static void boardcomp(void)
     }
 }
 
-static int fightitout (struct Ship *from, struct Ship *to, int key)
+static int fightitout (struct Ship* from, struct Ship* to, int key)
 {
     int frominjured, toinjured;
     int index, totalfrom = 0, totalto = 0;
@@ -203,12 +203,12 @@ static int fightitout (struct Ship *from, struct Ship *to, int key)
     return 0;
 }
 
-static void resolve(void)
+static void resolve (void)
 {
     foreachship(sp) {
 	if (sp->status.dir == 0)
 	    continue;
-	for (struct Ship *sq = sp + 1, *sqend = vector_end(&_ships); sq < sqend; ++sq)
+	for (struct Ship* sq = sp + 1, *sqend = vector_end(&_ships); sq < sqend; ++sq)
 	    if (sq->status.dir && meleeing(sp, sq) && meleeing(sq, sp))
 		fightitout(sp, sq, 0);
 	int thwart = 2;
@@ -230,10 +230,10 @@ static void resolve(void)
     }
 }
 
-static void compcombat(void)
+static void compcombat (void)
 {
     int n;
-    struct Ship *closest;
+    struct Ship* closest;
     int crew[3], men = 0, target, temp;
     int r, guns, ready, load, car;
     int index, rakehim, sternrake;
@@ -384,7 +384,7 @@ static int next(void)
 static inline bool couldwin (const struct Ship* f, const struct Ship* t)
     { return f->specs.crew[1] > t->specs.crew[1] * 1.5; }
 
-static void thinkofgrapples(void)
+static void thinkofgrapples (void)
 {
     foreachship(sp) {
 	if (sp == _ms || sp->status.dir == 0)
@@ -410,7 +410,7 @@ static void thinkofgrapples(void)
     }
 }
 
-static void checkup(void)
+static void checkup (void)
 {
     foreachship(sp) {
 	if (sp->status.dir == 0)
@@ -439,7 +439,7 @@ static void checkup(void)
     }
 }
 
-static void prizecheck(void)
+static void prizecheck (void)
 {
     foreachship(sp) {
 	if (!sp->status.captured || sp->status.struck || !sp->status.dir)
@@ -462,7 +462,7 @@ static void closeon (struct Ship* from, struct Ship* to, char* command, int ta, 
     char temp[10] = "";
     command[0] = '\0';
     int high = -30000;
-    try (from, to, command, temp, ma, ta, af, ma, from->status.dir, &high, 0);
+    try_ship_cmd (from, to, command, temp, ma, ta, af, ma, from->status.dir, &high, 0);
 }
 
 static int score (struct Ship* ship, struct Ship* to, char* movement, int onlytemp)
@@ -493,7 +493,7 @@ static int score (struct Ship* ship, struct Ship* to, char* movement, int onlyte
     return total;
 }
 
-static void move_ship (struct Ship* ship, const char *p, unsigned char *dir, short *row, short *col, char *drift)
+static void move_ship (struct Ship* ship, const char* p, unsigned char* dir, short *row, short *col, char* drift)
 {
     bool moved = false;
     for (; *p; ++p) {
@@ -524,62 +524,62 @@ static void move_ship (struct Ship* ship, const char *p, unsigned char *dir, sho
 	*drift = 0;
 }
 
-static void try(struct Ship *f, struct Ship *t, char *command, char *temp, int ma, int ta, int af, int vma, int dir, int *high, int rakeme)
+static void try_ship_cmd (struct Ship* f, struct Ship* t, char* command, char* temp, int ma, int ta, int af, int vma, int dir, int* high, int rakeme)
 {
-    int new, n;
-    if ((n = str_end(temp)) < '1' || n > '9') {
+    short n;
+    if ((n = str_end (temp)) < '1' || n > '9') {
 	for (n = 1; vma - n >= 0; ++n) {
-	    char st[4];
-	    snprintf (ArrayBlock(st), "%d", n);
+	    char st[8];
+	    snprintf (ArrayBlock(st), "%hd", n);
 	    strcat (temp, st);
-	    new = score (f, t, temp, rakeme);
+	    int new = score (f, t, temp, rakeme);
 	    if (new > *high && (!rakeme || (gunsbear(f, t) && !gunsbear(t, f)))) {
 		*high = new;
 		strcpy(command, temp);
 	    }
-	    try (f, t, command, temp, ma - n, ta, af, vma - n, dir, high, rakeme);
-	    rmend(temp);
+	    try_ship_cmd (f, t, command, temp, ma - n, ta, af, vma - n, dir, high, rakeme);
+	    rmend (temp);
 	}
     }
     if ((ma > 0 && ta > 0 && (n = str_end(temp)) != 'l' && n != 'r') || !strlen(temp)) {
-	strcat(temp, "r");
-	new = score(f, t, temp, rakeme);
+	strcat (temp, "r");
+	int new = score (f, t, temp, rakeme);
 	if (new > *high && (!rakeme || (gunsbear(f, t) && !gunsbear(t, f)))) {
 	    *high = new;
-	    strcpy(command, temp);
+	    strcpy (command, temp);
 	}
-	try(f, t, command, temp, ma - 1, ta - 1, af, min_i (ma - 1, maxmove(f, (dir == 8 ? 1 : dir + 1), 0)), (dir == 8 ? 1 : dir + 1), high, rakeme);
-	rmend(temp);
+	try_ship_cmd (f, t, command, temp, ma - 1, ta - 1, af, min_i (ma - 1, maxmove(f, (dir == 8 ? 1 : dir + 1), 0)), (dir == 8 ? 1 : dir + 1), high, rakeme);
+	rmend (temp);
     }
     if ((ma > 0 && ta > 0 && (n = str_end(temp)) != 'l' && n != 'r') || !strlen(temp)) {
-	strcat(temp, "l");
-	new = score(f, t, temp, rakeme);
+	strcat (temp, "l");
+	int new = score (f, t, temp, rakeme);
 	if (new > *high && (!rakeme || (gunsbear(f, t) && !gunsbear(t, f)))) {
 	    *high = new;
-	    strcpy(command, temp);
+	    strcpy (command, temp);
 	}
-	try(f, t, command, temp, ma - 1, ta - 1, af, (min_i (ma - 1, maxmove(f, (dir - 1 ? dir - 1 : 8), 0))), (dir - 1 ? dir - 1 : 8), high, rakeme);
-	rmend(temp);
+	try_ship_cmd (f, t, command, temp, ma - 1, ta - 1, af, (min_i (ma - 1, maxmove(f, (dir - 1 ? dir - 1 : 8), 0))), (dir - 1 ? dir - 1 : 8), high, rakeme);
+	rmend (temp);
     }
 }
 
-static void rmend(char *str)
+static void rmend (char* str)
 {
-    char *p;
+    char* p;
     for (p = str; *p; ++p);
     if (p != str)
 	*--p = 0;
 }
 
 // move all comp ships
-static void moveall(void)
+static void moveall (void)
 {
     int n;
     int k, l;
 
     // first try to create moves for OUR ships
     foreachship(sp) {
-	struct Ship *closest;
+	struct Ship* closest;
 	int ma, ta;
 	char af;
 
@@ -679,7 +679,7 @@ static bool stillmoving (unsigned k)
     return false;
 }
 
-static bool is_isolated (const struct Ship *ship)
+static bool is_isolated (const struct Ship* ship)
 {
     foreachship(sp)
 	if (ship != sp && range(ship, sp) <= 10)

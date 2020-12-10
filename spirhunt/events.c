@@ -3,8 +3,6 @@
 
 #include "getpar.h"
 #include "spirhunt.h"
-#include <math.h>
-#include <err.h>
 
 //----------------------------------------------------------------------
 
@@ -35,7 +33,7 @@ int events (bool in_time_warp)
 
     // if nothing happened, just allow for any pirates killed
     if (Move.time <= 0.0) {
-	Now.time = Now.resource / Now.pirates;
+	Now.time = Now.resource / pirates_remaining();
 	return 0;
     }
 
@@ -73,9 +71,9 @@ int events (bool in_time_warp)
 	rtime = xdate - Now.date;
 
 	// decrement the magic "Galactic Resources" pseudo-variable
-	Now.resource -= Now.pirates * rtime;
+	Now.resource -= pirates_remaining() * rtime;
 	// and recompute the time left
-	Now.time = Now.resource / Now.pirates;
+	Now.time = Now.resource / pirates_remaining();
 
 	// move us up to the next date
 	Now.date = xdate;
@@ -97,7 +95,7 @@ int events (bool in_time_warp)
 
 	    case E_LRTB:      // long range tractor beam
 		// schedule the next one
-		xresched (e, E_LRTB, Now.pirates);
+		xresched (e, E_LRTB, pirates_remaining());
 		// LRTB cannot occur if we are docked
 		if (Ship.cond != DOCKED) {
 		    long_range_tractor_beam();
@@ -117,7 +115,7 @@ int events (bool in_time_warp)
 		    ix = Now.base[i].x;
 		    iy = Now.base[i].y;
 		    // see if a pirate exists in this quadrant
-		    q = &Quad[ix][iy];
+		    q = &Quad[iy][ix];
 		    if (q->pirates <= 0)
 			continue;
 
@@ -126,7 +124,7 @@ int events (bool in_time_warp)
 			e = &Event[j];
 			if ((e->evcode & E_EVENT) != E_PDESB)
 			    continue;
-			if (e->x == ix && e->y == iy)
+			if (e->quad.x == ix && e->quad.y == iy)
 			    break;
 		    }
 		    if (j < MAXEVENTS)
@@ -144,11 +142,13 @@ int events (bool in_time_warp)
 		// schedule a new attack, and a destruction of the base
 		xresched (e, E_PATSB, 1);
 		e = xsched (E_PDESB, 1, ix, iy, 0);
+		if (!e)
+		    break;
 
 		// report it if we can
 		if (!device_damaged (SSRADIO)) {
 		    printf ("\nCaptain, we have received a distress signal\n");
-		    printf ("  from the starbase in quadrant %d,%d.\n", ix, iy);
+		    printf ("  from the starbase in quadrant " QUAD_FMT ".\n", ix, iy);
 		    ++restcancel;
 		} else // SSRADIO out, make it so we can't see the distress call
 		    e->evcode |= E_HIDDEN;
@@ -156,10 +156,10 @@ int events (bool in_time_warp)
 
 	    case E_PDESB:     // pirate destroys starbase
 		unschedule (e);
-		if (Quad[e->x][e->y].bases > 0 && Quad[e->x][e->y].pirates > 0) {
-		    if (e->x == Ship.quadx && e->y == Ship.quady)
+		if (Quad[e->quad.y][e->quad.x].bases > 0 && Quad[e->quad.y][e->quad.x].pirates > 0) {
+		    if (e->quad.x == Ship.quad.x && e->quad.y == Ship.quad.y)
 			printf ("\n"); // message if in this quadrant
-		    kill_starbase (e->x, e->y);
+		    kill_starbase (e->quad.x, e->quad.y);
 		}
 		break;
 
@@ -169,25 +169,27 @@ int events (bool in_time_warp)
 		for (i = 0; i < 100; ++i) {
 		    ix = nrand(NQUADS);
 		    iy = nrand(NQUADS);
-		    q = &Quad[ix][iy];
+		    q = &Quad[iy][ix];
 		    // need a quadrant which is not the current one,
 		    // which has some stars which are inhabited and
 		    // not already under attack, which is not
 		    // supernova'ed, and which has some pirates in it
-		    if (!((ix == Ship.quadx && iy == Ship.quady) || q->stars < 0 || (q->qsystemname & Q_DISTRESSED) || (q->qsystemname & Q_SYSTEM) == 0 || q->pirates <= 0))
+		    if (!((ix == Ship.quad.x && iy == Ship.quad.y) || q->stars == SUPERNOVA || q->distressed || !q->systemname || !q->pirates))
 			break;
 		}
 		if (i >= 100) // can't seem to find one; ignore this call
 		    break;
 
 		// got one!!  Schedule its enslavement
+		e = xsched (E_ENSLV, 1, ix, iy, q->systemname);
+		if (!e)
+		    break;
+		q->distressed = true;
 		++Ship.distressed;
-		e = xsched (E_ENSLV, 1, ix, iy, q->qsystemname);
-		q->qsystemname = (e - Event) | Q_DISTRESSED;
 
 		// tell the captain about it if we can
 		if (!device_damaged (SSRADIO)) {
-		    printf ("\nCaptain, starsystem %s in quadrant %d,%d is under attack\n", Systemname[e->systemname], ix, iy);
+		    printf ("\nCaptain, starsystem %s in quadrant " QUAD_FMT " is under attack\n", Systemname[e->systemname], ix, iy);
 		    ++restcancel;
 		} else
 		    e->evcode |= E_HIDDEN;
@@ -196,14 +198,14 @@ int events (bool in_time_warp)
 	    case E_ENSLV:     // starsystem is enslaved
 		unschedule (e);
 		// see if current distress call still active
-		if (Quad[e->x][e->y].pirates <= 0)
-		    Quad[e->x][e->y].qsystemname = e->systemname;	// no pirates, clean up; restore the system name
-		else {
+		if (Quad[e->quad.y][e->quad.x].pirates > 0) {
 		    // Enslaved starsystems create more pirates
-		    struct event* re = schedule (E_REPRO, Param.eventdly[E_REPRO] * fnrand(), e->x, e->y, e->systemname);
+		    struct event* re = schedule (E_REPRO, Param.eventdly[E_REPRO] * fnrand(), e->quad.x, e->quad.y, e->systemname);
+		    if (!re)
+			break;
 		    // Report the disaster if we can
 		    if (!device_damaged (SSRADIO))
-			printf ("\nWe've lost contact with starsystem %s\nin quadrant %d,%d.\n", Systemname[re->systemname], re->x, re->y);
+			printf ("\nWe've lost contact with starsystem %s\nin quadrant " QUAD_FMT ".\n", Systemname[re->systemname], re->quad.x, re->quad.y);
 		    else
 			re->evcode |= E_HIDDEN;
 		}
@@ -211,57 +213,51 @@ int events (bool in_time_warp)
 
 	    case E_REPRO:     // pirate reproduces
 		// see if distress call is still active
-		q = &Quad[e->x][e->y];
+		q = &Quad[e->quad.y][e->quad.x];
 		if (q->pirates <= 0) {
 		    unschedule (e);
-		    q->qsystemname = e->systemname;
 		    break;
 		}
 		xresched (e, E_REPRO, 1);
 		// reproduce one pirate
-		ix = e->x;
-		iy = e->y;
-		if (Now.pirates == INT8_MAX)
+		ix = e->quad.x;
+		iy = e->quad.y;
+		if (pirates_remaining() == INT8_MAX)
 		    break;     // full right now
-		if (q->pirates >= MAX_QUAD_PIRATES) {
+		if (q->pirates >= QUAD_PIRATES) {
 		    // this quadrant not ok, pick an adjacent one
-		    for (i = ix - 1; i <= ix + 1; ++i) {
+		    for (i = iy - 1; i <= iy + 1; ++i) {
 			if (i < 0 || i >= NQUADS)
 			    continue;
-			for (j = iy - 1; j <= iy + 1; ++j) {
+			for (j = ix - 1; j <= ix + 1; ++j) {
 			    if (j < 0 || j >= NQUADS)
 				continue;
 			    q = &Quad[i][j];
 			    // check for this quad ok (not full & no snova)
-			    if (q->pirates >= MAX_QUAD_PIRATES || q->stars < 0)
+			    if (q->pirates >= QUAD_PIRATES || q->stars == SUPERNOVA)
 				continue;
 			    break;
 			}
-			if (j <= iy + 1)
+			if (j <= ix + 1)
 			    break;
 		    }
-		    if (j > iy + 1)
+		    if (j > ix + 1)
 			break; // cannot create another yet
-		    ix = i;
-		    iy = j;
+		    iy = i;
+		    ix = j;
 		}
 		// deliver the child
 		++q->pirates;
-		++Now.pirates;
-		if (ix == Ship.quadx && iy == Ship.quady) {
+		if (ix == Ship.quad.x && iy == Ship.quad.y) {
 		    // we must position pirate
-		    sector(&ix, &iy);
-		    Sect[ix][iy] = PIRATE;
-		    k = &Etc.pirate[Etc.npirates++];
-		    k->x = ix;
-		    k->y = iy;
+		    k = &Etc.pirate[q->pirates-1];
+		    k->sect = random_empty_sector();
 		    k->power = Param.piratepwr;
-		    k->srndreq = 0;
-		    comp_pirate_dist (Etc.pirate[0].dist == Etc.pirate[0].avgdist ? 0 : 1);
+		    sort_pirates();
 		}
 
 		// recompute time left
-		Now.time = Now.resource / Now.pirates;
+		Now.time = Now.resource / pirates_remaining();
 		break;
 
 	    case E_SNAP:      // take a snapshot of the galaxy
@@ -279,11 +275,7 @@ int events (bool in_time_warp)
 
 	    case E_FIXDV:
 		printf ("Repair work on the %s is finished.\n", DeviceName[e->systemname]);
-		if (e->systemname == SINS && Ship.cond != DOCKED) {
-		    Ship.sinsbad = true;
-		    printf ("The Space Internal Navigation System can only be recalibrated when\n"
-			    "docked at a starbase equipped with appropriate calibration standards.\n");
-		} else if (e->systemname == SSRADIO)
+		if (e->systemname == SSRADIO)
 		    restcancel = output_hidden_distress_calls();
 		else if (e->systemname == LIFESUP)
 		    Ship.reserves = Param.reserves;
@@ -295,7 +287,7 @@ int events (bool in_time_warp)
     }
 
     // unschedule an attack during a rest period
-    if ((e = Now.eventptr[E_ATTACK]) != NULL)
+    while ((e = next_event_of_type (E_ATTACK)) != NULL)
 	unschedule (e);
 
     if (!in_time_warp) {
@@ -304,7 +296,7 @@ int events (bool in_time_warp)
 	    Ship.energy -= Param.cloakenergy * Move.time;
 
 	// regenerate resources
-	rtime = 1.0 - exp(-Param.regenfac * Move.time);
+	rtime = Move.time / 5.f;
 	Ship.shield += (Param.shield - Ship.shield) * rtime;
 	Ship.energy += (Param.energy - Ship.energy) * rtime;
 
@@ -320,37 +312,33 @@ static void long_range_tractor_beam (void)
     // pick a new quadrant
     unsigned ix, iy;
     do {
-	int i = nrand(Now.pirates) + 1;
+	int i = nrand(pirates_remaining()) + 1;
 	for (ix = 0; ix < NQUADS; ++ix) {
 	    for (iy = 0; iy < NQUADS; ++iy) {
-		const struct quad *q = &Quad[ix][iy];
-		if (q->stars >= 0)
+		const struct quad *q = &Quad[iy][ix];
+		if (q->stars != SUPERNOVA)
 		    if ((i -= q->pirates) <= 0)
 			break;
 	    }
 	    if (i <= 0)
 		break;
 	}
-    } while (Ship.quadx == ix && Ship.quady == iy);
+    } while (Ship.quad.x == ix && Ship.quad.y == iy);
 
-    Ship.quadx = ix;
-    Ship.quady = iy;
-    Ship.sectx = nrand (NSECTS);
-    Ship.secty = nrand (NSECTS);
+    Ship.quad.x = ix;
+    Ship.quad.y = iy;
+    Ship.sect.x = nrand (NSECTS);
+    Ship.sect.y = nrand (NSECTS);
     printf ("\nYour ship is caught in long range tractor beam\n"
-	    "*** Pulled to quadrant %u,%u\n", Ship.quadx, Ship.quady);
+	    "*** Pulled to quadrant %u,%u\n", Ship.quad.x, Ship.quad.y);
     initquad (false);
 }
 
 static void update_galaxy_snapshot (void)
 {
-    char* p = Etc.snapshot;
-    memcpy (p, Quad, sizeof(Quad));
-    p += sizeof(Quad);
-    memcpy (p, Event, sizeof(Event));
-    p += sizeof(Event);
-    memcpy (p, &Now, sizeof(Now));
-    Game.snap = true;
+    Snapshot.now = Now;
+    memcpy (Snapshot.events, Event, sizeof(Snapshot.events));
+    memcpy (Snapshot.quads, Quad, sizeof(Snapshot.quads));
 }
 
 bool output_hidden_distress_calls (void)
@@ -361,13 +349,13 @@ bool output_hidden_distress_calls (void)
 	if (!(e->evcode & E_HIDDEN))
 	    continue; // not hidden
 	if (e->evcode & E_GHOST) {
-	    printf ("Starsystem %s in quadrant %u,%u is no longer distressed\n", systemname(&Quad[e->x][e->y]), e->x, e->y);
+	    printf ("Starsystem %s in quadrant %u,%u is no longer distressed\n", systemname(&Quad[e->quad.y][e->quad.x]), e->quad.x, e->quad.y);
 	    unschedule (&Event[j]);
 	} else if (e->evcode == E_PDESB) {
-	    printf ("Starbase in quadrant %u,%u is under attack\n", e->x, e->y);
+	    printf ("Starbase in quadrant %u,%u is under attack\n", e->quad.x, e->quad.y);
 	    emergency = true;
 	} else if (e->evcode == E_ENSLV || e->evcode == E_REPRO) {
-	    printf ("Starsystem %s in quadrant %u,%u is distressed\n", systemname(&Quad[e->x][e->y]), e->x, e->y);
+	    printf ("Starsystem %s in quadrant %u,%u is distressed\n", systemname(&Quad[e->quad.y][e->quad.x]), e->quad.x, e->quad.y);
 	    emergency = true;
 	}
     }
@@ -392,13 +380,12 @@ struct event* schedule (enum EventType type, float offset, uint8_t x, uint8_t y,
 	// got a slot
 	e->evcode = type;
 	e->date = date;
-	e->x = x;
-	e->y = y;
+	e->quad.x = x;
+	e->quad.y = y;
 	e->systemname = sysname;
-	Now.eventptr[type] = e;
 	return e;
     }
-    errx (1, "Cannot schedule event %u parm %u %u %u", type, x, y, sysname);
+    return NULL;
 }
 
 // UNSCHEDULE AN EVENT
@@ -406,17 +393,35 @@ struct event* schedule (enum EventType type, float offset, uint8_t x, uint8_t y,
 // The event at slot 'e' is deleted.
 void unschedule (struct event* e)
 {
-    Now.eventptr [e->evcode & E_EVENT] = 0;
     e->date = FLT_MAX;
     e->evcode = 0;
+}
+
+// NEXT EVENT
+//
+// Finds the next event of the given type
+struct event* next_event_of_type (enum EventType type)
+{
+    struct event* nearest = NULL;
+    for (unsigned i = 0; i < MAXEVENTS; ++i)
+	if (Event[i].evcode == type && (!nearest || Event[i].date < nearest->date))
+	    nearest = &Event[i];
+    return nearest;
+}
+
+static float random_time_offset (enum EventType ev, unsigned factor)
+{
+    // c_offac is -8*ln(i/16), to replace original log computation
+    static const uint8_t c_offac[] = { 22, 17, 13, 11, 9, 8, 7, 6, 5, 4, 3, 2, 2, 1, 1, 1 };
+    return Param.eventdly[ev] * Param.time * c_offac[nrand(ArraySize(c_offac))] / (8*factor);
 }
 
 // Abreviated schedule routine
 //
 // Parameters are the event index and a factor for the time figure.
-struct event* xsched (enum EventType ev, int factor, uint8_t x, uint8_t y, uint8_t sysname)
+struct event* xsched (enum EventType ev, unsigned factor, uint8_t x, uint8_t y, uint8_t sysname)
 {
-    return schedule (ev, -Param.eventdly[ev] * Param.time * log(fnrand()) / factor, x, y, sysname);
+    return schedule (ev, random_time_offset (ev, factor), x, y, sysname);
 }
 
 // Simplified reschedule routine
@@ -424,7 +429,7 @@ struct event* xsched (enum EventType ev, int factor, uint8_t x, uint8_t y, uint8
 // Parameters are the event index, the initial date, and the
 // division factor. Look at the code to see what really happens.
 //
-void xresched (struct event* e, enum EventType ev, int factor)
+void xresched (struct event* e, enum EventType ev, unsigned factor)
 {
-    reschedule (e, -Param.eventdly[ev] * Param.time * log(fnrand()) / factor);
+    reschedule (e, random_time_offset (ev, factor));
 }

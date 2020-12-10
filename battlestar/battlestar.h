@@ -11,9 +11,6 @@
 #define BATTLESTAR_SAVE_NAME	"battlestar"
 #define SCOREFILE_MAGIC		"btlstr"
 
-#define BOLD_ON		"\033[1m"
-#define BOLD_OFF	"\033[22m"
-
 // well known rooms
 enum LocationId {
     MAIN_HANGAR		= 1,

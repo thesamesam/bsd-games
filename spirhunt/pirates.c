@@ -2,49 +2,17 @@
 // This file is free software, distributed under the BSD license.
 
 #include "spirhunt.h"
-#include <math.h>
 
 static int compare_pirates (const void* vp1, const void* vp2)
 {
     const struct Pirate *p1 = vp1, *p2 = vp2;
-    return sign (p1->dist - p2->dist);
+    return sign (sector_distance (p1->sect, Ship.sect) - sector_distance (p2->sect, Ship.sect));
 }
 
 // sort pirates by distance
-static void sort_pirates (void)
+void sort_pirates (void)
 {
-    qsort (Etc.pirate, Etc.npirates, sizeof(Etc.pirate[0]), compare_pirates);
-}
-
-// Compute pirate distances
-//
-// The pirate list has the distances for all pirates recomputed
-// and sorted. The parameter is a Boolean flag which is set if
-// we have just entered a new quadrant.
-//
-// This routine is used every time a ship moves
-// f - set if new quadrant
-//
-void comp_pirate_dist (int f)
-{
-    if (Etc.npirates == 0)
-	return;
-    for (int i = 0; i < Etc.npirates; ++i) {
-	// compute distance to the pirate
-	int dx = Ship.sectx - Etc.pirate[i].x;
-	int dy = Ship.secty - Etc.pirate[i].y;
-	float d = sqrtf (dx*dx + dy*dy);
-
-	// compute average of new and old distances to pirate
-	if (!f)
-	    Etc.pirate[i].avgdist = (d + Etc.pirate[i].dist)/2;
-	else // new quadrant: average is current
-	    Etc.pirate[i].avgdist = d;
-	Etc.pirate[i].dist = d;
-    }
-
-    // leave them sorted
-    sort_pirates();
+    qsort (Etc.pirate, current_quad()->pirates, sizeof(Etc.pirate[0]), compare_pirates);
 }
 
 static unsigned ship_device_to_damage (void)
@@ -52,7 +20,7 @@ static unsigned ship_device_to_damage (void)
     //{{{ Damage probability per ship device
     // these probabilities must sum to 1000
     static const uint8_t c_damprob [NDEV] = {
-	70,	// warp drive		 7.0%
+	90,	// warp drive		 9.0%
 	110,	// short range scanners	11.0%
 	110,	// long range scanners	11.0%
 	125,	// plasers		12.5%
@@ -62,7 +30,6 @@ static unsigned ship_device_to_damage (void)
 	20,	// computer		 2.0%
 	35,	// radio		 3.5%
 	30,	// life support		 3.0%
-	20, 	// navigation system	 2.0%
 	50,	// cloak		 5.0%
 	80,	// transporter		 8.0%
 	0	// shuttle		 0.0%
@@ -107,11 +74,12 @@ void attack (int resting)
 {
     if (Move.free)
 	return;
-    if (Etc.npirates <= 0 || Quad[Ship.quadx][Ship.quady].stars < 0)
+    if (!current_quad()->pirates || current_quad()->stars == SUPERNOVA)
 	return;
     if (Ship.cloaked && Ship.cloakgood)
 	return;
-    // move before attack
+
+    // Move before attack
     move_pirates (0);
     if (Ship.cond == DOCKED) {
 	if (!resting)
@@ -119,81 +87,99 @@ void attack (int resting)
 	return;
     }
 
-    // setup shield effectiveness
+    // Shields do not raise instantaneously, with effectiveness increasing over time
     float chgfac = 1.0;
     if (Move.shldchg)
 	chgfac = 0.25 + 0.50 * fnrand();
-    int maxhit = 0, tothit = 0;
-    bool hitflag = false;
 
-    // let each pirate do his damndest
-    for (int i = 0; i < Etc.npirates; ++i) {
-	// if he's low on power he won't attack
-	if (Etc.pirate[i].power < 20)
-	    continue;
-	if (!hitflag) {
-	    hitflag = true;
-	    printf ("\npirates attack:\n");
-	}
-	// complete the hit
-	float dustfac = 0.90 + 0.01 * fnrand();
-	float tothe = Etc.pirate[i].avgdist;
-	int hit = Etc.pirate[i].power * pow(dustfac, tothe) * Param.hitfac;
-	// deplete his energy
-	dustfac = Etc.pirate[i].power;
-	Etc.pirate[i].power = dustfac * Param.plasfac * (1.0 + (fnrand() - 0.5) * 0.2);
-	// see how much of hit shields will absorb
-	int shldabsb = 0;
-	if (Ship.shldup || Move.shldchg) {
-	    float propor = Ship.shield;
-	    propor /= Param.shield;
-	    shldabsb = propor * chgfac * hit;
-	    if (shldabsb > Ship.shield)
-		shldabsb = Ship.shield;
-	    Ship.shield -= shldabsb;
-	}
-	// actually do the hit
-	printf ("HIT: %d units", hit);
+    unsigned maxhit = 0, tothit = 0;
+
+    // Let each pirate do his damndest
+    for (int i = 0; i < current_quad()->pirates; ++i) {
+	struct Pirate* p = &Etc.pirate[i];
+	if (p->power < 20)
+	    continue; // no power to attack with
 	if (!device_damaged (SRSCAN))
-	    printf (" from %d,%d", Etc.pirate[i].x, Etc.pirate[i].y);
-	int cas = (shldabsb * 100) / hit;
-	hit -= shldabsb;
-	if (shldabsb > 0)
-	    printf (", shields absorb %d%%, effective hit %d\n", cas, hit);
-	else
-	    printf ("\n");
+	    printf ("Pirate at " SECT_FMT " fires plasers, and ", p->sect.x, p->sect.y);
+
+	// Run a line to see what gets hit
+	struct line_iterator li = make_line_iterator (p->sect, Ship.sect);
+	enum SectorContents sc = EMPTY;
+	do {
+	    advance_line_iterator (&li);
+	} while (li.p.x < NSECTS && li.p.y < NSECTS && ((sc = sector_contents (li.p.x, li.p.y)) == EMPTY || !nrand(32)));
+
+	if (!device_damaged (SRSCAN)) {
+	    if (sc == EMPTY)
+		printf ("misses\n");
+	    else if (sc == YOURSHIP)
+		printf ("hits you\n");
+	    else if (sc == STAR)
+		printf ("hits a star\n");
+	    else if (sc == BASE)
+		printf ("hits the starbase\n");
+	    else if (sc == INHABIT)
+		printf ("hits the planet\n");
+	    else if (sc == HOLE)
+		printf ("hits a black hole\n");
+	}
+
+	// Calculate effectiveness
+	unsigned eff = plaser_effectiveness (sector_distance (p->sect, Ship.sect));
+	unsigned hit = p->power * (eff - nrand(eff/8)) / 128;
+	p->power *= Param.plasfac * (1.0 + (fnrand() - 0.5) * 0.2);
+
+	if (sc != YOURSHIP)
+	    continue;
+
+	// See how much of hit shields will absorb
+	unsigned shldabsb = 0;
+	if (Ship.shldup || Move.shldchg) {
+	    shldabsb = min_u (chgfac * hit * Ship.shield / Param.shield, Ship.shield);
+	    Ship.shield -= shldabsb;
+	    hit -= shldabsb;
+	}
+	hit = min_u (hit, Ship.energy);
+
+	// Keep track of hits to assess casualties
 	tothit += hit;
 	if (hit > maxhit)
 	    maxhit = hit;
-	Ship.energy -= hit;
-	// see if damages occurred
-	if (hit >= (int)(13*(25-nrand(12)))) {
-	    printf ("CRITICAL HIT!!!\n");
+
+	// Actually do the hit
+	printf (BOLD_ON "HIT:" BOLD_OFF " %u units", hit+shldabsb);
+	if (shldabsb > 0)
+	    printf (", shields absorb %u%%", shldabsb*100/(hit+shldabsb));
+	printf ("\n");
+	if (!(Ship.energy -= hit))
+	    return lose (L_DSTRYD);
+
+	// Check damages
+	if (hit >= 13*(25-nrand(12))) {
+	    printf (BOLD_ON "CRITICAL HIT!!!" BOLD_OFF "\n");
 	    unsigned l = ship_device_to_damage();
-	    // compute amount of damage to device
 	    damage_device (l, (hit * Param.damfac[l]) / (75 + nrand(25)) + 0.5);
 	    if (device_damaged (SHIELD)) {
 		if (Ship.shldup)
 		    printf ("Shields knocked down, captain.\n");
+		Ship.shield = 0;
 		Ship.shldup = 0;
 		Move.shldchg = 0;
 	    }
 	}
-	if (Ship.energy <= 0)
-	    lose(L_DSTRYD);
     }
 
-    // see what our casualities are like
+    // Big hits, or a lot of smaller ones, kill crew
     if (maxhit >= 200 || tothit >= 500) {
-	int cas = tothit * 0.015 * fnrand();
+	unsigned cas = min_u (tothit * fnrand() * 0.015, Ship.crew);
 	if (cas >= 2) {
-	    printf ("%d casualties reported.\n", cas);
+	    printf ("%u casualties reported.\n", cas);
 	    Game.deaths += cas;
 	    Ship.crew -= cas;
 	}
     }
 
-    // allow pirates to move after attacking
+    // Allow pirates to move after attacking
     move_pirates (1);
 }
 
@@ -212,7 +198,7 @@ void attack (int resting)
 // of steps either toward you or away from you. It will avoid
 // stars whenever possible. Nextx and nexty are the next
 // sector to move to on a per-pirate basis; they are roughly
-// equivalent to Ship.sectx and Ship.secty for the starship. Lookx and
+// equivalent to Ship.sect.x and Ship.sect.y for the starship. Lookx and
 // looky are the sector that you are going to look at to see
 // if you can move their. Dx and dy are the increment. Fudgex
 // and fudgey are the things you change around to change your
@@ -220,19 +206,19 @@ void attack (int resting)
 
 void move_pirates (int fl)
 {
-    for (int n = 0; n < Etc.npirates; ++n) {
+    for (int n = 0; n < current_quad()->pirates; ++n) {
 	struct Pirate* k = &Etc.pirate[n];
 	int i = 100;
 	if (fl)
-	    i = 100.0 * k->power / Param.piratepwr;
+	    i = 100 * k->power / Param.piratepwr;
 	if (nrand(i) >= (unsigned) Param.moveprob[2 * Move.newquad + fl])
 	    continue;
 	// compute distance to move
 	int motion = nrand(75) - 25;
-	motion *= k->avgdist * Param.movefac[2 * Move.newquad + fl];
+	motion *= sector_distance (k->sect, Ship.sect) * Param.movefac[2 * Move.newquad + fl];
 	// compute direction
-	float dx = Ship.sectx - k->x + nrand(3) - 1;
-	float dy = Ship.secty - k->y + nrand(3) - 1;
+	float dx = Ship.sect.x - k->sect.x + nrand(3) - 1;
+	float dy = Ship.sect.y - k->sect.y + nrand(3) - 1;
 	float bigger = dx;
 	if (dy > bigger)
 	    bigger = dy;
@@ -247,15 +233,15 @@ void move_pirates (int fl)
 	}
 	int fudgex = 1, fudgey = 1;
 	// try to move the pirate
-	int nextx = k->x;
-	int nexty = k->y;
+	int nextx = k->sect.x;
+	int nexty = k->sect.y;
 	for (; motion > 0; --motion) {
 	    int lookx = nextx + dx;
 	    int looky = nexty + dy;
 	    if (lookx < 0 || lookx >= NSECTS || looky < 0 || looky >= NSECTS) {
 		// new quadrant
-		int qx = Ship.quadx;
-		int qy = Ship.quady;
+		int qx = Ship.quad.x;
+		int qy = Ship.quad.y;
 		if (lookx < 0)
 		    qx -= 1;
 		else if (lookx >= NSECTS)
@@ -264,33 +250,23 @@ void move_pirates (int fl)
 		    qy -= 1;
 		else if (looky >= NSECTS)
 		    qy += 1;
-		if (qx < 0 || qx >= NQUADS || qy < 0 || qy >= NQUADS || Quad[qx][qy].stars < 0 || Quad[qx][qy].pirates > MAX_QUAD_PIRATES - 1)
+		if (qx < 0 || qx >= NQUADS || qy < 0 || qy >= NQUADS || Quad[qy][qx].stars == SUPERNOVA || Quad[qy][qx].pirates > QUAD_PIRATES - 1)
 		    break;
-		if (!device_damaged (SRSCAN)) {
-		    printf ("pirate at %d,%d escapes to quadrant %d,%d\n", k->x, k->y, qx, qy);
-		    motion = Quad[qx][qy].scanned;
-		    if (motion >= 0 && motion < 1000)
-			Quad[qx][qy].scanned += 100;
-		    motion = Quad[Ship.quadx][Ship.quady].scanned;
-		    if (motion >= 0 && motion < 1000)
-			Quad[Ship.quadx][Ship.quady].scanned -= 100;
-		}
-		Sect[k->x][k->y] = EMPTY;
-		Quad[qx][qy].pirates += 1;
-		Etc.npirates -= 1;
-		*k = Etc.pirate[Etc.npirates];
-		Quad[Ship.quadx][Ship.quady].pirates -= 1;
+		if (!device_damaged (SRSCAN))
+		    printf ("pirate at " SECT_FMT " escapes to quadrant " QUAD_FMT "\n", k->sect.x, k->sect.y, qx, qy);
+		*k = Etc.pirate[--current_quad()->pirates];
 		k = 0;
+		++Quad[qy][qx].pirates;
 		break;
 	    }
-	    if (Sect[lookx][looky] != EMPTY) {
+	    if (sector_contents(lookx,looky) != EMPTY) {
 		lookx = nextx + fudgex;
 		if (lookx < 0 || lookx >= NSECTS)
 		    lookx = nextx + dx;
-		if (Sect[lookx][looky] != EMPTY) {
+		if (sector_contents(lookx,looky) != EMPTY) {
 		    fudgex = -fudgex;
 		    looky = nexty + fudgey;
-		    if (looky < 0 || looky >= NSECTS || Sect[lookx][looky] != EMPTY) {
+		    if (looky < 0 || looky >= NSECTS || sector_contents(lookx,looky) != EMPTY) {
 			fudgey = -fudgey;
 			break;
 		    }
@@ -299,14 +275,14 @@ void move_pirates (int fl)
 	    nextx = lookx;
 	    nexty = looky;
 	}
-	if (k && (k->x != nextx || k->y != nexty)) {
-	    if (!device_damaged (SRSCAN))
-		printf ("pirate at %d,%d moves to %d,%d\n", k->x, k->y, nextx, nexty);
-	    Sect[k->x][k->y] = EMPTY;
-	    Sect[k->x = nextx][k->y = nexty] = PIRATE;
+	if (k) {
+	    if ((k->sect.x != nextx || k->sect.y != nexty) && !device_damaged (SRSCAN))
+		printf ("pirate at " SECT_FMT " moves to " SECT_FMT "\n", k->sect.x, k->sect.y, nextx, nexty);
+	    k->sect.x = nextx;
+	    k->sect.y = nexty;
 	}
     }
-    comp_pirate_dist (0);
+    sort_pirates();
 }
 
 // Ask a pirate To Surrender (Fat chance)
@@ -320,45 +296,47 @@ void move_pirates (int fl)
 //
 void capture (int v UNUSED)
 {
-    // check for not cloaked
-    if (Ship.cloaked) {
-	printf ("Ship-ship communications out when cloaked\n");
-	return;
-    }
     if (device_damaged (SSRADIO)) {
 	announce_device_damage (SSRADIO);
 	return;
     }
-    // find out if there are any at all
-    if (Etc.npirates <= 0) {
+    if (Ship.cloaked) {
+	printf ("Pirates don't talk to ghosts\n");
+	return;
+    }
+    if (!current_quad()->pirates) {
 	printf ("Getting no response, sir\n");
 	return;
     }
+    if (Ship.brigfree < Param.pirate_crew) {
+	printf ("Captain, our brig is already full of pirates\n");
+	return;
+    }
 
-    // if there is more than one pirate, find out which one
-    struct Pirate* k = &Etc.pirate [nrand (Etc.npirates)];
-    Move.free = 0;
+    Move.free = false;
     Move.time = 0.05;
 
-    // check out that pirate
-    ++k->srndreq;
-    float x = Param.piratepwr;
-    x *= Ship.energy;
-    x /= k->power * Etc.npirates;
-    x *= Param.srndrprob;
-    int i = x;
-    if (i <= (int) nrand(100)) {
-	printf ("Fat chance, captain\n");
+    // See if any pirate wants to surrender
+    struct Pirate* sp = NULL;
+    for (unsigned i = 0, npirates = current_quad()->pirates; i < npirates; ++i) {
+	if (nrand(100) < Param.piratepwr * Ship.energy / (Etc.pirate[i].power * npirates * 1024)) {
+	    sp = &Etc.pirate[i];
+	    break;
+	}
+    }
+    if (!sp) {
+	printf ("Captain, the pirates said... uh, I don't think I can repeat that\n");
 	return; // big surprise, he refuses to surrender
     }
-    // guess what, he surrendered!!!
-    printf ("pirate at %d,%d surrenders\n", k->x, k->y);
-    i = nrand (Param.pirate_crew);
-    if (i > 0)
-	printf ("%d pirates commit suicide rather than be taken captive\n", Param.pirate_crew - i);
-    if (i > Ship.brigfree)
-	i = Ship.brigfree;
-    Ship.brigfree -= i;
-    printf ("%d captives taken\n", i);
-    kill_pirate (k->x, k->y);
+
+    // Unexpectedly, the pirate surrendered
+    printf ("Pirate at " SECT_FMT " surrenders\n", sp->sect.x, sp->sect.y);
+    unsigned captives = Param.pirate_crew;
+    if (!nrand(8)) {
+	captives -= nrand (Param.pirate_crew/2);
+	printf ("%u pirates commit suicide rather than be taken captive\n", Param.pirate_crew - captives);
+    }
+    Ship.brigfree -= captives;
+    printf ("%d captives taken\n", captives);
+    kill_pirate (sp->sect.x, sp->sect.y);
 }

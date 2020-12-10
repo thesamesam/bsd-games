@@ -5,194 +5,174 @@
 #include "getpar.h"
 
 // RETRIEVE THE STARSYSTEM NAME
-//
-// Very straightforward, this routine just gets the starsystem
-// name. It returns zero if none in the specified quadrant
-// (which, by the way, is passed it).
-//
-// This routine knows all about such things as distressed
-// starsystems, etc.
-
 const char* systemname (const struct quad* q)
 {
-    int i = q->qsystemname;
-    if (i & Q_DISTRESSED)
-	i = Event[i & Q_SYSTEM].systemname;
-    i &= Q_SYSTEM;
-    if (i == 0)
-	return 0;
-    return Systemname[i];
+    return q->systemname ? Systemname[q->systemname] : NULL;
 }
 
-// SHORT RANGE SENSOR SCAN
+// GET SECTOR CONTENTS
 //
-// A short range scan is taken of the current quadrant. If the flag 'f'
-// is one, it is an "auto srscan". It does a status report and a srscan.
-// If 'f' is -1, you get a status report only. If it is zero, you get a
-// srscan and an optional status report. The status report is taken if
-// you enter "srscan yes"; for all srscans thereafter you get a status
-// report with your srscan until you type "srscan no". It defaults to on.
-//
-// The current quadrant is filled in on the computer chart.
+// Gets the printable char for the contents of sector x,y
 
-void srscan (int f)
+enum SectorContents sector_contents (uint8_t x, uint8_t y)
 {
-    int i, j;
-    int statinfo;
-    const char *s;
-    int percent;
-    struct quad *q = NULL;
+    if (x >= NSECTS || y >= NSECTS)
+	return EMPTY;
+    if (Ship.sect.x == x && Ship.sect.y == y)
+	return YOURSHIP;
+    const struct quad* q = current_quad();
+    if (q->bases && Etc.starbase.x == x && Etc.starbase.y == y)
+	return BASE;
+    if (q->systemname && Etc.inhabited.x == x && Etc.inhabited.y == y)
+	return INHABIT;
+    for (unsigned i = 0; i < q->holes; ++i)
+	if (Etc.blackholes[i].x == x && Etc.blackholes[i].y == y)
+	    return HOLE;
+    for (unsigned i = 0; i < q->stars; ++i)
+	if (Etc.stars[i].x == x && Etc.stars[i].y == y)
+	    return STAR;
+    for (unsigned i = 0; i < q->pirates; ++i)
+	if (Etc.pirate[i].sect.x == x && Etc.pirate[i].sect.y == y)
+	    return PIRATE;
+    return EMPTY;
+}
 
-    if (f >= 0 && !device_works(SRSCAN))
+// A short range scan of the current quadrant.
+void srscan (int f UNUSED)
+{
+    if (!device_works(SRSCAN))
 	return;
-    if (f)
-	statinfo = 1;
-    else {
-	if (!testnl())
-	    Etc.statreport = getynpar("status report");
-	statinfo = Etc.statreport;
-    }
-    if (f > 0)
-	Etc.statreport = 1;
-    if (f >= 0) {
-	printf ("\nShort range sensor scan\n");
-	q = &Quad[Ship.quadx][Ship.quady];
-	q->scanned = q->pirates * 100 + q->bases * 10 + q->stars;
-	printf ("  ");
-	for (i = 0; i < NSECTS; ++i) {
-	    printf ("%d ", i);
-	}
-	printf ("\n");
-    }
-
-    for (i = 0; i < NSECTS; ++i) {
-	if (f >= 0) {
-	    printf ("%d ", i);
-	    for (j = 0; j < NSECTS; ++j)
-		printf ("%c ", Sect[i][j]);
-	    printf ("%d", i);
-	    if (statinfo)
-		printf ("   ");
-	}
-	static const char Color[4][8] = { "GREEN", "DOCKED", "YELLOW", "RED" };
-	if (statinfo)
-	    switch (i) {
-		case 0:
-		    printf ("date          %.2f", Now.date);
-		    break;
-		case 1:
-		    printf ("condition     %s", Color[Ship.cond]);
-		    if (Ship.cloaked)
-			printf (", CLOAKED");
-		    break;
-		case 2:
-		    printf ("position      %d,%d/%d,%d", Ship.quadx, Ship.quady, Ship.sectx, Ship.secty);
-		    break;
-		case 3:
-		    printf ("warp factor   %.1f", Ship.warp);
-		    break;
-		case 4:
-		    printf ("total energy  %d", Ship.energy);
-		    break;
-		case 5:
-		    printf ("torpedoes     %d", Ship.torped);
-		    break;
-		case 6:
-		    s = "down";
-		    if (Ship.shldup)
-			s = "up";
-		    if (device_damaged (SHIELD))
-			s = "damaged";
-		    percent = 100.0 * Ship.shield / Param.shield;
-		    printf ("shields       %s, %d%%", s, percent);
-		    break;
-		case 7:
-		    printf ("pirates left	%d", Now.pirates);
-		    break;
-		case 8:
-		    printf ("time left     %.2f", Now.time);
-		    break;
-		case 9:
-		    printf ("life support  ");
-		    if (device_damaged (LIFESUP)) {
-			printf ("damaged, reserves = %.2f", Ship.reserves);
-			break;
-		    }
-		    printf ("active");
-		    break;
-	    }
-	printf ("\n");
-    }
-    if (f < 0) {
-	printf ("current crew  %d\n", Ship.crew);
-	printf ("brig space    %d\n", Ship.brigfree);
-	printf ("pirate power %d\n", Param.piratepwr);
-	return;
-    }
+    printf ("\nShort range sensor scan\n");
+    struct quad *q = current_quad();
     printf ("  ");
-    for (i = 0; i < NSECTS; ++i)
+    for (unsigned i = 0; i < NSECTS; ++i)
 	printf ("%d ", i);
     printf ("\n");
 
-    if (q->qsystemname & Q_DISTRESSED)
+    static const char Color[4][8] = { "GREEN", "DOCKED", "YELLOW", "RED" };
+    for (unsigned i = 0; i < NSECTS; ++i) {
+	printf ("%d ", i);
+	for (unsigned j = 0; j < NSECTS; ++j)
+	    printf ("%c ", sector_contents(j,i));
+	printf ("%d   ", i);
+
+	switch (i) {
+	    case 0:
+		printf ("date          %.2f", Now.date);
+		break;
+	    case 1:
+		printf ("condition     %s", Ship.cloaked ? "CLOAKED" : Color[Ship.cond]);
+		break;
+	    case 2:
+		printf ("position      " FULLCOORD_FMT, Ship.quad.x, Ship.quad.y, Ship.sect.x, Ship.sect.y);
+		break;
+	    case 3:
+		printf ("warp factor   %u.%u", Ship.warp/10, Ship.warp%10);
+		break;
+	    case 4:
+		printf ("total energy  %u", Ship.energy);
+		break;
+	    case 5:
+		printf ("torpedoes     %u", Ship.torped);
+		break;
+	    case 6: {
+		const char* s = "down";
+		if (Ship.shldup)
+		    s = "up";
+		if (device_damaged (SHIELD))
+		    s = "damaged";
+		unsigned percent = 100 * Ship.shield / Param.shield;
+		printf ("shields       %s, %u%%", s, percent);
+		} break;
+	    case 7:
+		printf ("pirates left	%u", pirates_remaining());
+		break;
+	    case 8:
+		printf ("time left     %.2f", Now.time);
+		break;
+	    case 9:
+		printf ("life support  ");
+		if (device_damaged (LIFESUP)) {
+		    printf ("damaged, reserves = %.2f", Ship.reserves);
+		    break;
+		}
+		printf ("active");
+		break;
+	}
+	printf ("\n");
+    }
+    printf ("  ");
+    for (unsigned i = 0; i < NSECTS; ++i)
+	printf ("%u ", i);
+    printf ("\n");
+
+    if (q->distressed)
 	printf ("Distressed ");
-    if (q->qsystemname)
+    if (q->systemname)
 	printf ("Starsystem %s\n", systemname(q));
 }
 
 // LONG RANGE OF SCANNERS
 //
-// A summary of the quadrants that surround you is printed. The
-// hundreds digit is the number of pirates in the quadrant,
-// the tens digit is the number of starbases, and the units digit
-// is the number of stars. If the printout is "///" it means
-// that that quadrant is rendered uninhabitable by a supernova.
-// It also updates the "scanned" field of the quadrants it scans,
-// for future use by the "chart" option of the computer.
-
+// A summary of the quadrants that surround you is printed. The first
+// digit is the number of starbases in the quadrant, the second digit
+// is the number of pirates. If the printout is "*" it means that that
+// quadrant is rendered uninhabitable by a supernova.
+//
 void lrscan(int v UNUSED)
 {
-    if (!device_works (LRSCAN))
-	return;
-    printf ("Long range scan for quadrant %d,%d\n\n", Ship.quadx, Ship.quady);
+    bool havelrs = device_works (LRSCAN);
 
-    // print the header on top
-    for (int j = Ship.quady - 1; j <= Ship.quady + 1; ++j) {
-	if (j < 0 || j >= NQUADS)
-	    printf ("      ");
-	else
-	    printf ("     %1d", j);
-    }
-
-    // scan the quadrants
-    for (int i = Ship.quadx - 1; i <= Ship.quadx + 1; ++i) {
-	printf ("\n  -------------------\n");
-	if (i < 0 || i >= NQUADS) {
-	    // negative energy barrier
-	    printf ("  !  *  !  *  !  *  !");
-	    continue;
-	}
-
-	// print the left hand margin
-	printf ("%1d !", i);
-	for (int j = Ship.quady - 1; j <= Ship.quady + 1; ++j) {
-	    if (j < 0 || j >= NQUADS) {
-		// negative energy barrier again
-		printf ("  *  !");
+    // print top header
+    printf ("Long range %s from quadrant " QUAD_FMT "\n  ", havelrs ? "scan" : "record", Ship.quad.x, Ship.quad.y);
+    for (unsigned i = 0; i < NQUADS; ++i)
+	printf (i == Ship.quad.x ? BOLD_ON "%d  " BOLD_OFF : "%d  ", i);
+    printf ("\n");
+    for (unsigned i = 0; i < NQUADS; ++i) {
+	printf (i == Ship.quad.y ? BOLD_ON "%d " BOLD_OFF : "%d ", i);
+	for (unsigned j = 0; j < NQUADS; ++j) {
+	    const struct quad* q = &Quad[i][j];
+	    if (q->stars == SUPERNOVA) {
+		printf (BOLD_ON "*  " BOLD_OFF);
 		continue;
 	    }
-	    struct quad* q = &Quad[i][j];
-	    if (q->stars < 0) {
-		// supernova
-		printf (" /// !");
-		q->scanned = 1000;
-		continue;
+	    // Mark current quad with bold
+	    struct xy cq = {j,i};
+	    unsigned dist = sector_distance (Ship.quad, cq);
+	    if (!dist)
+		printf (BOLD_ON);
+
+	    // First char is starbase indicator, B or D for distressed
+	    char starbase = '.';
+	    if (q->distressed && q->bases)
+		starbase = 'A';
+	    else if (q->distressed)
+		starbase = 'D';
+	    else if (q->bases)
+		starbase = 'B';
+	    putchar (starbase);
+
+	    // Second char is the pirates count, out to scan range only
+	    char pirates = ' ';
+	    if (dist <= LRSCAN_RANGE) {
+		if (havelrs || (!dist && device_works(SRSCAN)))
+		    pirates = q->pirates ? '0'+q->pirates : '.';
+		else
+		    pirates = '?';
 	    }
-	    q->scanned = q->pirates * 100 + q->bases * 10 + q->stars;
-	    printf (" %3d !", q->scanned);
+	    putchar (pirates);
+
+	    if (!dist)
+		printf (BOLD_OFF);
+	    putchar (' ');
 	}
+	printf (i == Ship.quad.y ? BOLD_ON "%d\n" BOLD_OFF : "%d\n", i);
     }
-    printf ("\n  -------------------\n");
+    printf ("  ");
+    // print bottom footer
+    for (unsigned i = 0; i < NQUADS; ++i)
+	printf (i == Ship.quad.x ? BOLD_ON "%d  " BOLD_OFF : "%d  ", i);
+    printf ("\n");
 }
 
 // VISUAL SCAN
@@ -222,29 +202,52 @@ void visual (int z UNUSED)
 	return;
     co = (co + 22) / 45;
     const struct xy* v = &Visdelta[co];
-    int ix = Ship.sectx + v->x;
-    int iy = Ship.secty + v->y;
+    int ix = Ship.sect.x + v->x;
+    int iy = Ship.sect.y + v->y;
     if (ix < 0 || ix >= NSECTS || iy < 0 || iy >= NSECTS)
 	co = '?';
     else
-	co = Sect[ix][iy];
-    printf ("%d,%d %c ", ix, iy, co);
+	co = sector_contents(ix,iy);
+    printf (SECT_FMT " %c ", ix, iy, co);
     ++v;
-    ix = Ship.sectx + v->x;
-    iy = Ship.secty + v->y;
+    ix = Ship.sect.x + v->x;
+    iy = Ship.sect.y + v->y;
     if (ix < 0 || ix >= NSECTS || iy < 0 || iy >= NSECTS)
 	co = '?';
     else
-	co = Sect[ix][iy];
+	co = sector_contents(ix,iy);
     printf ("%c ", co);
     ++v;
-    ix = Ship.sectx + v->x;
-    iy = Ship.secty + v->y;
+    ix = Ship.sect.x + v->x;
+    iy = Ship.sect.y + v->y;
     if (ix < 0 || ix >= NSECTS || iy < 0 || iy >= NSECTS)
 	co = '?';
     else
-	co = Sect[ix][iy];
-    printf ("%c %d,%d\n", co, ix, iy);
+	co = sector_contents(ix,iy);
+    printf ("%c " SECT_FMT "\n", co, ix, iy);
     Move.time = 0.05;
     Move.free = 0;
+}
+
+// Returns the quad where Ship is
+struct quad* current_quad (void)
+    { return &Quad[Ship.quad.y][Ship.quad.x]; }
+
+// Distance between sector coordinates
+unsigned sector_distance (struct xy a, struct xy b)
+{
+    unsigned dx = absv(b.x-a.x), dy = absv(b.y-a.y),
+	ld = max_u (dx, dy), sd = min_u (dx, dy);
+    // straight+diagonal approximation (181 = sqrt(2)*128)
+    return (ld-sd)+sd*181/128;
+}
+
+// Counts remaining pirates in the galaxy
+unsigned pirates_remaining (void)
+{
+    unsigned n = 0;
+    for (unsigned y = 0; y < NQUADS; ++y)
+	for (unsigned x = 0; x < NQUADS; ++x)
+	    n += Quad[y][x].pirates;
+    return n;
 }

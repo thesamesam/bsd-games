@@ -8,46 +8,44 @@
 //{{{ Galactic parameters ----------------------------------------------
 
 enum {
-    NSECTS	= 10,	// dimensions of quadrant in sectors
-    NQUADS	= 8,	// dimension of galaxy in quadrants
-    NINHAB	= 32	// number of quadrants which are inhabited
+    NQUADS	= 8,		// dimension of galaxy in quadrants
+    NSECTS	= 10,		// dimensions of quadrant in sectors
+    NINHAB	= NQUADS*NQUADS/2, // half the quadrants are inhabited
+    MAXBASES	= NQUADS+1,	// maximum number of starbases in galaxy
+    QUAD_STARS	= NSECTS-1,	// maximum stars per quadrant
+    SUPERNOVA,			// stars value for supernova quadrants
+    QUAD_HOLES	= 1,		// maximum black holes per quadrant
+    QUAD_PIRATES = NSECTS-1,	// maximum pirates per quadrant
+    MAXEVENTS	= NQUADS*3,	// max number of concurrently pending events
+    LRSCAN_RANGE= 1
 };
+
+struct xy {
+    uint8_t x;
+    uint8_t y;
+};
+
+#define QUAD_FMT	"%d%d"
+#define SECT_FMT	"%d%d"
+#define FULLCOORD_FMT	QUAD_FMT "." SECT_FMT
 
 struct quad {			// definition for each quadrant
-    uint8_t	bases;		// number of bases in this quadrant
-    char	pirates;	// number of pirates in this quadrant
-    char	holes;		// number of black holes in this quadrant
-    int		scanned;	// star chart entry (see below)
-    short	stars;		// number of stars in this quadrant
-    char	qsystemname;	// starsystem name (see below)
+    uint8_t	systemname:5;	// starsystem name index into Systemname
+    uint8_t	bases:1;	// number of bases in this quadrant
+    uint8_t	holes:1;	// number of black holes in this quadrant
+    bool	distressed:1;
+    uint8_t	pirates:4;	// number of pirates in this quadrant
+    uint8_t	stars:4;	// number of stars in this quadrant
 };
-
-enum {
-    Q_DISTRESSED	= 0200,
-    Q_SYSTEM		= 077
-};
-
-//  systemname conventions:
-//      1 -> NINHAB     index into Systemname table for live system.
-//      + Q_DISTRESSED  distressed starsystem -- systemname & Q_SYSTEM
-//                      is the index into the Event table which will
-//                      have the system name
-//      0               dead or nonexistent starsystem
-//
-//  starchart ("scanned") conventions:
-//      0 -> 999        taken as is
-//      -1              not yet scanned ("...")
-//      1000            supernova ("///")
-//      1001            starbase + ??? (".1.")
 
 // ascii names of systems
-extern const char *const Systemname[NINHAB];
+extern const char Systemname[NINHAB][16];
 
 // quadrant definition
 extern struct quad Quad[NQUADS][NQUADS];
 
-// defines for sector map  (below)
-enum {
+// defines for sector map (below)
+enum SectorContents {
     EMPTY	= '.',
     STAR	= '*',
     BASE	= '#',
@@ -56,32 +54,6 @@ enum {
     INHABIT	= '@',
     HOLE	= ' '
 };
-
-// current sector map
-extern char Sect[NSECTS][NSECTS];
-
-//}}}-------------------------------------------------------------------
-//{{{ Ship devices
-
-enum ShipDevice {
-    WARP,	// warp engines
-    SRSCAN,	// short range scanners
-    LRSCAN,	// long range scanners
-    PLASER,	// plaser control
-    TORPED,	// torpedo control
-    IMPULSE,	// impulse engines
-    SHIELD,	// shield control
-    COMPUTER,	// on board computer
-    SSRADIO,	// subspace radio
-    LIFESUP,	// life support systems
-    SINS,	// Space Inertial Navigation System
-    CLOAK,	// cloaking device
-    XPORTER,	// transporter
-    SHUTTLE,	// shuttlecraft
-    NDEV = 16	// max number of devices
-};
-
-extern const char* const DeviceName [NDEV];
 
 //}}}-------------------------------------------------------------------
 //{{{ Events
@@ -105,9 +77,8 @@ enum EventType {
 };
 
 struct event {
-    uint8_t	x;
-    uint8_t	y;		// coordinates
     float	date;		// trap date
+    struct xy	quad;		// quadrant coordinates
     uint8_t	evcode;		// enum EventType
     uint8_t	systemname;	// starsystem name
 };
@@ -121,23 +92,15 @@ struct event {
 //      + E_GHOST       actually already expired
 //      0               unallocated
 
-enum { MAXEVENTS = 24 };	// max number of concurrently pending events
-
 extern struct event Event[MAXEVENTS];	// dynamic event list; one entry per pending event
 
 //}}}-------------------------------------------------------------------
 //{{{ Pirates
 
 struct Pirate {
-    uint8_t	x;
-    uint8_t	y;
-    int		power;		// power left
-    float	dist;		// distance to your ship
-    float	avgdist;	// average over this move
-    char	srndreq;	// set if surrender has been requested
+    struct xy	sect;		// sector coordinates
+    uint16_t	power;		// power left
 };
-
-enum { MAX_QUAD_PIRATES = 9 };	// maximum pirates per quadrant
 
 //}}}-------------------------------------------------------------------
 //{{{ Ship information
@@ -146,43 +109,46 @@ enum { MAX_QUAD_PIRATES = 9 };	// maximum pirates per quadrant
 enum { GREEN, DOCKED, YELLOW, RED };
 
 enum {
-    MAXBASES	= 9,	// maximum number of starbases in galaxy
-    NBANKS	= 6	// number of plaser banks
+    NBANKS	= 6,	// number of plaser banks
+    NTORPEDOES	= 3	// number of torpedo tubes
 };
 
-struct xy {
-    uint8_t	x;
-    uint8_t	y;
+enum ShipDevice {
+    WARP,	// warp engines
+    SRSCAN,	// short range scanners
+    LRSCAN,	// long range scanners
+    PLASER,	// plaser control
+    TORPED,	// torpedo control
+    IMPULSE,	// impulse engines
+    SHIELD,	// shield control
+    COMPUTER,	// on board computer
+    SSRADIO,	// subspace radio
+    LIFESUP,	// life support systems
+    CLOAK,	// cloaking device
+    XPORTER,	// transporter
+    SHUTTLE,	// shuttlecraft
+    NDEV	// max number of devices
 };
-
-// note that much of the stuff in the following structs CAN NOT
-// be moved around!!!!
+extern const char DeviceName [NDEV][16];
 
 // information regarding the state of the starship
 struct Ship_struct {
-    float	warp;		// warp factor
-    float	warp2;		// warp factor squared
-    float	warp3;		// warp factor cubed
-    char	shldup;		// shield up flag
-    char	cloaked;	// set if cloaking device on
-    int		energy;		// starship's energy
-    int		shield;		// energy in shields
+    struct xy	quad;		// quadrant coord
+    struct xy	sect;		// sector coord
+    uint16_t	energy;		// starship's energy
+    uint16_t	shield;		// energy in shields
+    uint16_t	crew;		// ship's complement
+    uint16_t	brigfree;	// space left in brig
     float	reserves;	// life support reserves
-    int		crew;		// ship's complement
-    int		brigfree;	// space left in brig
-    char	torped;		// torpedoes
-    char	cloakgood;	// set if we have moved
-    uint8_t	quadx;		// quadrant x coord
-    uint8_t	quady;		// quadrant y coord
-    uint8_t	sectx;		// sector x coord
-    uint8_t	secty;		// sector y coord
+    uint8_t	warp;		// warp factor
+    uint8_t	torped;		// torpedoes
     uint8_t	cond;		// condition code
-    char	sinsbad;	// Space Inertial Navigation System condition
-    int		distressed;	// number of distress calls
+    uint8_t	distressed;	// number of distress calls
+    bool	cloaked;	// set if cloaking device on
+    bool	cloakgood;	// set if we have moved
+    bool	shldup;		// shield up flag
 };
 extern struct Ship_struct Ship;
-
-// sinsbad is set if SINS is working but not calibrated
 
 //}}}-------------------------------------------------------------------
 //{{{ Game-related information
@@ -190,89 +156,86 @@ extern struct Ship_struct Ship;
 #define SPIRHUNT_SAVE_NAME	"spirhunt"
 
 struct Game_struct {
-    int		pirates_killed;	// number of pirates killed
-    int		deaths;		// number of deaths onboard your ship
-    char	negenbar;	// number of hits on negative energy barrier
-    char	bases_killed;	// number of starbases destroyed
-    int		stars_killed;	// number of stars killed
-    char	killed;		// set if you were killed
-    char	killinhab;	// number of inhabited starsystems killed
-    char	snap;		// set if snapshot taken
-    char	helps;		// number of help calls
-    int		captives;	// total number of captives taken
+    uint16_t	pirates_killed;	// number of pirates killed
+    uint16_t	deaths;		// number of deaths onboard your ship
+    uint16_t	stars_killed;	// number of stars killed
+    uint16_t	captives;	// total number of captives taken
+    uint8_t	bases_killed;	// number of starbases destroyed
+    uint8_t	killed;		// set if you were killed
+    uint8_t	killinhab;	// number of inhabited starsystems killed
+    uint8_t	helps;		// number of help calls
 };
 extern struct Game_struct Game;
 
 // per move information
 struct Move_struct {
-    char	free;		// set if a move is free
-    char	endgame;	// end of game flag
-    char	shldchg;	// set if shields changed this move
-    char	newquad;	// set if just entered this quadrant
-    char	resting;	// set if this move is a rest
     float	time;		// time used this move
+    uint8_t	newquad:2;	// set if just entered this quadrant
+    bool	free:1;		// set if a move is free
+    bool	endgame:1;	// end of game flag
+    bool	shldchg:1;	// set if shields changed this move
+    bool	resting:1;	// set if this move is a rest
 };
 extern struct Move_struct Move;
 
 // parametric information
 struct Param_struct {
+    uint16_t	crew;		// size of ship's complement
+    uint16_t	brigfree;	// max possible number of captives
+    uint16_t	energy;		// starship's energy
+    uint16_t	energylow;	// low energy mark (cond YELLOW)
+    uint16_t	shield;		// energy in shields
+    uint16_t	shupengy;	// energy to put up shields
+    uint16_t	stopengy;	// energy to do emergency stop
+    uint16_t	cloakenergy;	// cloaking device energy per day
+    uint16_t	pirate_crew;	// number of pirates in a crew
+    uint16_t	piratepwr;	// pirate initial power
     uint8_t	bases;		// number of starbases
-    int8_t	pirates;	// number of pirates
+    uint8_t	pirates;	// number of pirates
+    uint8_t	torped;		// torpedoes carried
+    uint8_t	warptime;	// time chewer multiplier
+    uint8_t	moveprob[6];	// probability that a pirate moves
     float	date;
     float	time;		// time left
-    float	resource;	// galactic resources
-    int		energy;		// starship's energy
-    int		shield;		// energy in shields
     float	reserves;	// life support reserves
-    int		crew;		// size of ship's complement
-    int		brigfree;	// max possible number of captives
-    uint8_t	torped;		// torpedoes carried
-    float	damfac [NDEV];	// damage factor
+    float	resource;	// galactic resources
     float	dockfac;	// docked repair time factor
-    float	regenfac;	// regeneration factor
-    int		stopengy;	// energy to do emergency stop
-    int		shupengy;	// energy to put up shields
-    int		piratepwr;	// pirate initial power
-    int		warptime;	// time chewer multiplier
-    float	plasfac;	// pirate plaser power eater factor
-    char	moveprob[6];	// probability that a pirate moves
-    float	movefac[6];	// pirate move distance multiplier
-    float	eventdly [NEVENTS]; // event time multipliers
-    float	navigcrud[2];	// navigation crudup factor
-    int		cloakenergy;	// cloaking device energy per day
     float	hitfac;		// pirate attack factor
-    int		pirate_crew;	// number of pirates in a crew
-    float	srndrprob;	// surrender probability
-    int		energylow;	// low energy mark (cond YELLOW)
+    float	plasfac;	// pirate plaser power eater factor
+    float	regenfac;	// regeneration factor
+    float	damfac [NDEV];	// damage factor
+    float	movefac[6];	// pirate move distance multiplier
+    float	navigcrud[2];	// navigation crudup factor
+    float	eventdly [NEVENTS]; // event time multipliers
 };
-extern struct Param_struct Param;
+extern const struct Param_struct Param;
 
 // other information kept in a snapshot
 struct Now_struct {
-    uint8_t	bases;		// number of starbases
-    int8_t	pirates;	// number of pirates
     float	date;
     float	time;		// time left
     float	resource;	// galactic resources
-    char	distressed;	// number of currently distressed quadrants
-    struct event* eventptr [NEVENTS];	// pointer to event structs
+    uint8_t	bases;		// number of starbases
     struct xy	base [MAXBASES];// locations of starbases
 };
 extern struct Now_struct Now;
 
 // Other stuff, not dumped in a snapshot
 struct Etc_struct {
-    struct Pirate	pirate [MAX_QUAD_PIRATES];	// sorted pirate list
-    short		npirates;		// number of pirates in this sector
+    struct Pirate	pirate [QUAD_PIRATES];	// sorted pirate list
     struct xy		starbase;		// starbase in current quadrant
-    char		snapshot [sizeof Quad + sizeof Event + sizeof Now];	// snapshot for time warp
-    char		statreport;		// set to get a status report on a srscan
+    struct xy		inhabited;
+    struct xy		blackholes [QUAD_HOLES];
+    struct xy		stars [QUAD_STARS];
 };
 extern struct Etc_struct Etc;
 
-//
-//      eventptr is a pointer to the event[] entry of the last
-//      scheduled event of each type.  Zero if no such event scheduled.
+struct Snapshot_struct {
+    struct Now_struct	now;
+    struct quad		quads [NQUADS][NQUADS];
+    struct event	events [MAXEVENTS];
+};
+extern struct Snapshot_struct Snapshot;
 
 // pirate move indicies
 enum {
@@ -290,7 +253,6 @@ enum LoseReason {
     L_NOTIME,	// ran out of time
     L_NOENGY,	// ran out of energy
     L_DSTRYD,	// destroyed by a pirate
-    L_NEGENB,	// ran into the negative energy barrier
     L_SUICID,	// destroyed in a nova
     L_SNOVA,	// destroyed in a supernova
     L_NOLIFE,	// life support termination
@@ -302,19 +264,28 @@ enum LoseReason {
     L_NOCREW	// you ran out of crew
 };
 
+// Movement in a straight line as an iterator
+struct line_iterator {
+    struct xy	p;
+    int16_t	d;
+    uint8_t	dl;
+    uint8_t	ds;
+    bool	xmajor;
+    int8_t	xs;
+    int8_t	ys;
+};
+
 //}}}-------------------------------------------------------------------
 //{{{ Prototypes
-
-// computer.c
-void computer(int);
 
 // events.c
 int events (bool in_time_warp);
 bool output_hidden_distress_calls (void);
 struct event* schedule (enum EventType type, float offset, uint8_t x, uint8_t y, uint8_t sysname);
 void unschedule (struct event* e);
-struct event* xsched (enum EventType ev, int factor, uint8_t x, uint8_t y, uint8_t sysname);
-void xresched (struct event* e, enum EventType ev, int factor);
+struct event* next_event_of_type (enum EventType type);
+struct event* xsched (enum EventType ev, unsigned factor, uint8_t x, uint8_t y, uint8_t sysname);
+void xresched (struct event* e, enum EventType ev, unsigned factor);
 inline static void reschedule (struct event* e, float offset)
     { e->date = Now.date + offset; }
 
@@ -327,25 +298,31 @@ void nova(int, int);
 void snova(int, int);
 
 // move.c
-float move_ship (int, int, float, float);
 void setwarp (int);
 void impulse (int);
 void dowarp (int);
-void warp (int, int, float);
 void autover (void);
+struct line_iterator make_line_iterator (struct xy from, struct xy to);
+void advance_line_iterator (struct line_iterator* li);
+inline static struct xy absolute_sector_coord (struct xy quad, struct xy sect)
+    { struct xy ac = { quad.x*NSECTS + sect.x, quad.y*NSECTS + sect.y }; return ac; }
 
 // pirates.c
-void comp_pirate_dist(int);
+void sort_pirates (void);
 void attack(int);
 void move_pirates (int);
 void capture(int);
 struct Pirate* select_pirate (void);
 
 // scan.c
-const char *systemname(const struct quad *);
+const char* systemname (const struct quad* q) PURE;
+enum SectorContents sector_contents (uint8_t x, uint8_t y) PURE;
 void srscan (int);
 void lrscan (int);
 void visual (int);
+struct quad* current_quad (void) PURE;
+unsigned sector_distance (struct xy a, struct xy b) constexpr;
+unsigned pirates_remaining (void) PURE;
 
 // ship.c
 bool device_works (enum ShipDevice d);
@@ -356,6 +333,7 @@ void announce_device_damage (enum ShipDevice dev);
 void dock (int v);
 void undock (int v);
 void rest (int v);
+unsigned plaser_effectiveness (unsigned dist);
 void plasers (int v);
 void torped (int v);
 void shield (int f);
@@ -364,7 +342,7 @@ void destruct (int v);
 
 // spirhunt.c
 void initquad (bool docked);
-void sector (int* rx, int* ry);
+struct xy random_empty_sector (void);
 void checkcond (void);
 bool save (void);
 long score (void);

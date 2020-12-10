@@ -21,7 +21,7 @@ spirhunt/run:	${spirhunt/exe}
 
 ${spirhunt/exe}:	${spirhunt/objs} ${comlib}
 	@echo "Linking $@ ..."
-	@${CC} ${ldflags} -o $@ $^ ${libs} -lm
+	@${CC} ${ldflags} -o $@ $^ ${libs}
 
 ################ Installation ##########################################
 

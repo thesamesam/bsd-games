@@ -30,7 +30,7 @@ ifdef debug
     cflags	:= -O0 -ggdb3
     ldflags	:= -g -rdynamic
 else
-    cxxflags	:= -Os -g0 -DNDEBUG=1
+    cflags	:= -Os -g0 -DNDEBUG=1
     ldflags	:= -s
 endif
 CFLAGS		:= -Wall -Wextra -Wstrict-prototypes -Wshadow

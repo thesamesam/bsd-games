@@ -1,52 +1,10 @@
 // Copyright (c) 1980 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
-//
-//======================================================================
-//			SPACE PIRATE HUNT
-//======================================================================
-//
-// C version by Eric P. Allman 5/76 (U.C. Berkeley) with help
-//         from Jeff Poskanzer and Pete Rubinstein.
-//
-// I also want to thank everyone here at Berkeley who
-// where crazy enough to play the undebugged game. I want to
-// particularly thank Nick Whyte, who made considerable
-// suggestions regarding the content of the game. Why, I'll
-// never forget the time he suggested the name for the
-// "capture" command.
-//
-// FORTRASH version by Kay R. Fisher (DEC) "and countless others".
-// That was adapted from the "original BASIC program" (ha!) by
-//         Mike Mayfield (Centerline Engineering).
-//
-// Additional inspiration taken from FORTRAN version by
-//         David Matuszek and Paul Reynolds which runs on the CDC
-//         7600 at Lawrence Berkeley Lab, maintained there by
-//         Andy Davidson. This version is also available at LLL
-//         and at LMSC. In all fairness, this version was the
-//         major inspiration for this version of the game (trans-
-//         lation:  I ripped off a whole lot of code).
-//
-// Minor other input from the "Battelle Version 7A" by Joe Miller
-//         (Graphics Systems Group, Battelle-Columbus Labs) and
-//         Ross Pavlac (Systems Programmer, Battelle Memorial
-//         Institute). That version was written in December '74
-//         and extensively modified June '75. It was adapted
-//         from the FTN version by Ron Williams of CDC Sunnyvale,
-//         which was adapted from the Basic version distributed
-//         by DEC. It also had "neat stuff swiped" from T. T.
-//         Terry and Jim Korp (University of Texas), Hicks (Penn
-//         U.), and Rick Maus (Georgia Tech). Unfortunately, it
-//         was not as readable as it could have been and so the
-//         translation effort was severely hampered. None the
-//         less, I got the idea of inhabited starsystems from this
-//         version.
 
 #include "spirhunt.h"
 #include "getpar.h"
 #include <sys/uio.h>
 #include <sys/stat.h>
-#include <math.h>
 
 //{{{ Local prototypes -------------------------------------------------
 
@@ -60,7 +18,7 @@ static bool restore (void);
 //{{{ Global variables
 
 //{{{2 DeviceName
-const char* const DeviceName [NDEV] = {
+const char DeviceName [NDEV][16] = {
     "warp drive",
     "near scanners",
     "far scanners",
@@ -71,16 +29,13 @@ const char* const DeviceName [NDEV] = {
     "computer",
     "radio",
     "life support",
-    "navigation",
     "cloak",
     "transporter",
-    "shuttlecraft",
-    "*ERR 14*",
-    "*ERR 15*"
+    "shuttlecraft"
 };
 //}}}2
 //{{{2 Systemname
-const char *const Systemname[NINHAB] = {
+const char Systemname[NINHAB][16] = {
     "ERROR",
     "Talos IV",
     "Rigel III",
@@ -102,7 +57,7 @@ const char *const Systemname[NINHAB] = {
     "Kronos III",
     "Spectros V",
     "Beta III",
-    "Gamma Tranguli VI",
+    "Tranguli VI",
     "Pyris III",
     "Triachus",
     "Marcus XII",
@@ -111,21 +66,80 @@ const char *const Systemname[NINHAB] = {
     "Stratos",
     "Eden",
     "Arrikis",
-    "Epsilon Eridani IV",
+    "Eridani IV",
     "Exo III"
 };
 //}}}2
+//{{{2 Param
 
-struct event	Event [MAXEVENTS];	// dynamic event list; one entry per pending event
-struct quad	Quad [NQUADS][NQUADS];
-char		Sect [NSECTS][NSECTS];	// current sector map
+const struct Param_struct Param = {
+    .crew	= 387,
+    .brigfree	= 400,
+    .energy	= 5000,
+    .energylow	= 1000,
+    .shield	= 1500,
+    .shupengy	= 40,
+    .stopengy	= 50,
+    .cloakenergy= 1000,
+    .pirate_crew= 200,
+    .piratepwr	= 350,
+    .bases	= MAXBASES,
+    .pirates	= NQUADS*NQUADS/2,
+    .torped	= 10,
+    .warptime	= 10,
+    .moveprob = {
+	[PM_EA]	= 35,
+	[PM_EB]	= 40,
+	[PM_LA]	= 30,
+	[PM_LB]	= 0,
+	[PM_OA]	= 40,
+	[PM_OB]	= 45
+    },
+    .date	= 2000,
+    .time	= 14,
+    .reserves	= 10,
+    .resource	= (NQUADS*NQUADS/2)*14,
+    .dockfac	= 0.5,
+    .hitfac	= 0.5,
+    .plasfac	= 0.8,
+    .regenfac	= 0.2,
+    .damfac = {
+	0.5, 0.5, 0.5, 0.5, 0.5,
+	0.5, 0.5, 0.5, 0.5, 0.5,
+	0.5, 0.5, 0.5
+    },
+    .movefac = {
+	[PM_EA]	= -0.12,
+	[PM_EB]	= 0.075,
+	[PM_LA]	= 0.25,
+	[PM_LB]	= 0.0,
+	[PM_OA]	= -0.05,
+	[PM_OB]	= .09
+    },
+    .navigcrud	= { 1.50, 0.75 },
+    .eventdly = {
+	[E_SNOVA] = 0.5,
+	[E_LRTB]  =25.0,
+	[E_PATSB] = 1.0,
+	[E_PDESB] = 3.0,
+	[E_ISSUE] = 1.0,
+	[E_SNAP]  = 0.5,
+	[E_ENSLV] = 0.5,
+	[E_REPRO] = 2.0
+    }
+};
+//}}}2
 
-struct Ship_struct	Ship;
-struct Game_struct	Game;
-struct Move_struct	Move;
-struct Param_struct	Param;
-struct Now_struct	Now;
-struct Etc_struct	Etc;
+struct event	Event [MAXEVENTS] = {};	// dynamic event list; one entry per pending event
+struct quad	Quad [NQUADS][NQUADS] = {};
+
+struct Ship_struct	Ship = {};
+struct Game_struct	Game = {};
+struct Move_struct	Move = {};
+struct Now_struct	Now = {};
+struct Etc_struct	Etc = {};
+
+struct Snapshot_struct	Snapshot = {};
 
 //}}}-------------------------------------------------------------------
 
@@ -133,7 +147,7 @@ int main (void)
 {
     srandrand();
     if (!restore()) {
-	printf ("\n   * * *   SPACE PIRATE HUNT   * * *\n\n");
+	printf ("\n" BOLD_ON "   * * *   SPACE PIRATE HUNT   * * *" BOLD_OFF "\n\n");
 	setup();
     }
     play();
@@ -144,127 +158,52 @@ int main (void)
 
 static void setup (void)
 {
-    int i, j;
-    float f;
-    int d;
-    int klump;
-    int ix, iy;
-    struct quad *q;
-    struct event *e;
-
-    Param.bases = Now.bases = nrand(5) + 2;
-    Param.time = Now.time = 14;
-    Param.pirates = Now.pirates = 14 * (fnrand() + 0.75);
-    Param.energy = Ship.energy = 5000;
-    Param.torped = Ship.torped = 10;
-    Param.shield = Ship.shield = 1500;
-    Param.resource = Now.resource = Param.pirates * Param.time;
-    Param.reserves = Ship.reserves = 10;
-    Param.crew = Ship.crew = 387;
-    Param.brigfree = Ship.brigfree = 400;
-    Ship.shldup = 1;
+    Now.resource = Param.resource;
+    Ship.energy = Param.energy;
+    Ship.torped = Param.torped;
+    Ship.shield = Param.shield;
+    Ship.reserves = Param.reserves;
+    Ship.crew = Param.crew;
+    Ship.brigfree = Param.brigfree;
+    Ship.shldup = true;
     Ship.cond = GREEN;
-    Ship.warp = 5.0;
-    Ship.warp2 = 25.0;
-    Ship.warp3 = 125.0;
-    Ship.sinsbad = 0;
-    Ship.cloaked = 0;
-    Param.date = Now.date = (nrand(20) + 20) * 100;
-    f = 2;
-    f = log(f + 0.5);
-    for (i = 0; i < NDEV; ++i) {
-	if (DeviceName[i][0] == '*')
-	    Param.damfac[i] = 0;
-	else
-	    Param.damfac[i] = f;
-    }
-    Param.dockfac = 0.5;
-    Param.regenfac = 0.2;
-    if (Param.regenfac < 0.0)
-	Param.regenfac = 0.0;
-    Param.warptime = 10;
-    Param.stopengy = 50;
-    Param.shupengy = 40;
-    Param.piratepwr = 350;
-    Param.plasfac = 0.8;
-    Param.hitfac = 0.5;
-    Param.pirate_crew = 200;
-    Param.srndrprob = 0.0035;
-    Param.moveprob[PM_OB] = 45;
-    Param.movefac[PM_OB] = .09;
-    Param.moveprob[PM_OA] = 40;
-    Param.movefac[PM_OA] = -0.05;
-    Param.moveprob[PM_EB] = 40;
-    Param.movefac[PM_EB] = 0.075;
-    Param.moveprob[PM_EA] = 35;
-    Param.movefac[PM_EA] = -0.12;
-    Param.moveprob[PM_LB] = 0;
-    Param.movefac[PM_LB] = 0.0;
-    Param.moveprob[PM_LA] = 30;
-    Param.movefac[PM_LA] = 0.25;
-    Param.eventdly[E_SNOVA] = 0.5;
-    Param.eventdly[E_LRTB] = 25.0;
-    Param.eventdly[E_PATSB] = 1.0;
-    Param.eventdly[E_PDESB] = 3.0;
-    Param.eventdly[E_ISSUE] = 1.0;
-    Param.eventdly[E_SNAP] = 0.5;
-    Param.eventdly[E_ENSLV] = 0.5;
-    Param.eventdly[E_REPRO] = 2.0;
-    Param.navigcrud[0] = 1.50;
-    Param.navigcrud[1] = 0.75;
-    Param.cloakenergy = 1000;
-    Param.energylow = 1000;
-    for (i = 0; i < MAXEVENTS; ++i) {
-	e = &Event[i];
-	e->date = FLT_MAX;
-	e->evcode = 0;
-    }
+    Ship.warp = 50;
+    Now.date = Param.date + nrand (Param.date/20);
     xsched(E_SNOVA, 1, 0, 0, 0);
     xsched(E_LRTB, Param.pirates, 0, 0, 0);
     xsched(E_PATSB, 1, 0, 0, 0);
     xsched(E_ISSUE, 1, 0, 0, 0);
     xsched(E_SNAP, 1, 0, 0, 0);
-    Ship.sectx = nrand(NSECTS);
-    Ship.secty = nrand(NSECTS);
-    Game.pirates_killed = 0;
-    Game.bases_killed = 0;
-    Game.stars_killed = 0;
-    Game.deaths = 0;
-    Game.negenbar = 0;
-    Game.captives = 0;
-    Game.killinhab = 0;
-    Game.helps = 0;
-    Game.killed = 0;
-    Game.snap = 0;
-    Move.endgame = 0;
+    Ship.sect.x = nrand(NSECTS);
+    Ship.sect.y = nrand(NSECTS);
 
     // setup stars
-    for (i = 0; i < NQUADS; ++i)
-	for (j = 0; j < NQUADS; ++j) {
-	    q = &Quad[i][j];
-	    q->pirates = q->bases = 0;
-	    q->scanned = -1;
-	    q->stars = nrand(9) + 1;
-	    q->holes = nrand(3) - q->stars / 5;
-	    q->qsystemname = 0;
-	}
+    uint8_t inhabited_left = NINHAB;
+    for (unsigned i = 0; i < NQUADS; ++i) {
+	for (unsigned j = 0; j < NQUADS; ++j) {
+	    struct quad* q = &Quad[i][j];
+	    q->bases = 0;
+	    q->pirates = 0;
+	    q->stars = nrand(QUAD_STARS);
+	    q->holes = nrand(QUAD_HOLES);
 
-    // select inhabited starsystems
-    for (d = 1; d < NINHAB; ++d) {
-	do {
-	    i = nrand(NQUADS);
-	    j = nrand(NQUADS);
-	    q = &Quad[i][j];
-	} while (q->qsystemname);
-	q->qsystemname = d;
+	    // NINHAB of NQUADS*NQUADS are inhabited
+	    if (!nrand(NQUADS*NQUADS/NINHAB) && inhabited_left)
+		q->systemname = --inhabited_left;
+	    else
+		q->systemname = 0;
+	}
     }
 
     // position starbases
-    for (i = 0; i < Param.bases; ++i) {
-	while (1) {
+    Now.bases = 2 + nrand(Param.bases-2);
+    for (unsigned i = 0; i < Now.bases; ++i) {
+	struct quad* q;
+	unsigned ix, iy;
+	for (;;) {
 	    ix = nrand(NQUADS);
 	    iy = nrand(NQUADS);
-	    q = &Quad[ix][iy];
+	    q = &Quad[iy][ix];
 	    if (q->bases > 0)
 		continue;
 	    break;
@@ -272,42 +211,37 @@ static void setup (void)
 	q->bases = 1;
 	Now.base[i].x = ix;
 	Now.base[i].y = iy;
-	q->scanned = 1001;
-	// start near starbase
-	if (i == 0) {
-	    Ship.quadx = ix;
-	    Ship.quady = iy;
-	}
     }
 
+    // start at random starbase
+    Ship.quad = Now.base [nrand (Now.bases)];
+
     // position pirates
-    for (i = Param.pirates; i > 0;) {
-	klump = nrand(4) + 1;
-	if (klump > i)
-	    klump = i;
+    unsigned npirates = Param.pirates/2 + nrand(Param.pirates/2);
+    Now.time = Now.resource / npirates;
+    for (unsigned i = npirates; i > 0;) {
+	unsigned plump = nrand(4) + 1;
+	if (plump > i)
+	    plump = i;
 	while (1) {
-	    ix = nrand(NQUADS);
-	    iy = nrand(NQUADS);
-	    q = &Quad[ix][iy];
-	    if (q->pirates + klump > MAX_QUAD_PIRATES)
+	    unsigned ix = nrand(NQUADS);
+	    unsigned iy = nrand(NQUADS);
+	    struct quad* q = &Quad[iy][ix];
+	    if (q->pirates + plump > QUAD_PIRATES)
 		continue;
-	    q->pirates += klump;
-	    i -= klump;
+	    q->pirates += plump;
+	    i -= plump;
 	    break;
 	}
     }
 
     // initialize this quadrant
-    printf ("%d pirates\n%d starbase", Param.pirates, Param.bases);
-    if (Param.bases > 1)
-	printf ("s");
-    printf (" at %d,%d", Now.base[0].x, Now.base[0].y);
-    for (i = 1; i < Param.bases; ++i)
-	printf (", %d,%d", Now.base[i].x, Now.base[i].y);
-    printf ("\nIt takes %d units to kill a pirate\n", Param.piratepwr);
-    Move.free = 0;
+    printf ("%u pirates\n%u starbases ", pirates_remaining(), Now.bases);
+    for (unsigned i = 0; i < Now.bases; ++i)
+	printf ("%s " QUAD_FMT, i ? "," : "at", Now.base[i].x, Now.base[i].y);
+    printf ("\n");
     initquad (false);
-    srscan(1);
+    srscan(0);
     attack(0);
 }
 
@@ -325,85 +259,46 @@ static void setup (void)
 //
 void initquad (bool docked)
 {
-    struct quad* q = &Quad[Ship.quadx][Ship.quady];
+    struct quad* q = current_quad();
 
     // ignored supernova'ed quadrants (this is checked again later anyway
-    if (q->stars < 0)
+    if (q->stars == SUPERNOVA)
 	return;
-    Etc.npirates = q->pirates;
-    uint8_t nbases = q->bases;
-    int8_t nstars = q->stars;
-    int8_t nholes = q->holes;
 
     // have we blundered into a battle zone w/ shields down?
-    if (Etc.npirates > 0 && !docked) {
+    if (q->pirates > 0 && !docked && Ship.cond != RED && Ship.cond != CLOAK) {
 	printf ("Condition RED\n");
 	Ship.cond = RED;
 	if (!device_damaged (COMPUTER))
 	    shield(1);
     }
 
-    // clear out the quadrant
-    memset (Sect, EMPTY, sizeof(Sect));
-
-    // initialize the ship
-    Sect[Ship.sectx][Ship.secty] = YOURSHIP;
-
-    // initialize pirates
-    for (int i = 0; i < Etc.npirates; ++i) {
-	int rx, ry;
-	sector (&rx, &ry);
-	Sect[rx][ry] = PIRATE;
-	Etc.pirate[i].x = rx;
-	Etc.pirate[i].y = ry;
+    // randomly place in-quadrant entities
+    for (unsigned i = 0; i < current_quad()->pirates; ++i) {
+	Etc.pirate[i].sect = random_empty_sector();
 	Etc.pirate[i].power = Param.piratepwr;
-	Etc.pirate[i].srndreq = 0;
     }
-    comp_pirate_dist (1);
+    sort_pirates();
+    if (q->bases > 0)
+	Etc.starbase = random_empty_sector();
+    if (q->systemname != 0)
+	Etc.inhabited = random_empty_sector();
+    for (unsigned i = 0; i < q->stars; ++i)
+	Etc.stars[i] = random_empty_sector();
+    for (unsigned i = 0; i < q->holes; ++i)
+	Etc.blackholes[i] = random_empty_sector();
 
-    // initialize star base
-    if (nbases > 0) {
-	int rx, ry;
-	sector (&rx, &ry);
-	Sect[rx][ry] = BASE;
-	Etc.starbase.x = rx;
-	Etc.starbase.y = ry;
-    }
-
-    // initialize inhabited starsystem
-    if (q->qsystemname != 0) {
-	int rx, ry;
-	sector (&rx, &ry);
-	Sect[rx][ry] = INHABIT;
-	nstars -= 1;
-    }
-
-    // initialize black holes
-    for (int i = 0; i < nholes; ++i) {
-	int rx, ry;
-	sector (&rx, &ry);
-	Sect[rx][ry] = HOLE;
-    }
-
-    // initialize stars
-    for (int i = 0; i < nstars; ++i) {
-	int rx, ry;
-	sector (&rx, &ry);
-	Sect[rx][ry] = STAR;
-    }
     Move.newquad = 1;
 }
 
-void sector (int* x, int* y)
+struct xy random_empty_sector (void)
 {
-    int i, j;
+    struct xy r;
     do {
-	i = nrand(NSECTS);
-	j = nrand(NSECTS);
-    } while (Sect[i][j] != EMPTY);
-    *x = i;
-    *y = j;
-    return;
+	r.x = nrand(NSECTS);
+	r.y = nrand(NSECTS);
+    } while (sector_contents(r.x,r.y) != EMPTY);
+    return r;
 }
 
 //}}}-------------------------------------------------------------------
@@ -434,7 +329,6 @@ static void play (void)
     static const struct cvntab Comtab[] = {
 	{"ca","pture",	capture,	0},
 	{"cl","oak",	shield,		-1},
-	{"c","omputer",	computer,	0},
 	{"da","mages",	damage_report,	0},
 	{"destruct","",	destruct,	0},
 	{"do","ck",	dock,		0},
@@ -445,11 +339,10 @@ static void play (void)
 	{"p","lasers",	plasers,	0},
 	{"quit","",	myreset,	0},
 	{"ram","",	dowarp,		1},
-	{"save","",	save_game,	0},
 	{"r","est",	rest,		0},
+	{"save","",	save_game,	0},
 	{"sh","ield",	shield,		0},
 	{"s","rscan",	srscan,		0},
-	{"st","atus",	srscan,		-1},
 	{"t","orpedo",	torped,		0},
 	{"u","ndock",	undock,		0},
 	{"v","isual",	visual,		0},
@@ -463,7 +356,9 @@ static void play (void)
 	Move.shldchg = 0;
 	Move.newquad = 0;
 	Move.resting = 0;
-	const struct cvntab* r = getcodpar ("\nCommand", Comtab);
+	const struct cvntab* r = getcodpar ("Command", Comtab);
+	if (!r)
+	    continue;
 	(*r->value)(r->value2);
 	events (0);
 	attack (0);
@@ -479,7 +374,7 @@ static void play (void)
 // or running out of crew members. The check for running
 // out of time is in events().
 //
-// If we are in automatic override mode (Etc.npirates < 0), we
+// If we are in automatic override mode (SUPERNOVA && Ship.cond == RED), we
 // don't want to do anything else, lest we call autover recursively.
 //
 // In the normal case, if there is a supernova, we call
@@ -502,24 +397,20 @@ void checkcond (void)
     if (Ship.crew <= 0)
 	lose (L_NOCREW);
 
-    // If in auto override mode, ignore the rest
-    if (Etc.npirates < 0)
-	return;
-
     // Call in automatic override if appropriate
-    if (Quad[Ship.quadx][Ship.quady].stars < 0)
+    if (current_quad()->stars == SUPERNOVA && Ship.cond != RED)
 	autover();
-    if (Quad[Ship.quadx][Ship.quady].stars < 0)
+    if (current_quad()->stars == SUPERNOVA)
 	lose (L_SNOVA);
 
     // Cancel distress call if appropriate
-    if (Etc.npirates <= 0)
-	kill_distress_call (Ship.quadx, Ship.quady, 1);
+    if (!current_quad()->pirates)
+	kill_distress_call (Ship.quad.x, Ship.quad.y, 1);
 
     // set condition code
     if (Ship.cond == DOCKED)
 	return;
-    if (Etc.npirates > 0)
+    if (current_quad()->pirates > 0)
 	Ship.cond = RED;
     else if (Ship.energy < Param.energylow)
 	Ship.cond = YELLOW;
@@ -539,11 +430,9 @@ void checkcond (void)
 static struct iovec s_save_array[] = {
     WVAR (Ship),
     WVAR (Now),
-    WVAR (Param),
     WVAR (Etc),
     WVAR (Game),
     WVAR (Move),
-    WARR (Sect),
     WARR (Quad),
     WARR (Event)
 };
@@ -637,12 +526,12 @@ long score (void)
     s += (t = 400 * r);
     if (t != 0)
 	printf ("Kill rate %.2f pirates/day\t\t%6d\n", r, t);
-    r = Now.pirates;
+    r = pirates_remaining();
     r /= Game.pirates_killed + 1;
     s += (t = -400 * r);
     if (t != 0)
-	printf ("Penalty for %d pirates remaining\t%6d\n", Now.pirates, t);
-    if (Move.endgame > 0) {
+	printf ("Penalty for %d pirates remaining\t%6d\n", pirates_remaining(), t);
+    if (Move.endgame) {
 	s += (t = 100 * (u = 2));
 	printf ("Bonus for winning the game\t\t%6d\n", t);
     }
@@ -693,7 +582,6 @@ void win (void)
     score();
 
     // clean out input, and request new game
-    skiptonl(0);
     exit (EXIT_SUCCESS);
 }
 
@@ -706,27 +594,23 @@ void win (void)
 _Noreturn void lose (enum LoseReason why)
 {
     Game.killed = (why != L_NOTIME);
-    Move.endgame = -1;
     static const char Losemsg[] = {
 	"You got bored\0"
 	"You ran out of time\0"
 	"You ran out of energy\0"
 	"You have been destroyed\0"
-	"You ran into the negative energy barrier\0"
 	"You destroyed yourself by nova'ing that star\0"
 	"You have been caught in a supernova\0"
 	"You just suffocated in outer space\0"
 	"You could not be rematerialized\0"
-	"\n\032\014 ***\07 Ship's hull has imploded\07 ***\0"
+	"Your ship was ticketed for speeding\0"
 	"You have burned up in a star\0"
 	"Well, you destroyed yourself, but it didn't do any good\0"
 	"You have been captured by pirates and mercilessly tortured\0"
 	"Your last crew member died"
     };
     printf ("\n%s\n", zstrn (Losemsg, why, 14));
-    sleep(1);
     score();
-    skiptonl(0);
     exit (EXIT_SUCCESS);
 }
 

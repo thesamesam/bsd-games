@@ -109,9 +109,6 @@ enum ConditionBit {
     HINT	=HINTC |HINTB |HINTS |HINTM
 };
 
-#define BOLD_ON		"\033[1m"
-#define BOLD_OFF	"\033[22m"
-
 //}}}-------------------------------------------------------------------
 //{{{ Type definitions
 
