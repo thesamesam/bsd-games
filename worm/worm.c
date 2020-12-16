@@ -38,7 +38,7 @@ static unsigned visible_len = 0;
 static void crash (void);
 static unsigned max_length (void);
 static void display (const struct body *, int);
-static void find_empty_spot (unsigned* y, unsigned* x);
+static bool find_empty_spot (unsigned* y, unsigned* x);
 static void life (void);
 static void play (void);
 static void prize (void);
@@ -124,19 +124,23 @@ static void display(const struct body *pos, int chr)
     mvwaddch (tv, pos->y, pos->x, chr);
 }
 
-static void find_empty_spot (unsigned* y, unsigned* x)
+static bool find_empty_spot (unsigned* y, unsigned* x)
 {
+    unsigned n = 0;
     do {
 	*y = nrand (getmaxy(tv) - 2) + 1;
 	*x = nrand (getmaxx(tv) - 2) + 1;
+	if (++n > 127)
+	    return false;
     } while ((char) mvwinch (tv, *y, *x) != ' ');
+    return true;
 }
 
 static void newgrass (void)
 {
     unsigned y, x;
-    find_empty_spot (&y, &x);
-    waddch (tv, GRASS);
+    if (find_empty_spot (&y, &x))
+	waddch (tv, GRASS);
 }
 
 static void play (void)
@@ -204,14 +208,12 @@ static unsigned max_length (void)
 
 static void prize (void)
 {
-    unsigned value = nrand(9) + 1;
-    if (visible_len == max_length()) {
+    if (visible_len == max_length() || !find_empty_spot (&goody.y, &goody.x)) {
 	cleanup_curses();
 	printf("\nYou won!\nYour final score was %u\n\n", score);
 	exit (EXIT_SUCCESS);
-    }
-    find_empty_spot (&goody.y, &goody.x);
-    waddch (tv, A_BOLD| (value + '0'));
+    } else
+	waddch (tv, A_BOLD| (nrand(9)+'1'));
     wrefresh (tv);
 }
 
