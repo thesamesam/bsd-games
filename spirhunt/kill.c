@@ -17,13 +17,12 @@
 //
 void kill_pirate (int ix, int iy)
 {
-    for (unsigned p = 0; p < current_quad()->pirates; ++p) {
-	if (Etc.pirate[p].sect.x != ix || Etc.pirate[p].sect.y != iy)
-	    continue;
-	printf ("Pirate at " SECT_FMT " destroyed\n", ix, iy);
-	Etc.pirate[p] = Etc.pirate[--current_quad()->pirates];
-	++Game.pirates_killed;
-    }
+    struct Pirate* p = pirate_at (ix, iy);
+    if (!p)
+	return;
+    print_msg ("Pirate at " SECT_FMT " destroyed\n", p->sect.x, p->sect.y);
+    *p = Etc.pirate[--current_quad()->pirates];
+    ++Game.pirates_killed;
 
     // find out if that was the last one
     if (!pirates_remaining())
@@ -48,13 +47,13 @@ void kill_starbase (int qx, int qy)
     *b = Now.base[Now.bases];
     if (qx == Ship.quad.x && qy == Ship.quad.y) {
 	if (Ship.cond == DOCKED)
-	    undock(0);
-	printf ("Starbase at " QUAD_FMT " destroyed\n", Etc.starbase.x, Etc.starbase.y);
+	    undock();
+	print_msg ("Starbase at " QUAD_FMT " destroyed\n", Etc.starbase.x, Etc.starbase.y);
     } else {
-	if (!device_damaged (SSRADIO)) {
-	    printf ("Headquarters reports that the starbase in\n");
-	    printf ("   quadrant " QUAD_FMT " has been destroyed\n", qx, qy);
-	} else
+	if (!device_damaged (SSRADIO))
+	    print_msg ("Headquarters reports that the starbase in\n"
+			"   quadrant " QUAD_FMT " has been destroyed\n", qx, qy);
+	else
 	    schedule (E_PATSB | E_GHOST, FLT_MAX, qx, qy, 0);
     }
 }
@@ -70,7 +69,7 @@ void kill_starsystem (int x, int y, int f)
 	const char* name = systemname(q);
 	if (!name)
 	    return;
-	printf ("Inhabited starsystem %s in " SECT_FMT " destroyed\n", name, x, y);
+	print_msg ("Inhabited starsystem %s in " SECT_FMT " destroyed\n", name, x, y);
 	if (f < 0)
 	    Game.killinhab += 1;
     } else // different quadrant
@@ -79,7 +78,7 @@ void kill_starsystem (int x, int y, int f)
 	for (unsigned i = 0; i < ArraySize(Event); ++i)
 	    if (Event[i].systemname == q->systemname)
 		unschedule (&Event[i]);
-	printf ("Distress call for %s invalidated\n", systemname(q));
+	print_msg ("Distress call for %s invalidated\n", systemname(q));
 	q->distressed = false;
     }
     q->systemname = 0;
@@ -91,16 +90,17 @@ void kill_starsystem (int x, int y, int f)
 // f - set if user is to be informed
 void kill_distress_call (unsigned x, unsigned y, bool f)
 {
+    Quad[y][x].distressed = false;
     for (unsigned i = 0; i < MAXEVENTS; ++i) {
 	struct event* e = &Event[i];
 	if (e->quad.x != x || e->quad.y != y)
 	    continue;
 	if (e->evcode == E_PDESB && f) {
-	    printf ("Distress call for starbase in %u,%u nullified\n", x, y);
+	    print_msg ("Distress call for starbase in %u,%u nullified\n", x, y);
 	    unschedule (e);
 	} else if (e->evcode == E_ENSLV || e->evcode == E_REPRO) {
 	    if (f) {
-		printf ("Distress call for %s in quadrant %u,%u nullified\n", Systemname[e->systemname], x, y);
+		print_msg ("Distress call for %s in quadrant %u,%u nullified\n", Systemname[e->systemname], x, y);
 		unschedule (e);
 	    } else
 		e->evcode |= E_GHOST;
@@ -121,10 +121,11 @@ void kill_distress_call (unsigned x, unsigned y, bool f)
 //
 void nova (int x, int y)
 {
-    if (sector_contents(x,y) != STAR || !current_quad()->stars || current_quad()->stars == SUPERNOVA)
+    struct quad* cq = current_quad();
+    if (sector_contents(x,y) != STAR || !cq->stars || cq->stars == SUPERNOVA)
 	return;
     if (nrand(100) < 15) {
-	printf ("Star at " SECT_FMT " failed to nova.\n", x, y);
+	print_msg ("Star at " SECT_FMT " failed to nova.\n", x, y);
 	return;
     }
     if (nrand(100) < 5) {
@@ -132,10 +133,14 @@ void nova (int x, int y)
 	return;
     }
 
-    printf ("Star at " SECT_FMT " gone nova\n", x, y);
-    for (unsigned s = 0; s < current_quad()->stars; ++s)
-	if (Etc.stars[s].x == x && Etc.stars[s].y == y)
-	    Etc.stars[s] = Etc.stars[--current_quad()->stars];
+    print_msg ("Star at " SECT_FMT " gone nova\n", x, y);
+    for (unsigned s = 0; s < cq->stars; ++s) {
+	if (Etc.stars[s].x == x && Etc.stars[s].y == y) {
+	    struct xy sl = Etc.stars[s];
+	    Etc.stars[s] = Etc.stars[--cq->stars];
+	    animate_nova (sl);
+	}
+    }
     ++Game.stars_killed;
 
     // Nova destroys surrounding sectors
@@ -169,7 +174,7 @@ void nova (int x, int y)
 		    break; }
 
 		default:
-		    printf ("Unknown object %c at %u,%u destroyed\n", sector_contents(i,j), i, j);
+		    print_msg ("Unknown object %c at %u,%u destroyed\n", sector_contents(i,j), i, j);
 		    break;
 	    }
 	}
@@ -238,21 +243,18 @@ void snova (int x, int y)
     }
     if (f) {
 	// supernova is in your quadrant
-	printf ("\n" BOLD_ON "RED ALERT:" BOLD_OFF " supernova occuring at " SECT_FMT "\n", ix, iy);
+	print_msg ("\nRED ALERT: supernova occuring at " SECT_FMT "\n", ix, iy);
 	dx = ix - Ship.sect.x;
 	dy = iy - Ship.sect.y;
 	if (dx * dx + dy * dy <= 2) {
-	    printf ("***  Emergency override attem");
-	    sleep(1);
-	    printf ("\n");
+	    print_msg ("***  Emergency override attem");
+	    draw_and_sleep(1);
+	    print_msg ("\n");
 	    lose(L_SNOVA);
 	}
-    } else {
-	if (!device_damaged (SSRADIO)) {
-	    printf ("\nCaptain, Command reports a supernova\n");
-	    printf ("  in quadrant " QUAD_FMT ". Caution is advised\n", qx, qy);
-	}
-    }
+    } else if (!device_damaged (SSRADIO))
+	print_msg ("\nCaptain, Command reports a supernova\n"
+		"  in quadrant " QUAD_FMT ". Caution is advised\n", qx, qy);
 
     // clear out the supernova'ed quadrant
     dx = q->pirates;
@@ -269,7 +271,7 @@ void snova (int x, int y)
     q->stars = SUPERNOVA;
     q->pirates = 0;
     if (!pirates_remaining()) {
-	printf ("Lucky devil, that supernova destroyed the last pirate\n");
+	print_msg ("Lucky devil, that supernova destroyed the last pirate\n");
 	win();
     }
 }

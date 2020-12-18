@@ -9,9 +9,9 @@
 //
 // Renamed to drop4 in 2016 to differentiate from tetris.
 //
-// Excerpt from the ruling in drop4 Holding, LLC vs. Xio Interactive, Inc.:
+// Excerpt from the ruling in Tetris Holding, LLC vs. Xio Interactive, Inc.:
 //
-//    drop4 is a puzzle game where a user manipulates pieces composed of
+//    Tetris is a puzzle game where a user manipulates pieces composed of
 //    square blocks, each made into a different geometric shape, that fall from
 //    the top of the game board to the bottom where the pieces accumulate. The
 //    user is given a new piece after the current one reaches the bottom of the
@@ -21,7 +21,7 @@
 //    the line is erased, points are earned, and more of the game board is
 //    available for play. But if the pieces accumulate and reach the top of
 //    the screen, then the game is over. These then are the general, abstract
-//    ideas underlying drop4 and cannot be protected by copyright nor can
+//    ideas underlying tetris and cannot be protected by copyright nor can
 //    expressive elements that are inseparable from them.
 //
 //    The court noted that “if one has to squint to find distinctions
@@ -34,7 +34,7 @@
 //    display upon certain events
 //
 // Every precaution must be taken to avoid the above elements. Specific
-// differences from drop4 in this implementation are:
+// differences from tetris in this implementation are:
 //
 // - the game has a distinctive name
 // - the pieces are not formed with distinct bricks, but are solid.

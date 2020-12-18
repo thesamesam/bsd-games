@@ -84,6 +84,14 @@ void init_pairs (const struct color_pair* cps, size_t ncps)
 	init_pair (i+1, cps[i].fg, cps[i].bg);
 }
 
+void erase_window (WINDOW* w, short color)
+{
+    werase (w);
+    wattr_set (w, 0, color, NULL);
+    for (int y = 0; y < getmaxy(w); ++y)
+	mvwhline (w, y, 0, ' ', getmaxx(w));
+}
+
 void mvwadd_wchw (WINDOW* w, int l, int c, wchar_t wch, attr_t a, short color)
 {
     #if NCURSES_WIDECHAR

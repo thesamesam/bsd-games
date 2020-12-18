@@ -2,7 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "spirhunt.h"
-#include "getpar.h"
 
 //----------------------------------------------------------------------
 
@@ -44,7 +43,7 @@ static float move_ship (int ramflag, struct xy to, float speed)
     if (lrtb_event) {
         float lrtb_time = lrtb_event->date - Now.date;
 	if (lrtb_time >= 0 && current_quad()->pirates < 3) {
-	    unsigned dist_to_lrtb = lrtb_time * speed * NSECTS;
+	    unsigned dist_to_lrtb = lrtb_time * speed * NSECTS + 1; // +1 to round up
 	    if (dist_to_lrtb < dist)
 		dist = dist_to_lrtb;
 	}
@@ -74,25 +73,25 @@ static float move_ship (int ramflag, struct xy to, float speed)
 	    enum SectorContents sc = sector_contents (sect.x, sect.y);
 	    if (sc != EMPTY) {
 		if (!device_damaged (COMPUTER) && ramflag <= 0) {
-		    printf ("Stopped by ");
+		    print_msg ("Stopped by ");
 		    if (sc == STAR)
-			printf ("star");
+			print_msg ("star");
 		    else if (sc == BASE)
-			printf ("starbase");
+			print_msg ("starbase");
 		    else if (sc == HOLE)
-			printf ("black hole");
+			print_msg ("black hole");
 		    else if (sc == PIRATE)
-			printf ("pirate");
+			print_msg ("pirate");
 		    else if (sc == INHABIT)
-			printf ("planet");
+			print_msg ("planet");
 		    else
-			printf ("obstacle");
-		    printf (" at " SECT_FMT "\n", sect.x, sect.y);
+			print_msg ("obstacle");
+		    print_msg (" at " SECT_FMT "\n", sect.x, sect.y);
 		    Ship.energy -= Param.stopengy * speed;
 		    break;
 		}
 		if (sc == HOLE) {
-		    printf ("You fall into a black hole.\n");
+		    print_msg ("You fall into a black hole.\n");
 		    move_to_random_location();
 		    initquad (false);
 		    break;
@@ -102,6 +101,8 @@ static float move_ship (int ramflag, struct xy to, float speed)
 	    }
 	    Ship.sect = sect;
 	}
+	draw_screen();
+	delay (12);
     }
 
     // Return the actual distance travelled
@@ -130,7 +131,7 @@ static void move_to_random_location (void)
 	    reschedule (e, (e->date - Now.date) + x);
     }
     events (1);
-    printf ("You are now in quadrant " QUAD_FMT ". Today is %.2f\n", Ship.quad.x, Ship.quad.y, Now.date);
+    print_msg ("You are now in quadrant " QUAD_FMT ". Today is %.2f\n", Ship.quad.x, Ship.quad.y, Now.date);
     Move.time = 0;
 }
 
@@ -145,55 +146,57 @@ static void move_to_random_location (void)
 //
 static void ram (unsigned ix, unsigned iy)
 {
-    printf (BOLD_ON "RED ALERT:" BOLD_OFF " collision imminent\n");
+    print_msg ("RED ALERT: collision imminent\n");
     enum SectorContents c = sector_contents(ix,iy);
     if (c == PIRATE) {
-	printf ("Your ship rams pirate at " SECT_FMT "\n", ix, iy);
+	print_msg ("Your ship rams pirate at " SECT_FMT "\n", ix, iy);
+	draw_and_sleep (1);
 	kill_pirate (ix, iy);
     } else if (c == STAR || c == INHABIT) {
-	printf ("Captain, isn't it getting hot in here?\n");
-	sleep (2);
-	printf ("Hull temperature approaching 550 Degrees Kelvin.\n");
+	print_msg ("Captain, isn't it getting hot in here?\n");
+	draw_and_sleep (1);
+	print_msg ("Hull temperature approaching 550 Degrees Kelvin.\n");
+	draw_and_sleep (1);
 	lose (L_STAR);
     } else if (c == BASE) {
-	printf ("You ran into the starbase at " SECT_FMT "\n", ix, iy);
+	print_msg ("You ran into the starbase at " SECT_FMT "\n", ix, iy);
+	draw_and_sleep (1);
 	kill_starbase (Ship.quad.x, Ship.quad.y);
 	++Game.bases_killed;
     }
-    sleep (2);
-    puts ("Your ship sustained heavy damage.");
+    print_msg ("Your ship sustained heavy damage.\n");
 
     Ship.shldup = false;	// No chance that your shields remained up in all that
     unsigned deaths = min_u (Ship.crew, 10 + nrand(40)); // Crew killed in the collision
     Ship.crew -= deaths;
     Game.deaths += deaths;
-    printf ("%u casualties reported.\n", deaths);
+    print_msg ("%u casualties reported.\n", deaths);
 
     // Damage devices with an 80% probability
     for (unsigned i = 0; i < NDEV; ++i)
 	if (nrand(100) < 80)
-	    damage_device (i, (5*fnrand()+1) * Param.damfac[i]);
+	    damage_device (i, 2.5*fnrand()+0.5);
 }
 
 // SET WARP FACTOR
 //
 // The warp factor is set for future move commands. It is
 // checked for consistancy.
-void setwarp (int v UNUSED)
+void setwarp (void)
 {
     float warpfac = getfltpar("Warp factor");
     if (warpfac <= 0)
 	return;
     if (warpfac < 1) {
-	printf ("Minimum warp speed is 1\n");
+	print_msg ("Minimum warp speed is 1\n");
 	return;
     }
     if (warpfac > 9.9) {
-	printf ("Maximum speed is warp 9.9\n");
+	print_msg ("Maximum speed is warp 9.9\n");
 	return;
     }
     if (warpfac > 6)
-	printf ("Damage to warp engines may occur above warp 6\n");
+	print_msg ("Damage to warp engines may occur above warp 6\n");
     Ship.warp = warpfac*10;
 }
 
@@ -213,7 +216,7 @@ void setwarp (int v UNUSED)
 
 void dowarp (int fl)
 {
-    struct xy to = getdest();
+    struct xy to = getdest ("Destination");
     if (to.x > NQUADS*NSECTS || to.y > NQUADS*NSECTS)
 	return;
     warp (fl, to);
@@ -222,7 +225,7 @@ void dowarp (int fl)
 static void warp (int fl, struct xy to)
 {
     if (Ship.cond == DOCKED) {
-	printf ("You are docked\n");
+	print_msg ("You are docked\n");
 	return;
     }
     if (device_damaged (WARP)) {
@@ -237,7 +240,7 @@ static void warp (int fl, struct xy to)
     float power = (dist + 0.05) * (Ship.warp*Ship.warp*Ship.warp)/1000.f;
     unsigned percent = 100 * power / Ship.energy;
     if (percent >= 85) {
-	printf ("That would consume %u%% of our remaining energy.\n", percent);
+	print_msg ("That would consume %u%% of our remaining energy.\n", percent);
 	if (!getynpar ("Are you sure that is wise"))
 	    return;
     }
@@ -249,7 +252,7 @@ static void warp (int fl, struct xy to)
     // check to see that that value is not ridiculous
     percent = 100 * time / Now.time;
     if (percent >= 85) {
-	printf ("That would take %u%% of our remaining time.\n", percent);
+	print_msg ("That would take %u%% of our remaining time.\n", percent);
 	if (!getynpar("Are you sure that is wise"))
 	    return;
     }
@@ -270,14 +273,14 @@ static void warp (int fl, struct xy to)
     // test for bizarre events
     if (Ship.warp <= 90)
 	return;
-    printf ("\n\n  ___ Speed exceeding warp nine ___\n\n");
-    sleep(2);
-    printf ("Ship's safety systems malfunction\n");
-    sleep(2);
-    printf ("Crew experiencing extreme sensory distortion\n");
-    sleep(4);
+    print_msg ("\n\n  ___ Speed exceeding warp nine ___\n\n");
+    draw_and_sleep(2);
+    print_msg ("Ship's safety systems malfunction\n");
+    draw_and_sleep(2);
+    print_msg ("Crew experiencing extreme sensory distortion\n");
+    draw_and_sleep(4);
     if (nrand(100) >= 100 * dist) {
-	printf ("Equilibrium restored -- all systems normal\n");
+	print_msg ("Equilibrium restored -- all systems normal\n");
 	return;
     }
 
@@ -289,7 +292,7 @@ static void warp (int fl, struct xy to)
 	    // positive time warp
 	    time = ((Ship.warp - 80)/10.f) * dist * (fnrand() + 1.0);
 	    Now.date += time;
-	    printf ("Positive time portal entered -- we are now in %.2f\n", Now.date);
+	    print_msg ("Positive time portal entered -- we are now in %.2f\n", Now.date);
 	    for (unsigned i = 0; i < MAXEVENTS; ++i) {
 		percent = Event[i].evcode;
 		if (percent == E_FIXDV || percent == E_LRTB)
@@ -304,7 +307,7 @@ static void warp (int fl, struct xy to)
 	memcpy (Quad, Snapshot.quads, sizeof(Quad));
 	memcpy (Event, Snapshot.events, sizeof(Event));
 	Snapshot.now.date = 0;
-	printf ("Negative time portal entered -- we are now in %.2f\n", Now.date);
+	print_msg ("Negative time portal entered -- we are now in %.2f\n", Now.date);
 	for (unsigned i = 0; i < MAXEVENTS; ++i)
 	    if (Event[i].evcode == E_FIXDV)
 		reschedule (&Event[i], Event[i].date - time);
@@ -314,24 +317,24 @@ static void warp (int fl, struct xy to)
     // test for just a lot of damage
     if (percent < 80)
 	lose (L_TOOFAST);
-    printf ("Equilibrium restored -- extreme damage occurred to ship systems\n");
+    print_msg ("Equilibrium restored -- extreme damage occurred to ship systems\n");
     for (unsigned i = 0; i < NDEV; ++i)
-	damage_device (i, (3.0 * (fnrand() + fnrand()) + 1.0) * Param.damfac[i]);
+	damage_device (i, 3.0*fnrand() + 0.5);
     Ship.shldup = 0;
 }
 
 // move under impulse power
-void impulse (int v UNUSED)
+void impulse (void)
 {
     if (Ship.cond == DOCKED) {
-	printf ("Sorry captain, but we are still docked.\n");
+	print_msg ("Sorry captain, but we are still docked.\n");
 	return;
     }
     if (device_damaged (IMPULSE)) {
 	announce_device_damage (IMPULSE);
 	return;
     }
-    struct xy to = getdest();
+    struct xy to = getdest ("Destination");
     if (to.x > NQUADS*NSECTS || to.y > NQUADS*NSECTS)
 	return;
     struct xy from = absolute_sector_coord (Ship.quad, Ship.sect);
@@ -339,19 +342,19 @@ void impulse (int v UNUSED)
     unsigned energy = 20 + 100 * dist;
     unsigned percent = 100 * energy / Ship.energy;
     if (percent >= 85) {
-	printf ("That would consume %u%% of our remaining energy.\n", percent);
+	print_msg ("That would consume %u%% of our remaining energy.\n", percent);
 	if (!getynpar("Are you sure that is wise"))
 	    return;
-	printf ("Aye aye, sir\n");
+	print_msg ("Aye aye, sir\n");
     }
     const float speed = 0.095;
     float time = dist / speed;
     percent = 100 * time / Now.time;
     if (percent >= 85) {
-	printf ("That would take %d%% of our remaining time.\n", percent);
+	print_msg ("That would take %d%% of our remaining time.\n", percent);
 	if (!getynpar ("Are you sure that is wise"))
 	    return;
-	printf ("(He's finally gone mad)\n");
+	print_msg ("(He's finally gone mad)\n");
     }
     dist = move_ship (0, to, speed);
     Move.time = dist / speed;
@@ -376,7 +379,7 @@ void impulse (int v UNUSED)
 //
 void autover (void)
 {
-    printf ("RED ALERT: You are in a supernova quadrant\n"
+    print_msg ("RED ALERT: You are in a supernova quadrant\n"
 	    "*** Emergency override attempts to escape\n");
     struct xy escapesect = { nrand (NSECTS), nrand (NSECTS) };
     struct xy escapequad = { Ship.quad.x + nrand(3) - 1, Ship.quad.y + nrand(3) - 1 };
@@ -432,4 +435,60 @@ void advance_line_iterator (struct line_iterator* li)
 	li->p.x += li->xs;
     if (!li->xmajor || sstep)
 	li->p.y += li->ys;
+}
+
+// RETRIEVE THE STARSYSTEM NAME
+const char* systemname (const struct quad* q)
+{
+    return q->systemname ? Systemname[q->systemname] : NULL;
+}
+
+// GET SECTOR CONTENTS
+//
+// Gets the printable char for the contents of sector x,y
+
+enum SectorContents sector_contents (uint8_t x, uint8_t y)
+{
+    if (x >= NSECTS || y >= NSECTS)
+	return EMPTY;
+    if (Ship.sect.x == x && Ship.sect.y == y)
+	return YOURSHIP;
+    const struct quad* q = current_quad();
+    if (q->bases && Etc.starbase.x == x && Etc.starbase.y == y)
+	return BASE;
+    if (q->systemname && Etc.inhabited.x == x && Etc.inhabited.y == y)
+	return INHABIT;
+    for (unsigned i = 0; i < q->holes; ++i)
+	if (Etc.blackholes[i].x == x && Etc.blackholes[i].y == y)
+	    return HOLE;
+    for (unsigned i = 0; i < q->stars; ++i)
+	if (Etc.stars[i].x == x && Etc.stars[i].y == y)
+	    return STAR;
+    for (unsigned i = 0; i < q->pirates; ++i)
+	if (Etc.pirate[i].sect.x == x && Etc.pirate[i].sect.y == y)
+	    return PIRATE;
+    return EMPTY;
+}
+
+// Returns the quad where Ship is
+struct quad* current_quad (void)
+    { return &Quad[Ship.quad.y][Ship.quad.x]; }
+
+// Distance between sector coordinates
+unsigned sector_distance (struct xy a, struct xy b)
+{
+    unsigned dx = absv(b.x-a.x), dy = absv(b.y-a.y),
+	ld = max_u (dx, dy), sd = min_u (dx, dy);
+    // straight+diagonal approximation (181 = sqrt(2)*128)
+    return (ld-sd)+sd*181/128;
+}
+
+// Counts remaining pirates in the galaxy
+unsigned pirates_remaining (void)
+{
+    unsigned n = 0;
+    for (unsigned y = 0; y < NQUADS; ++y)
+	for (unsigned x = 0; x < NQUADS; ++x)
+	    n += Quad[y][x].pirates;
+    return n;
 }

@@ -1,7 +1,6 @@
 // Copyright (c) 1980 The Regents of the University of California.
 // This file is free software, distributed under the BSD license.
 
-#include "getpar.h"
 #include "spirhunt.h"
 
 //----------------------------------------------------------------------
@@ -147,8 +146,8 @@ int events (bool in_time_warp)
 
 		// report it if we can
 		if (!device_damaged (SSRADIO)) {
-		    printf ("\nCaptain, we have received a distress signal\n");
-		    printf ("  from the starbase in quadrant " QUAD_FMT ".\n", ix, iy);
+		    print_msg ("\nCaptain, we have received a distress signal\n");
+		    print_msg ("  from the starbase in quadrant " QUAD_FMT ".\n", ix, iy);
 		    ++restcancel;
 		} else // SSRADIO out, make it so we can't see the distress call
 		    e->evcode |= E_HIDDEN;
@@ -158,7 +157,7 @@ int events (bool in_time_warp)
 		unschedule (e);
 		if (Quad[e->quad.y][e->quad.x].bases > 0 && Quad[e->quad.y][e->quad.x].pirates > 0) {
 		    if (e->quad.x == Ship.quad.x && e->quad.y == Ship.quad.y)
-			printf ("\n"); // message if in this quadrant
+			print_msg ("\n"); // message if in this quadrant
 		    kill_starbase (e->quad.x, e->quad.y);
 		}
 		break;
@@ -189,7 +188,7 @@ int events (bool in_time_warp)
 
 		// tell the captain about it if we can
 		if (!device_damaged (SSRADIO)) {
-		    printf ("\nCaptain, starsystem %s in quadrant " QUAD_FMT " is under attack\n", Systemname[e->systemname], ix, iy);
+		    print_msg ("\nCaptain, starsystem %s in quadrant " QUAD_FMT " is under attack\n", Systemname[e->systemname], ix, iy);
 		    ++restcancel;
 		} else
 		    e->evcode |= E_HIDDEN;
@@ -205,7 +204,7 @@ int events (bool in_time_warp)
 			break;
 		    // Report the disaster if we can
 		    if (!device_damaged (SSRADIO))
-			printf ("\nWe've lost contact with starsystem %s\nin quadrant " QUAD_FMT ".\n", Systemname[re->systemname], re->quad.x, re->quad.y);
+			print_msg ("\nWe've lost contact with starsystem %s\nin quadrant " QUAD_FMT ".\n", Systemname[re->systemname], re->quad.x, re->quad.y);
 		    else
 			re->evcode |= E_HIDDEN;
 		}
@@ -274,7 +273,7 @@ int events (bool in_time_warp)
 		break;
 
 	    case E_FIXDV:
-		printf ("Repair work on the %s is finished.\n", DeviceName[e->systemname]);
+		print_msg ("Repair work on the %s is finished.\n", DeviceName[e->systemname]);
 		if (e->systemname == SSRADIO)
 		    restcancel = output_hidden_distress_calls();
 		else if (e->systemname == LIFESUP)
@@ -329,7 +328,7 @@ static void long_range_tractor_beam (void)
     Ship.quad.y = iy;
     Ship.sect.x = nrand (NSECTS);
     Ship.sect.y = nrand (NSECTS);
-    printf ("\nYour ship is caught in long range tractor beam\n"
+    print_msg ("\nYour ship is caught in long range tractor beam\n"
 	    "*** Pulled to quadrant %u,%u\n", Ship.quad.x, Ship.quad.y);
     initquad (false);
 }
@@ -349,13 +348,13 @@ bool output_hidden_distress_calls (void)
 	if (!(e->evcode & E_HIDDEN))
 	    continue; // not hidden
 	if (e->evcode & E_GHOST) {
-	    printf ("Starsystem %s in quadrant %u,%u is no longer distressed\n", systemname(&Quad[e->quad.y][e->quad.x]), e->quad.x, e->quad.y);
+	    print_msg ("Starsystem %s in quadrant %u,%u is no longer distressed\n", systemname(&Quad[e->quad.y][e->quad.x]), e->quad.x, e->quad.y);
 	    unschedule (&Event[j]);
 	} else if (e->evcode == E_PDESB) {
-	    printf ("Starbase in quadrant %u,%u is under attack\n", e->quad.x, e->quad.y);
+	    print_msg ("Starbase in quadrant %u,%u is under attack\n", e->quad.x, e->quad.y);
 	    emergency = true;
 	} else if (e->evcode == E_ENSLV || e->evcode == E_REPRO) {
-	    printf ("Starsystem %s in quadrant %u,%u is distressed\n", systemname(&Quad[e->quad.y][e->quad.x]), e->quad.x, e->quad.y);
+	    print_msg ("Starsystem %s in quadrant %u,%u is distressed\n", systemname(&Quad[e->quad.y][e->quad.x]), e->quad.x, e->quad.y);
 	    emergency = true;
 	}
     }

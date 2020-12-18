@@ -110,6 +110,7 @@ void StringBuilder_skip (struct StringBuilder* sb, ssize_t n);
 void initialize_curses (void);
 void cleanup_curses (void);
 void init_pairs (const struct color_pair* cps, size_t ncps);
+void erase_window (WINDOW* w, short color);
 void mvwadd_wchw (WINDOW* w, int l, int c, wchar_t wch, attr_t a, short color);
 wchar_t get_card_suit_char (enum CardSuit suit);
 

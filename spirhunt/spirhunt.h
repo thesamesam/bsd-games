@@ -17,7 +17,8 @@ enum {
     QUAD_HOLES	= 1,		// maximum black holes per quadrant
     QUAD_PIRATES = NSECTS-1,	// maximum pirates per quadrant
     MAXEVENTS	= NQUADS*3,	// max number of concurrently pending events
-    LRSCAN_RANGE= 1
+    LRSCAN_RANGE= 1,
+    VISCAN_RANGE= 2		// visual scan range without sensors
 };
 
 struct xy {
@@ -125,8 +126,6 @@ enum ShipDevice {
     SSRADIO,	// subspace radio
     LIFESUP,	// life support systems
     CLOAK,	// cloaking device
-    XPORTER,	// transporter
-    SHUTTLE,	// shuttlecraft
     NDEV	// max number of devices
 };
 extern const char DeviceName [NDEV][16];
@@ -194,7 +193,6 @@ struct Param_struct {
     uint8_t	pirates;	// number of pirates
     uint8_t	torped;		// torpedoes carried
     uint8_t	warptime;	// time chewer multiplier
-    uint8_t	moveprob[6];	// probability that a pirate moves
     float	date;
     float	time;		// time left
     float	reserves;	// life support reserves
@@ -203,9 +201,6 @@ struct Param_struct {
     float	hitfac;		// pirate attack factor
     float	plasfac;	// pirate plaser power eater factor
     float	regenfac;	// regeneration factor
-    float	damfac [NDEV];	// damage factor
-    float	movefac[6];	// pirate move distance multiplier
-    float	navigcrud[2];	// navigation crudup factor
     float	eventdly [NEVENTS]; // event time multipliers
 };
 extern const struct Param_struct Param;
@@ -237,16 +232,6 @@ struct Snapshot_struct {
 };
 extern struct Snapshot_struct Snapshot;
 
-// pirate move indicies
-enum {
-    PM_OB,	// Old quadrant, Before attack
-    PM_OA,	// Old quadrant, After attack
-    PM_EB,	// Enter quadrant, Before attack
-    PM_EA,	// Enter quadrant, After attack
-    PM_LB,	// Leave quadrant, Before attack
-    PM_LA	// Leave quadrant, After attack
-};
-
 // "you lose" codes
 enum LoseReason {
     L_STILLPLAYING,
@@ -260,7 +245,6 @@ enum LoseReason {
     L_TOOFAST,	// pretty stupid going at warp 10
     L_STAR,	// ran into a star
     L_DSTRCT,	// self destructed
-    L_CAPTURED,	// captured by pirates
     L_NOCREW	// you ran out of crew
 };
 
@@ -273,6 +257,15 @@ struct line_iterator {
     bool	xmajor;
     int8_t	xs;
     int8_t	ys;
+};
+
+// Command lists for getcodpar
+typedef void (*cmdfun)(int);
+struct cvntab {
+    const char*	abrev;
+    const char*	full;
+    cmdfun	value;
+    int		value2;
 };
 
 //}}}-------------------------------------------------------------------
@@ -298,56 +291,71 @@ void nova(int, int);
 void snova(int, int);
 
 // move.c
-void setwarp (int);
-void impulse (int);
+void setwarp (void);
+void impulse (void);
 void dowarp (int);
 void autover (void);
 struct line_iterator make_line_iterator (struct xy from, struct xy to);
 void advance_line_iterator (struct line_iterator* li);
+const char* systemname (const struct quad* q) PURE;
+enum SectorContents sector_contents (uint8_t x, uint8_t y) PURE;
+struct quad* current_quad (void) PURE;
+unsigned sector_distance (struct xy a, struct xy b) constexpr;
+unsigned pirates_remaining (void) PURE;
 inline static struct xy absolute_sector_coord (struct xy quad, struct xy sect)
     { struct xy ac = { quad.x*NSECTS + sect.x, quad.y*NSECTS + sect.y }; return ac; }
 
 // pirates.c
 void sort_pirates (void);
-void attack(int);
-void move_pirates (int);
-void capture(int);
+struct Pirate* pirate_at (unsigned x, unsigned y);
+void attack (int);
+void capture (void);
 struct Pirate* select_pirate (void);
-
-// scan.c
-const char* systemname (const struct quad* q) PURE;
-enum SectorContents sector_contents (uint8_t x, uint8_t y) PURE;
-void srscan (int);
-void lrscan (int);
-void visual (int);
-struct quad* current_quad (void) PURE;
-unsigned sector_distance (struct xy a, struct xy b) constexpr;
-unsigned pirates_remaining (void) PURE;
 
 // ship.c
 bool device_works (enum ShipDevice d);
-void damage_report (int v);
+void damage_report (void);
 void damage_device (enum ShipDevice dev, float dam);
 bool device_damaged (enum ShipDevice d);
 void announce_device_damage (enum ShipDevice dev);
-void dock (int v);
-void undock (int v);
-void rest (int v);
+void dock (void);
+void undock (void);
+void rest (void);
 unsigned plaser_effectiveness (unsigned dist);
-void plasers (int v);
-void torped (int v);
-void shield (int f);
-void help (int v);
-void destruct (int v);
+void plasers (void);
+void torped (void);
+void shield (void);
+void cloak (void);
+void help (void);
+void destruct (void);
 
 // spirhunt.c
 void initquad (bool docked);
 struct xy random_empty_sector (void);
 void checkcond (void);
 bool save (void);
-long score (void);
+void save_game (void);
+void myreset (void);
 _Noreturn void win (void);
 _Noreturn void lose (enum LoseReason r);
 float fnrand (void);
+
+// ui.c
+void create_windows (void);
+void draw_screen (void);
+void animate_plaser (struct xy from, struct xy to);
+void animate_torpedo (struct xy from, struct xy to);
+void animate_nova (struct xy nl);
+void print_msg (const char* msg, ...) PRINTFLIKE(1,2);
+void main_command (void);
+int getintpar (const char *s);
+float getfltpar (const char *s);
+bool getynpar (const char *s);
+const struct cvntab *getcodpar (const char *s, const struct cvntab *tab);
+void getstrpar (const char *s, char *r, unsigned l);
+struct xy getdest (const char* prompt);
+void draw_and_sleep (unsigned seconds);
+inline static void delay (unsigned t)
+    { usleep (1000000*t/120); }	// Make delay a fraction of 60Hz to minimize stutter
 
 //}}}-------------------------------------------------------------------

@@ -2,7 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "spirhunt.h"
-#include "getpar.h"
 #include <sys/uio.h>
 #include <sys/stat.h>
 
@@ -29,9 +28,7 @@ const char DeviceName [NDEV][16] = {
     "computer",
     "radio",
     "life support",
-    "cloak",
-    "transporter",
-    "shuttlecraft"
+    "cloak"
 };
 //}}}2
 //{{{2 Systemname
@@ -87,14 +84,6 @@ const struct Param_struct Param = {
     .pirates	= NQUADS*NQUADS/2,
     .torped	= 10,
     .warptime	= 10,
-    .moveprob = {
-	[PM_EA]	= 35,
-	[PM_EB]	= 40,
-	[PM_LA]	= 30,
-	[PM_LB]	= 0,
-	[PM_OA]	= 40,
-	[PM_OB]	= 45
-    },
     .date	= 2000,
     .time	= 14,
     .reserves	= 10,
@@ -103,20 +92,6 @@ const struct Param_struct Param = {
     .hitfac	= 0.5,
     .plasfac	= 0.8,
     .regenfac	= 0.2,
-    .damfac = {
-	0.5, 0.5, 0.5, 0.5, 0.5,
-	0.5, 0.5, 0.5, 0.5, 0.5,
-	0.5, 0.5, 0.5
-    },
-    .movefac = {
-	[PM_EA]	= -0.12,
-	[PM_EB]	= 0.075,
-	[PM_LA]	= 0.25,
-	[PM_LB]	= 0.0,
-	[PM_OA]	= -0.05,
-	[PM_OB]	= .09
-    },
-    .navigcrud	= { 1.50, 0.75 },
     .eventdly = {
 	[E_SNOVA] = 0.5,
 	[E_LRTB]  =25.0,
@@ -145,9 +120,10 @@ struct Snapshot_struct	Snapshot = {};
 
 int main (void)
 {
-    srandrand();
+    initialize_curses();
+    create_windows();
     if (!restore()) {
-	printf ("\n" BOLD_ON "   * * *   SPACE PIRATE HUNT   * * *" BOLD_OFF "\n\n");
+	print_msg ("\n   * * *   SPACE PIRATE HUNT   * * *\n\n");
 	setup();
     }
     play();
@@ -236,13 +212,13 @@ static void setup (void)
     }
 
     // initialize this quadrant
-    printf ("%u pirates\n%u starbases ", pirates_remaining(), Now.bases);
+    print_msg ("%u pirates\n%u starbases ", pirates_remaining(), Now.bases);
     for (unsigned i = 0; i < Now.bases; ++i)
-	printf ("%s " QUAD_FMT, i ? "," : "at", Now.base[i].x, Now.base[i].y);
-    printf ("\n");
+	print_msg ("%s " QUAD_FMT, i ? "," : "at", Now.base[i].x, Now.base[i].y);
+    print_msg ("\n");
     initquad (false);
-    srscan(0);
     attack(0);
+    checkcond();
 }
 
 // Generate quadrant upon entering
@@ -267,10 +243,9 @@ void initquad (bool docked)
 
     // have we blundered into a battle zone w/ shields down?
     if (q->pirates > 0 && !docked && Ship.cond != RED && Ship.cond != CLOAK) {
-	printf ("Condition RED\n");
 	Ship.cond = RED;
-	if (!device_damaged (COMPUTER))
-	    shield(1);
+	if (!Ship.shldup && !device_damaged (COMPUTER))
+	    shield();
     }
 
     // randomly place in-quadrant entities
@@ -313,53 +288,26 @@ struct xy random_empty_sector (void)
 // attack if the move was not free, and checkcond() to check up
 // on how we are doing after the move.
 
-static void save_game (int f UNUSED)
+void save_game (void)
 {
     if (save())
 	exit (EXIT_SUCCESS);
-    puts ("Error: failed to save the game");
+    print_msg ("Error: failed to save the game\n");
 }
 
-static void myreset (int v UNUSED)
+void myreset (void)
     { exit (EXIT_SUCCESS); }
 
 static void play (void)
 {
-    //{{{2 Command table
-    static const struct cvntab Comtab[] = {
-	{"ca","pture",	capture,	0},
-	{"cl","oak",	shield,		-1},
-	{"da","mages",	damage_report,	0},
-	{"destruct","",	destruct,	0},
-	{"do","ck",	dock,		0},
-	{"help", "",	help,		0},
-	{"i","mpulse",	impulse,	0},
-	{"l","rscan",	lrscan,		0},
-	{"m","ove",	dowarp,		0},
-	{"p","lasers",	plasers,	0},
-	{"quit","",	myreset,	0},
-	{"ram","",	dowarp,		1},
-	{"r","est",	rest,		0},
-	{"save","",	save_game,	0},
-	{"sh","ield",	shield,		0},
-	{"s","rscan",	srscan,		0},
-	{"t","orpedo",	torped,		0},
-	{"u","ndock",	undock,		0},
-	{"v","isual",	visual,		0},
-	{"w","arp",	setwarp,	0},
-	{}
-    };
-    //}}}2
     for (;;) {
+	draw_screen();
 	Move.free = 1;
 	Move.time = 0.0;
 	Move.shldchg = 0;
 	Move.newquad = 0;
 	Move.resting = 0;
-	const struct cvntab* r = getcodpar ("Command", Comtab);
-	if (!r)
-	    continue;
-	(*r->value)(r->value2);
+	main_command();
 	events (0);
 	attack (0);
 	checkcond();
@@ -455,21 +403,21 @@ bool save (void)
     if (0 != access (savename, R_OK))
 	mkpath (savename, S_IRWXU);
     if (0 != access (savename, W_OK)) {
-	printf ("Error: you are not allowed to write to '%s'\n", savename);
+	print_msg ("Error: you are not allowed to write to '%s'\n", savename);
 	return false;
     }
     player_saved_game_file (ArrayBlock(savename), SPIRHUNT_SAVE_NAME);
 
     int fd = creat (savename, S_IRUSR| S_IWUSR);
     if (fd < 0) {
-	printf ("Error: unable to create save file '%s': %s\n", savename, strerror(errno));
+	print_msg ("Error: unable to create save file '%s': %s\n", savename, strerror(errno));
 	return false;
     }
     struct save_header header = {{'s','p','i','r','h','t'}, sum_save_array()};
     if (sizeof(header) != write (fd, &header, sizeof(header))
 	|| 0 >= writev (fd, s_save_array, ArraySize(s_save_array))
 	|| 0 > close (fd)) {
-	printf ("Error writing save file '%s': %s\n", savename, strerror(errno));
+	print_msg ("Error writing save file '%s': %s\n", savename, strerror(errno));
 	close (fd);
 	return false;
     }
@@ -492,7 +440,7 @@ static bool restore (void)
     struct save_header header;
     if (sizeof(header) != read (fd, &header, sizeof(header))
 	|| 0 >= readv (fd, s_save_array, ArraySize(s_save_array))) {
-	printf ("Error: reading '%s': %s\n", savename, strerror(errno));
+	print_msg ("Error: reading '%s': %s\n", savename, strerror(errno));
 	close (fd);
 	exit (EXIT_FAILURE);
     }
@@ -500,7 +448,7 @@ static bool restore (void)
     if (memcmp (header.magictext, "spirht", sizeof(header.magictext)) != 0
 	|| header.sum != sum_save_array()
 	|| !verify_locations()) {
-	printf ("Error: saved game '%s' is corrupt. Please delete it.\n", savename);
+	print_msg ("Error: saved game '%s' is corrupt. Please delete it.\n", savename);
 	exit (EXIT_FAILURE);
     }
     unlink (savename);
@@ -511,7 +459,7 @@ static bool restore (void)
 //{{{ Score
 
 // PRINT OUT THE CURRENT SCORE
-long score (void)
+static _Noreturn long score (void)
 {
     printf ("\n*** Your score:\n");
     int u = Game.pirates_killed;
@@ -558,7 +506,7 @@ long score (void)
     if (t != 0)
 	printf ("%d casualties\t\t\t\t%6d\n", u, t);
     printf ("\n***  TOTAL\t\t\t%14ld\n", s);
-    return s;
+    exit (EXIT_SUCCESS);
 }
 
 //}}}-------------------------------------------------------------------
@@ -573,16 +521,12 @@ long score (void)
 // Pretty straightforward, although the promotion algorithm is
 // pretty off the wall.
 
-void win (void)
+_Noreturn void win (void)
 {
-    printf ("\nCongratulations, you have saved the Galaxy\n");
     Move.endgame = 1;
-
-    // print and return the score
-    score();
-
-    // clean out input, and request new game
-    exit (EXIT_SUCCESS);
+    cleanup_curses();
+    printf ("Congratulations, you have saved the Galaxy\n");
+    score();	// print and return the score
 }
 
 // PRINT OUT LOSER MESSAGES
@@ -606,12 +550,11 @@ _Noreturn void lose (enum LoseReason why)
 	"Your ship was ticketed for speeding\0"
 	"You have burned up in a star\0"
 	"Well, you destroyed yourself, but it didn't do any good\0"
-	"You have been captured by pirates and mercilessly tortured\0"
 	"Your last crew member died"
     };
-    printf ("\n%s\n", zstrn (Losemsg, why, 14));
+    cleanup_curses();
+    printf ("%s\n", zstrn (Losemsg, why, 14));
     score();
-    exit (EXIT_SUCCESS);
 }
 
 //}}}-------------------------------------------------------------------

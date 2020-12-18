@@ -32,7 +32,7 @@ void srandrand (void)
 // Generate a random number in given range
 unsigned nrand (unsigned r)
 {
-    return rand() % r;
+    return !r ? 0 : rand() % r;
 }
 
 // Return current time in milliseconds

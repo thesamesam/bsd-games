@@ -2,7 +2,6 @@
 // This file is free software, distributed under the BSD license.
 
 #include "spirhunt.h"
-#include "getpar.h"
 
 //{{{ Ship devices -----------------------------------------------------
 
@@ -22,7 +21,7 @@ bool device_works (enum ShipDevice d)
 	return true;
     announce_device_damage (d);	// report it as being dead
     if (Ship.cond == DOCKED) {
-	printf ("  Using starbase %s\n", DeviceName[d]);
+	print_msg ("  Using starbase %s\n", DeviceName[d]);
 	return true;
     }
     return false;
@@ -38,7 +37,7 @@ bool device_works (enum ShipDevice d)
 // magic number DAMFAC is used to tell how much faster you can
 // fix things if you are docked.
 
-void damage_report (int v UNUSED)
+void damage_report (void)
 {
     // Set up the magic factors to output repair time
     float m1 = 1, m2 = Param.dockfac;
@@ -56,18 +55,18 @@ void damage_report (int v UNUSED)
 	// output the title first time
 	if (allok) {
 	    allok = false;
-	    printf ("Damage control report:\n"
+	    print_msg ("Damage control report:\n"
 		    "\t\t\t  repair times\n"
 		    "device\t\t\tin flight  docked\n");
 	}
 	// compute time till fixed, then adjust by the magic factors
 	float x = e->date - Now.date;
-	printf ("%-24s%7.2f  %7.2f\n", DeviceName[e->systemname], x*m1 + 0.005, x*m2 + 0.005);
+	print_msg ("%-24s%7.2f  %7.2f\n", DeviceName[e->systemname], x*m1 + 0.005, x*m2 + 0.005);
     }
 
     // if everything was ok, reassure the nervous captain
     if (allok)
-	printf ("All devices functional\n");
+	print_msg ("All devices functional\n");
 }
 
 // Schedule Ship.damages to a Device
@@ -87,7 +86,7 @@ void damage_device (enum ShipDevice dev, float dam)
 {
     if (dam <= 0)
 	return; // ignore zero damages
-    printf ("\t%s damaged\n", DeviceName[dev]);
+    print_msg ("\t%s damaged\n", DeviceName[dev]);
 
     // find actual length till it will be fixed
     if (Ship.cond == DOCKED)
@@ -126,12 +125,12 @@ bool device_damaged (enum ShipDevice d)
 void announce_device_damage (enum ShipDevice dev)
 {
     const char* d = DeviceName[dev];
-    printf ("%s ", d);
+    print_msg ("%s ", d);
     if (d[strlen(d)-1] == 's')
-	printf ("are");
+	print_msg ("are");
     else
-	printf ("is");
-    printf (" damaged\n");
+	print_msg ("is");
+    print_msg (" damaged\n");
 }
 
 //}}}-------------------------------------------------------------------
@@ -157,22 +156,19 @@ static bool adjacent_to_starbase (void)
 // place sooner. This provides for the faster repairs when you
 // are docked.
 
-void dock (int v UNUSED)
+void dock (void)
 {
-    if (Ship.cond == DOCKED) {
-	printf ("We are already docked.\n");
-	return;
-    }
-    if (!adjacent_to_starbase()) {
-	printf ("We are not adjacent to a starbase.\n");
-	return;
-    }
-    printf ("Docking procedure successful.\n");
+    if (Ship.cond == DOCKED)
+	return print_msg ("We are already docked.\n");
+    if (!adjacent_to_starbase())
+	return print_msg ("We are not adjacent to a starbase.\n");
+    if (Ship.cloaked)
+	return print_msg ("We can not dock while cloaked.\n");
+    print_msg ("Docking procedure successful.\n");
 
     // Reset ship's defenses
     Ship.cond = DOCKED;
-    Ship.shldup = 0;
-    Ship.cloaked = 0;
+    Ship.shldup = false;
     Ship.reserves = Param.reserves;
 
     // Restore resources
@@ -184,7 +180,7 @@ void dock (int v UNUSED)
     // Offload captured pirates
     unsigned ncaptives = Param.brigfree - Ship.brigfree;
     if (ncaptives) {
-	printf ("%u captive pirates offloaded to starbase for trial\n", ncaptives);
+	print_msg ("%u captive pirates offloaded to starbase for trial\n", ncaptives);
 	Game.captives += ncaptives;
 	Ship.brigfree += ncaptives;
     }
@@ -199,13 +195,11 @@ void dock (int v UNUSED)
 }
 
 // LEAVE A STARBASE
-void undock (int v UNUSED)
+void undock (void)
 {
-    if (Ship.cond != DOCKED) {
-	printf ("We are not docked.\n");
-	return;
-    }
-    printf ("Undocking complete.\n");
+    if (Ship.cond != DOCKED)
+	return print_msg ("We are not docked.\n");
+    print_msg ("Undocking complete.\n");
     Ship.cond = GREEN;
     Move.free = 0;
 
@@ -227,7 +221,7 @@ void undock (int v UNUSED)
 // In events() you will be given an opportunity to cancel the
 // rest period if anything momentous happens.
 //
-void rest (int v UNUSED)
+void rest (void)
 {
     // get the time to rest
     float t = getfltpar ("How long");
@@ -235,7 +229,7 @@ void rest (int v UNUSED)
 	return;
     unsigned percent = 100 * t / Now.time + 0.5;
     if (percent >= 70) {
-	printf ("That would take %u%% of our remaining time.\n", percent);
+	print_msg ("That would take %u%% of our remaining time.\n", percent);
 	if (!getynpar ("Are you really certain that is wise"))
 	    return;
     }
@@ -263,41 +257,36 @@ unsigned plaser_effectiveness (unsigned dist)
     return c_eff [min_u (dist, ArraySize(c_eff)-1)];
 }
 
-void plasers (int v UNUSED)
+void plasers (void)
 {
-    if (device_damaged (PLASER)) {
-	announce_device_damage (PLASER);
-	return;
-    }
-    if (Ship.cond == DOCKED) {
-	printf ("Plasers cannot fire through starbase shields\n");
-	return;
-    }
-    if (Ship.cloaked) {
-	printf ("Plasers are inoperative while cloaked\n");
-	return;
-    }
+    if (Ship.cond == DOCKED)
+	return print_msg ("Plasers cannot fire through starbase shields\n");
+    if (Ship.cloaked)
+	return print_msg ("Plasers are inoperative while cloaked\n");
     unsigned max_targets = min_u (NBANKS, current_quad()->pirates);
-    if (!max_targets) {
-	printf ("There are no pirates in this quadrant\n");
-	return;
-    }
-    if (Ship.energy < Param.energylow + max_targets) {
-	printf ("Energy levels are too low to charge plaser banks\n");
-	return;
-    }
+    bool havesrs = !device_damaged (SRSCAN);
+    if (!havesrs) // With sensors out, limit targets to visual range
+	for (unsigned i = 0; i < max_targets; ++i)
+	    if (VISCAN_RANGE < sector_distance (Ship.sect, Etc.pirate[i].sect))
+		max_targets = i;
+    if (!max_targets)
+	return print_msg ("There are no pirates in this quadrant\n");
+    if (device_damaged (PLASER))
+	return announce_device_damage (PLASER);
+    if (Ship.energy < Param.energylow + max_targets)
+	return print_msg ("Energy levels are too low to charge plaser banks\n");
     unsigned energy = Ship.energy - Param.energylow;
 
     // Get all targets first
-    printf ("Plasers locked on %u targets\n", max_targets);
     struct { uint16_t units; } bank [NBANKS] = {};
     unsigned ntargets = 0;
     for (; ntargets < max_targets; ++ntargets) {
 	const struct Pirate* p = &Etc.pirate[ntargets];
 	unsigned dist = sector_distance (Ship.sect, p->sect);
 	unsigned eff = plaser_effectiveness (dist);
-	printf ("Bank %u targets " SECT_FMT ", has %u units, %u%% eff\n", ntargets, p->sect.x, p->sect.y, energy, 100*eff/128);
-	unsigned units = getintpar ("Units to fire");
+	char prompt [32];
+	snprintf (ArrayBlock(prompt), "[%hu,%hu%%] %u->" SECT_FMT, energy, 100*eff/128, ntargets, p->sect.x, p->sect.y);
+	unsigned units = getintpar (prompt);
 	if (!units || units > energy)
 	    break;
 	energy -= units;
@@ -307,42 +296,40 @@ void plasers (int v UNUSED)
     // Fire all banks
     unsigned wasted_energy = 0;
     for (unsigned i = 0; i < ntargets; ++i) {
-	printf ("Plaser bank %u firing at " SECT_FMT " ", i, Etc.pirate[i].sect.x, Etc.pirate[i].sect.y);
+	print_msg ("Plaser bank %u firing at " SECT_FMT " ", i, Etc.pirate[i].sect.x, Etc.pirate[i].sect.y);
 	Ship.energy -= bank[i].units;
 	unsigned hit = 0;
 	for (struct line_iterator li = make_line_iterator (Ship.sect, Etc.pirate[i].sect);;) {
 	    advance_line_iterator (&li);
 	    if (!hit)
-		printf (".");
+		print_msg (".");
 	    if (li.p.x >= NSECTS || li.p.y >= NSECTS) {
 		wasted_energy += bank[i].units;
 		if (!hit)
-		    printf (" missed\n");
+		    print_msg (" missed\n");
 		break;
 	    }
 	    enum SectorContents sc = sector_contents (li.p.x, li.p.y);
 	    if (sc == EMPTY || !nrand(64))
 		continue;
 	    if (!hit)
-		printf (" hit\n");
+		print_msg (" hit\n");
+	    animate_plaser (Ship.sect, li.p);
 	    unsigned dist = sector_distance (Ship.sect, li.p);
 	    unsigned eff = plaser_effectiveness (dist);
 	    hit = bank[i].units * (eff - nrand(eff/8)) / 128;
 	    if (sc == PIRATE) {
-		struct Pirate* p = NULL;
-		for (unsigned j = 0; j < current_quad()->pirates; ++j)
-		    if (Etc.pirate[j].sect.x == li.p.x && Etc.pirate[j].sect.y == li.p.y)
-			p = &Etc.pirate[j];
+		struct Pirate* p = pirate_at (li.p.x, li.p.y);
 		if (!p) {
-		    printf ("Uh... Sorry captain, I thought it hit something.\n");
+		    print_msg ("Uh... Sorry captain, I thought it hit something.\n");
 		    break;
 		}
 		if (p->power < hit)
 		    hit = p->power;
-		printf ("%u unit hit on pirate", hit);
+		print_msg ("%u unit hit on pirate", hit);
 		if (!device_damaged (SRSCAN))
-		    printf (" at " SECT_FMT, p->sect.x, p->sect.y);
-		printf ("\n");
+		    print_msg (" at " SECT_FMT, p->sect.x, p->sect.y);
+		print_msg ("\n");
 		p->power -= hit;
 		if (!p->power)
 		    kill_pirate (p->sect.x, p->sect.y);
@@ -357,20 +344,20 @@ void plasers (int v UNUSED)
 		    if (bank[i].units)
 			continue;
 		} else
-		    printf ("Plaser fire absorbed by starbase shields\n");
+		    print_msg ("Plaser fire absorbed by starbase shields\n");
 	    } else if (sc == STAR)
-		printf ("Plaser fire absorbed by star\n");
+		print_msg ("Plaser fire absorbed by star\n");
 	    else if (sc == HOLE)
-		printf ("Plaser fire absorbed by black hole\n");
+		print_msg ("Plaser fire absorbed by black hole\n");
 	    else if (sc == INHABIT)
-		printf ("Plaser fire absorbed by planetary atmosphere\n");
+		print_msg ("Plaser fire absorbed by planetary atmosphere\n");
 	    else
-		printf ("Unknown object '%c' at " SECT_FMT " destroyed\n", sc, li.p.x, li.p.y);
+		print_msg ("Unknown object '%c' at " SECT_FMT " destroyed\n", sc, li.p.x, li.p.y);
 	    break;
 	}
     }
     if (wasted_energy)
-	printf ("%u units wasted on empty space\n", wasted_energy);
+	print_msg ("%u units wasted on empty space\n", wasted_energy);
     Move.free = false;
 }
 
@@ -392,30 +379,25 @@ void plasers (int v UNUSED)
 // randomized even more. You also have the chance that the misfire damages
 // your torpedo tubes.
 
-void torped (int v UNUSED)
+void torped (void)
 {
-    if (Ship.cloaked) {
-	printf ("Regulations do not permit attack while cloaked.\n");
-	return;
-    }
+    if (Ship.cloaked)
+	return print_msg ("Regulations do not permit attack while cloaked.\n");
     if (!device_works (TORPED))
 	return;
-    if (!Ship.torped) {
-	printf ("All torpedoes expended\n");
-	return;
-    }
+    if (!Ship.torped)
+	return print_msg ("All torpedoes expended\n");
     unsigned max_targets = min_u (min_u (Ship.torped, current_quad()->pirates), NTORPEDOES);
-    if (!max_targets) {
-	printf ("There's nobody here to torpedo, captain\n");
-	return;
-    }
+    if (!max_targets)
+	return print_msg ("There's nobody here to torpedo, captain\n");
 
     // get the targets
     struct xy torpt [NTORPEDOES] = {{UINT8_MAX,UINT8_MAX}};
     unsigned ntofire = 0;
     for (; ntofire < max_targets; ++ntofire) {
-	printf ("Targeting torpedo tube %u\n", ntofire+1);
-	torpt[ntofire] = getdest();
+	char prompt [16];
+	snprintf (ArrayBlock(prompt), "Torpedo %u to", ntofire+1);
+	torpt[ntofire] = getdest (prompt);
 	if (torpt[ntofire].x >= NQUADS*NSECTS || torpt[ntofire].y >= NQUADS*NSECTS)
 	    break;	// cancelled this tube
 	torpt[ntofire].x %= NSECTS;	// use only sector address here
@@ -423,39 +405,34 @@ void torped (int v UNUSED)
     }
     for (unsigned i = 0; i < ntofire; ++i) {
 	--Ship.torped;
-	printf ("Torpedo %u track:", i+1);
 	for (struct line_iterator li = make_line_iterator (Ship.sect, torpt[i]);;) {
 	    advance_line_iterator (&li);
-	    if (li.p.x >= NSECTS || li.p.y >= NSECTS) {
-		printf (" missed\n");
+	    if (li.p.x >= NSECTS || li.p.y >= NSECTS)
 		break;
-	    }
-	    printf (" " SECT_FMT, li.p.x, li.p.y);
 	    enum SectorContents sc = sector_contents (li.p.x, li.p.y);
 	    if (sc == EMPTY || !nrand(64))
 		continue;
-	    printf (" hit\n");
+	    animate_torpedo (Ship.sect, li.p);
 	    if (sc == PIRATE) {
-		for (unsigned p = 0; p < current_quad()->pirates; ++p) {
-		    if (Etc.pirate[p].sect.x != li.p.x || Etc.pirate[p].sect.y != li.p.y)
-			continue;
-		    Etc.pirate[p].power -= min_u (Etc.pirate[p].power, 500 + nrand(501));
-		    if (!Etc.pirate[p].power)
-			kill_pirate (li.p.x, li.p.y);
+		struct Pirate* p = pirate_at (li.p.x, li.p.y);
+		if (p) {
+		    p->power -= min_u (p->power, 500 + nrand(501));
+		    if (!p->power)
+			kill_pirate (p->sect.x, p->sect.y);
 		    else
-			printf ("*** Hit on pirate at " SECT_FMT ": extensive damages\n", li.p.x, li.p.y);
+			print_msg ("*** Hit on pirate at " SECT_FMT ": extensive damages\n", p->sect.x, p->sect.y);
 		}
 	    } else if (sc == STAR)
 		nova (li.p.x, li.p.y);
 	    else if (sc == HOLE)
-		printf ("Torpedo disappears into a black hole\n");
+		print_msg ("Torpedo disappears into a black hole\n");
 	    else if (sc == INHABIT)
 		kill_starsystem (li.p.x, li.p.y, -1);
 	    else if (sc == BASE) {
 		kill_starbase (Ship.quad.x, Ship.quad.y);
 		++Game.bases_killed;
 	    } else
-		printf ("Unknown object '%c' at " SECT_FMT " destroyed\n", sc, li.p.x, li.p.y);
+		print_msg ("Unknown object '%c' at " SECT_FMT " destroyed\n", sc, li.p.x, li.p.y);
 	    break;
 	}
 	if (device_damaged (TORPED) || current_quad()->stars == SUPERNOVA)
@@ -467,91 +444,47 @@ void torped (int v UNUSED)
 //}}}-------------------------------------------------------------------
 //{{{ Shields and cloaking
 
-// SHIELD AND CLOAKING DEVICE CONTROL
+// SHIELD CONTROL
 //
-// 'f' is one for auto shield up (in case of Condition RED),
-// zero for shield control, and negative one for cloaking
-// device control.
-//
-// Called with an 'up' or 'down' on the same line, it puts
-// the shields/cloak into the specified mode. Otherwise it
-// reports to the user the current mode, and asks if he wishes
-// to change.
+// Toggles shield up/down.
 //
 // This is not a free move. Hits that occur as a result of
 // this move appear as though the shields are half up/down,
 // so you get partial hits.
-
-void shield (int f)
+//
+void shield (void)
 {
-    if (f > 0 && (Ship.shldup || device_damaged (SRSCAN)))
-	return;
-    const char *device, *dev2, *dev3;
-    bool* stat;
-    int ind;
-    if (f < 0) {
-	// cloaking device
-	device = "Cloaking device";
-	dev2 = "is";
-	ind = CLOAK;
-	dev3 = "it";
-	stat = &Ship.cloaked;
-    } else {
-	// shields
-	device = "Shields";
-	dev2 = "are";
-	dev3 = "them";
-	ind = SHIELD;
-	stat = &Ship.shldup;
+    if (!Ship.shldup) {
+	if (Ship.cond == DOCKED)
+	    return print_msg ("Shields can not be raised while docked\n");
+	if (device_damaged (SHIELD))
+	    return announce_device_damage (SHIELD);
     }
-    if (device_damaged (ind)) {
-	if (f <= 0)
-	    announce_device_damage (ind);
-	return;
-    }
-    if (Ship.cond == DOCKED) {
-	printf ("%s %s down while docked\n", device, dev2);
-	return;
-    }
-    bool enable;
-    if (f <= 0) {
-	static const struct cvntab Udtab[] = {
-	    {"u","p",	NULL, true},
-	    {"d","own",	NULL, false},
-	    {}
-	};
-	const struct cvntab* a = getcodpar ("Up or down", Udtab);
-	if (!a)
-	    return;
-	enable = a->value2;
-    } else {
-	char s [100];
-	if (*stat)
-	    snprintf (ArrayBlock(s), "%s %s up. Do you want %s down", device, dev2, dev3);
-	else
-	    snprintf (ArrayBlock(s), "%s %s down. Do you want %s up", device, dev2, dev3);
-	if (!getynpar (s))
-	    return;
-	enable = !*stat;
-    }
-    if (*stat == enable) {
-	printf ("%s already ", device);
-	if (enable)
-	    printf ("up\n");
-	else
-	    printf ("down\n");
-	return;
-    }
-    if (enable) {
-	if (f >= 0)
-	    Ship.energy -= Param.shupengy;
-	else
-	    Ship.cloakgood = 0;
-    }
-    Move.free = 0;
-    if (f >= 0)
+    Ship.shldup = !Ship.shldup;
+    Move.free = false;
+    if (Ship.shldup) {
+	Ship.energy -= Param.shupengy;
 	Move.shldchg = 1;
-    *stat = enable;
+    }
+}
+
+// CLOAKING DEVICE CONTROL
+//
+// Toggles cloaking device.
+// This is not a free move. Cloak takes time to take effect.
+//
+void cloak (void)
+{
+    if (!Ship.cloaked) {
+	if (Ship.cond == DOCKED)
+	    return print_msg ("Cloaking is not permitted in dock\n");
+	if (device_damaged (CLOAK))
+	    return announce_device_damage (CLOAK);
+    }
+    Ship.cloaked = !Ship.cloaked;
+    Move.free = false;
+    if (Ship.cloaked)
+	Ship.cloakgood = false;
 }
 
 //}}}-------------------------------------------------------------------
@@ -575,23 +508,17 @@ void shield (int f)
 // it drops you there. It only tries five times to find a spot
 // to drop you. After that, it's your problem.
 
-void help (int v UNUSED)
+void help (void)
 {
     // Check to see if calling for help is reasonable ...
-    if (Ship.cond == DOCKED) {
-	printf ("But Captain, we're already docked\n");
-	return;
-    }
+    if (Ship.cond == DOCKED)
+	return print_msg ("But Captain, we're already docked\n");
     // ... or possible
-    if (device_damaged (SSRADIO)) {
-	announce_device_damage (SSRADIO);
-	return;
-    }
-    sleep (1);
-    if (Now.bases <= 0) {
-	printf ("Captain, there is no response to our distress call.\n");
-	return;
-    }
+    if (device_damaged (SSRADIO))
+	return announce_device_damage (SSRADIO);
+    draw_and_sleep (1);
+    if (Now.bases <= 0)
+	return print_msg ("Captain, there is no response to our distress call.\n");
 
     // Find the closest destination base
     unsigned dist = UINT_MAX, l = 0;
@@ -604,7 +531,7 @@ void help (int v UNUSED)
     }
 
     // Go to that quadrant
-    printf ("Starbase in " QUAD_FMT " responds\n", Ship.quad.x, Ship.quad.y);
+    print_msg ("Starbase in " QUAD_FMT " responds\n", Ship.quad.x, Ship.quad.y);
     Ship.quad = Now.base[l];
     initquad (true);
     ++Game.helps;
@@ -620,14 +547,14 @@ void help (int v UNUSED)
 		dest = spot;
 	}
     }
-    sleep(1);
+    draw_and_sleep(1);
     if (dest.x >= NSECTS || dest.y >= NSECTS) {
-	printf ("Unfortunately the long range transporter malfunctions.\n");
+	print_msg ("Unfortunately the long range transporter malfunctions.\n");
 	return lose (L_NOHELP);
     }
-    printf ("Long range transport successful.\n");
+    print_msg ("Long range transport successful.\n");
     Ship.sect = dest;
-    dock(0);
+    dock();
     sort_pirates();
 }
 
@@ -635,54 +562,43 @@ void help (int v UNUSED)
 //
 // The computer starts up the self destruct sequence. Obviously,
 // if the computer is out nothing can happen. You get a countdown
-// and a request for password. This must match the password that
-// you entered at the start of the game.
+// and a request for password (which, of course, is "password" :)
 //
 // You get to destroy things when you blow up; hence, it is
 // possible to win the game by destructing if you take the last
 // pirate with you.
 //
-// By the way, the \032 in the message is a ^Z, which is because
-// the terminal in my office is an ADM-3, which uses that char-
-// acter to clear the screen. I also stick in a \014 (form feed)
-// because that clears some other screens.
-//
-// Uses trace flag 41
-
-void destruct(int v UNUSED)
+void destruct (void)
 {
-    if (device_damaged (COMPUTER)) {
-	announce_device_damage (COMPUTER);
-	return;
-    }
-    printf ("\n" BOLD_ON "--- WORKING ---" BOLD_OFF "\n");
-    sleep(3);
+    if (device_damaged (COMPUTER))
+	return announce_device_damage (COMPUTER);
+    print_msg ("\n--- Self-destruct sequence activated ---\n");
+    draw_and_sleep(1);
     // output the count 10 9 8 7 6
     for (unsigned i = 10; i > 5; --i) {
 	for (unsigned j = 10; j > i; --j)
-	    printf ("   ");
-	printf ("%u\n", i);
-	sleep(1);
+	    print_msg ("   ");
+	print_msg ("%u\n", i);
+	draw_and_sleep(1);
     }
     // check for password on new line only
     char checkpass[16];
-    getstrpar ("For verification, enter password", ArrayBlock(checkpass)-1);
-    sleep(1);
-    if (strcmp (checkpass, "password") != 0) {
-	printf ("Incorrect. Self destruct sequence aborted.\n");
-	return;
-    }
-    printf ("Password verified; self destruct sequence continues:\n");
-    sleep(1);
+    getstrpar ("Password", ArrayBlock(checkpass)-1);
+    draw_and_sleep(1);
+    if (strcmp (checkpass, "password") != 0)
+	return print_msg ("Incorrect. Self-destruct sequence aborted.\n");
+    print_msg ("Password verified; self-destruct sequence continues:\n");
+    draw_and_sleep(1);
     // output count 5 4 3 2 1 0
     for (unsigned i = 6; i-- > 0;) {
-	sleep(1);
 	for (unsigned j = 5; j > i; --j)
-	    printf ("   ");
-	printf ("%u\n", i);
+	    print_msg ("   ");
+	print_msg ("%u\n", i);
+	draw_and_sleep(1);
     }
-    sleep(1);
-    printf (BOLD_ON "***** Your ship is destroyed *****" BOLD_OFF "\n");
+    animate_nova (Ship.sect);
+    print_msg ("***** Your ship is destroyed *****\n");
+    draw_and_sleep(1);
     Game.killed = true;
     // let's see what we can blow up!!!!
     float zap = 20.0 * Ship.energy;
