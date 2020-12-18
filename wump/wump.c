@@ -103,7 +103,7 @@ int main (int argc, char* const* argv)
     cave_init();
 
     // and we're OFF!  da dum, da dum, da dum, da dum...
-    printf ("Hunt the Wumpus!\n"
+    printf ("\n" BOLD_ON "Hunt the Wumpus!" BOLD_OFF "\n"
 	    "\n"
 	    "You're in a cave with %u rooms and %u tunnels leading from each room.\n"
 	    "There are %u bat%s and %u pit%s scattered throughout the cave, and your\n"
@@ -114,7 +114,7 @@ int main (int argc, char* const* argv)
     for (;;) {
 	display_room_stats();
 
-	printf ("-> Move or shoot? [ms?q] ");
+	printf (BOLD_ON "ms?>" BOLD_OFF " ");
 	char answer [16];
 	if (!fgets (ArrayBlock(answer), stdin))
 	    break;
@@ -126,7 +126,7 @@ int main (int argc, char* const* argv)
 	else if (answer[0] == 'm') {
 	    uint8_t dest = atoi (&answer[1]);
 	    if (!dest || (!room_has_door_to (cave.player_loc, dest-1) && dest-1 != cave.rooms)) {	// dest == cave.rooms results in entering a random magic tunnel
-		printf (" > Move where? Try saying 'm%u'.\n", cave.room[cave.player_loc].tunnel[0]+1);
+		printf ("   > Move where? Try saying 'm%u'.\n", cave.room[cave.player_loc].tunnel[0]+1);
 		continue;
 	    }
 	    if (do_move (dest-1))
@@ -138,13 +138,13 @@ int main (int argc, char* const* argv)
 	    for (char* numend; pathsz < ArraySize(path) && (path[pathsz] = strtoul (nlist, &numend, 10)); nlist = numend)
 		--path[pathsz++];
 	    if (!pathsz) {
-		printf (" > Shoot into which room? Try saying 's%u'.\n", cave.room[cave.player_loc].tunnel[0]+1);
+		printf ("   > Shoot into which room? Try saying 's%u'.\n", cave.room[cave.player_loc].tunnel[0]+1);
 		continue;
 	    }
 	    if (do_shoot (path, pathsz))
 		break;	// returns true if game is over
 	} else
-	    printf (" > I don't understand. Try '?' for help.\n");
+	    printf ("   > I don't understand. Try '?' for help.\n");
     }
     return EXIT_SUCCESS;
 }
@@ -157,18 +157,18 @@ static void display_room_stats(void)
     printf ("\nYou are in room %u of the cave, and have %u arrow%s left.\n", cave.player_loc+1, cave.arrows, plural(cave.arrows));
 
     if (bats_nearby())
-	printf("*rustle* *rustle* (must be bats nearby)\n");
+	printf (BOLD_ON "*rustle* *rustle*" BOLD_OFF " (must be bats nearby)\n");
     if (pit_nearby())
-	printf("*whoosh* (I feel a draft from some pits).\n");
+	printf (BOLD_ON "*whoosh*" BOLD_OFF " (I feel a draft from some pits).\n");
     if (wump_nearby())
-	printf("*sniff* (I can smell the evil Wumpus nearby!)\n");
+	printf (BOLD_ON "*sniff*" BOLD_OFF " (I can smell the " BOLD_ON "evil Wumpus" BOLD_OFF" nearby!)\n");
 
-    printf("There are tunnels to rooms %u", cave.room[cave.player_loc].tunnel[0]+1);
+    printf ("There are tunnels to rooms %u", cave.room[cave.player_loc].tunnel[0]+1);
 
     for (unsigned i = 1; i < cave.doors-1u; i++)
 	if (cave.room[cave.player_loc].tunnel[i] <= cave.rooms)
-	    printf(", %u", cave.room[cave.player_loc].tunnel[i]+1);
-    printf(", and %u.\n", cave.room[cave.player_loc].tunnel[cave.doors-1]+1);
+	    printf (", %u", cave.room[cave.player_loc].tunnel[i]+1);
+    printf (", and %u.\n", cave.room[cave.player_loc].tunnel[cave.doors-1]+1);
 }
 
 // Returns true if game is over
@@ -183,7 +183,7 @@ static bool do_move (uint8_t destroom)
     cave.player_loc = destroom;
     for (bool just_moved_by_bats = false;;) {
 	if (cave.player_loc == cave.wumpus_loc) {	// uh oh...
-	    printf ("*ROAR* *chomp* *snurfle* *chomp*!\n"
+	    printf (BOLD_ON "*ROAR* *chomp* *snurfle* *chomp*!" BOLD_OFF "\n"
 		"Much to the delight of the Wumpus, you walked right into his mouth,\n"
 		"making you one of the easiest dinners he's ever had! For you, however,\n"
 		"it's a rather unpleasant death. The only good thing is that it's been\n"
@@ -198,7 +198,7 @@ static bool do_move (uint8_t destroom)
 			"depths of a bottomless pit! Rock crumbles beneath your feet!\n");
 		return false;
 	    } else {
-		printf ("*AAAUUUUGGGGGHHHHHhhhhhhhhhh...*\n"
+		printf (BOLD_ON "*AAAUUUUGGGGGHHHHHhhhhhhhhhh...*" BOLD_OFF "\n"
 			"The whistling sound and updraft as you walked into this room of the\n"
 			"cave apparently wasn't enough to clue you in to the presence of the\n"
 			"bottomless pit. You have a lot of time to reflect on this error as\n"
@@ -208,7 +208,7 @@ static bool do_move (uint8_t destroom)
 	    }
 	}
 	if (cave.room[cave.player_loc].has_a_bat) {
-	    printf("*flap*  *flap*  *flap*  (humongous bats pick you up and move you%s!)\n", just_moved_by_bats ? " again" : "");
+	    printf (BOLD_ON "*flap*  *flap*  *flap*" BOLD_OFF "  (humongous bats pick you up and move you%s!)\n", just_moved_by_bats ? " again" : "");
 	    cave.player_loc = nrand (cave.rooms);
 	    just_moved_by_bats = true;
 	} else
@@ -236,7 +236,7 @@ static bool do_shoot (const uint8_t* path, uint8_t pathsz)
 	    puts ("A faint gleam tells you the arrow has gone through a magic tunnel!");
 	    arrow_loc = nrand (cave.rooms);
 	} else {
-	    printf ("*thunk* The arrow can't find a way from %u to %u\n", arrow_loc+1, destroom+1);
+	    printf (BOLD_ON "*thunk*" BOLD_OFF " The arrow can't find a way from %u to %u\n", arrow_loc+1, destroom+1);
 	    arrow_loc = cave.room[arrow_loc].tunnel[nrand(cave.doors)];
 	    if (arrow_loc == cave.player_loc)
 		printf ("\tIt flies back into your room!\n");
@@ -247,7 +247,7 @@ static bool do_shoot (const uint8_t* path, uint8_t pathsz)
 	// now we've gotten into the new room let us see if El Wumpo is
 	// in the same room ... if so we've a HIT and the player WON!
 	if (arrow_loc == cave.wumpus_loc) {
-	    printf ("*thwock!* *groan* *crash*\n\n"
+	    printf (BOLD_ON "*thwock!* *groan* *crash*" BOLD_OFF "\n\n"
 		    "A horrible roar fills the cave, and you realize, with a smile, that you\n"
 		    "have slain the evil Wumpus and won the game! You don't want to tarry for\n"
 		    "long, however, because not only is the Wumpus famous, but the stench of\n"
@@ -255,21 +255,21 @@ static bool do_shoot (const uint8_t* path, uint8_t pathsz)
 		    "mightiest adventurer at a single whiff!!\n");
 	    return true;
 	} else if (arrow_loc == cave.player_loc) {
-	    printf ("\n*Thwack!* A sudden piercing feeling informs you that the ricochet\n"
+	    printf ("\n" BOLD_ON "*Thwack!*" BOLD_OFF " A sudden piercing feeling informs you that the ricochet\n"
 		    "of your wild arrow has resulted in it wedging in your side, causing\n"
-		    "extreme agony. The evil Wumpus, with its psychic powers, realizes this\n"
-		    "and immediately rushes to your side, not to help, alas, but to EAT YOU!\n"
-		    "(*CHOMP*)\n");
+		    "extreme agony. The evil " BOLD_ON "Wumpus" BOLD_OFF", with its psychic powers, realizes this\n"
+		    "and immediately rushes to your side, not to help, alas, but to " BOLD_ON "EAT YOU!\n"
+		    "(*CHOMP*)" BOLD_OFF "\n");
 	    return true;
 	}
 
 	// See if the arrow can fly farther; longer shots are more dangerous
 	if (pathsz > 2) {
 	    if (!nrand(2*MAX_SHOT_PATH-pathsz)) {
-		printf("Your bowstring breaks! *twaaaaaang*\nThe arrow is weakly shot and can go no further!\n");
+		printf ("Your bowstring breaks! *twaaaaaang*\nThe arrow is weakly shot and can go no further!\n");
 		break;
 	    } else if (!nrand(2*MAX_SHOT_PATH)) {
-		printf("The arrow wavers in its flight and and can go no further!\n");
+		printf ("The arrow wavers in its flight and and can go no further!\n");
 		break;
 	    }
 	}
@@ -288,7 +288,7 @@ static bool do_shoot (const uint8_t* path, uint8_t pathsz)
     if (!nrand (cave.arrows)) {
 	move_wump();
 	if (cave.wumpus_loc == cave.player_loc) {
-	    printf ("*ROAR* *chomp* *snurfle* *chomp*!\n"
+	    printf (BOLD_ON "*ROAR* *chomp* *snurfle* *chomp*!" BOLD_OFF "\n"
 		"Spooked by your arrow, the Wumpus randomly wandered into your room, and,\n"
 		"in a fit of rage, immediately ate you. The only good thing is that it's been\n"
 		"so long since the evil Wumpus cleaned his teeth that you immediately\n"
@@ -489,9 +489,9 @@ static void cave_init (void)
 
 static void instructions (void)
 {
-    puts ("\n\tWelcome to the game of Hunt the Wumpus.\n"
+    puts ("\n\t" BOLD_ON "Welcome to the game of Hunt the Wumpus." BOLD_OFF "\n"
 	"\n"
-	"The Wumpus typically lives in a cave of twenty rooms, with each room\n"
+	"The " BOLD_ON "Wumpus" BOLD_OFF " typically lives in a cave of twenty rooms, with each room\n"
 	"having three tunnels connecting it to other rooms in the cavern. Caves\n"
 	"may vary, however, depending on options specified when starting the game.\n"
 	"\n"
@@ -506,7 +506,7 @@ static void instructions (void)
 	"	    one of their rooms they will rush up and carry you elsewhere\n"
 	"	    in the cave.\n"
 	"\n"
-	"  Wumpus -- If you happen to walk into the room the Wumpus is in you'll\n"
+	"  " BOLD_ON "Wumpus" BOLD_OFF " -- If you happen to walk into the room the Wumpus is in you'll\n"
 	"	    find that he has quite an appetite for young adventurous humans!\n");
 
     const char* lines = getenv ("LINES");
@@ -514,7 +514,7 @@ static void instructions (void)
 	printf ("--enter for more--");
 	getchar();
     }
-    puts ("The Wumpus is not bothered by the hazards since he has sucker feet and\n"
+    puts ("The " BOLD_ON "Wumpus" BOLD_OFF " is not bothered by the hazards since he has sucker feet and\n"
 	"is too big for a bat to lift. He is a sedentary creature by nature,\n"
 	"but if you try to shoot him and miss, there is a chance that he'll up\n"
 	"and move himself into another room.\n"
@@ -526,7 +526,7 @@ static void instructions (void)
 	"If your path for the arrow is incorrect, however, it will flail about in\n"
 	"the room it can't understand and randomly pick a tunnel to continue\n"
 	"through. You might just end up shooting yourself in the foot if you're\n"
-	"not careful!  On the other hand, if you shoot the Wumpus you've WON!\n"
+	"not careful!  On the other hand, if you shoot the " BOLD_ON "Wumpus" BOLD_OFF " you've " BOLD_ON "WON!" BOLD_OFF"\n"
 	"\n"
 	"Good luck.");
 }
