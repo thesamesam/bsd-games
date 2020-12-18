@@ -1,11 +1,9 @@
 # BSD-GAMES
 
 This is the bsd-games package for Linux, containing classic text mode
-games from UNIX folklore. Version 3.0 released here is the first update
-since 2005, when version 2.17 was released. It contains a comprehensive
-overhaul of the entire code base for readability and conformance to
-modern C coding standard. The build system is also updated for automatic
-installation and ease of packaging.
+games from UNIX folklore. `wump`, developed in 1973, `trek` from
+1976 (called `spirhunt` in this version), and `adventure` from 1977,
+are the oldest.
 
 ## Installation
 
@@ -23,7 +21,11 @@ sgid. Scorefiles in /var/lib/bsdgames are owned and writable by the
 users group. For security, each game validates scores when loading.
 Saved game files are also validated and will not cause a crash.
 
-## Contents
+If you find bugs, report them on the github
+[project](https://github.com/msharov/bsd-games)
+[bugtracker](https://github.com/msharov/bsd-games/issues).
+
+## Included
 
 This package contains the following games:
 
@@ -45,12 +47,18 @@ This package contains the following games:
 * worm:		eat the numbers without running into anything
 * wump:		hunt the wumpus
 
-## Removed
+## Excluded
 
 Many programs that were in the original 2.17 distribution were removed
 to focus on providing playable games, rather than a rusty junk pile.
+boggle, mille, and monop were infringing on Hasbro copyrights. hunt,
+dm, and phantasia were unplayable on single-user systems. arithmetic,
+quiz, wtf, rain, worms, bcd, ppt, morse, number, pig, pom, random, and
+wargames, were just plain junk and would likely be missed by no one.
+The following programs were removed because they are already maintained
+elsewhere as seprate projects.
 
-### Maintained elsewhere
+## Found elsewhere
 
 * backgammon:	[https://www.gnu.org/software/gnubg/](https://www.gnu.org/software/gnubg/)
 * banner:	[https://packages.debian.org/stable/bsdmainutils](https://packages.debian.org/stable/bsdmainutils)
@@ -59,32 +67,3 @@ to focus on providing playable games, rather than a rusty junk pile.
 * primes:	[http://primesieve.org/](http://primesieve.org/)
 * rogue:	[http://coredumpcentral.org/](http://coredumpcentral.org/)
 * hack:		[https://www.nethack.org](https://www.nethack.org), [https://github.com/msharov/hack](https://github.com/msharov/hack)
-
-### Infringing on copyrights
-
-* boggle:	Exactly like the eponymous game by Hasbro.
-* mille:	Mille Bornes is copyrighted by Hasbro.
-* monop:	Used Hasbro's Monopoly board and other content.
-
-### Local multiplayer for mainframes
-
-* hunt:		multiplayer only, and has been broken for some time.
-* dm:		a way to stop other users from playing games.
-* phantasia:	mostly multiplayer; playing alone consisted of pressing
-		"1" until you are randomly killed by one of a never
-		ending succession of monsters. There were no rewards,
-		score, fun hit descriptions, or anything else.
-
-### Miscellaneous junk
-
-* arithmetic:	study aid. We have calculators now.
-* quiz:		quizzes on obscure and/or obsolete information.
-* wtf:		outdated acronym lookup. We have Google now.
-* rain, worms:	text-mode screensavers.
-* bcd, ppt:	even museums can't read punchcards any more.
-* morse:	morse code translator?
-* number:	prints badly formated text numbers.
-* pig:		I have no idea what this is for.
-* pom:		phase of the moon?
-* random:	see fortune above.
-* wargames:	a short shell script that prints a one-line message.

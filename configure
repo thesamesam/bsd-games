@@ -4,7 +4,7 @@
 ######################################################################
 
 pkg_name="bsdgames"
-pkg_verstr="v3.0"
+pkg_verstr="v3.1"
 pkg_bugreport="Mike Sharov <msharov@users.sourceforge.net>"
 
 # Files that get created by this script
