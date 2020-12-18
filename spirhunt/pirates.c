@@ -125,7 +125,9 @@ static void move_pirates (bool after_attack)
 	}
 
 	// Check for quadrant change
-	if ((nquad.x != Ship.quad.x || nquad.y != Ship.quad.y) && Quad[nquad.x][nquad.y].pirates < QUAD_PIRATES) {
+	if ((nquad.x != Ship.quad.x || nquad.y != Ship.quad.y)
+		&& Quad[nquad.x][nquad.y].pirates < QUAD_PIRATES
+		&& Quad[nquad.x][nquad.y].stars != SUPERNOVA) {
 	    if (!device_damaged (SRSCAN))
 		print_msg ("Pirate at " SECT_FMT " escapes to quadrant " QUAD_FMT "\n", p->sect.x, p->sect.y, nquad.x, nquad.y);
 	    *p = Etc.pirate[--current_quad()->pirates];

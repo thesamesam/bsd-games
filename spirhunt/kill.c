@@ -124,14 +124,12 @@ void nova (int x, int y)
     struct quad* cq = current_quad();
     if (sector_contents(x,y) != STAR || !cq->stars || cq->stars == SUPERNOVA)
 	return;
-    if (nrand(100) < 15) {
-	print_msg ("Star at " SECT_FMT " failed to nova.\n", x, y);
-	return;
-    }
-    if (nrand(100) < 5) {
-	snova(x, y);
-	return;
-    }
+
+    unsigned willnova = nrand(100);
+    if (willnova < 5)
+	return snova(x, y);
+    else if (willnova < 15)
+	return print_msg ("Star at " SECT_FMT " failed to nova.\n", x, y);
 
     print_msg ("Star at " SECT_FMT " gone nova\n", x, y);
     for (unsigned s = 0; s < cq->stars; ++s) {

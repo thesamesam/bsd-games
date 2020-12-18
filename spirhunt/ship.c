@@ -230,7 +230,7 @@ void rest (void)
     unsigned percent = 100 * t / Now.time + 0.5;
     if (percent >= 70) {
 	print_msg ("That would take %u%% of our remaining time.\n", percent);
-	if (!getynpar ("Are you really certain that is wise"))
+	if (!getynpar ("Are you sure"))
 	    return;
     }
     Move.time = t;
@@ -275,7 +275,7 @@ void plasers (void)
 	return announce_device_damage (PLASER);
     if (Ship.energy < Param.energylow + max_targets)
 	return print_msg ("Energy levels are too low to charge plaser banks\n");
-    unsigned energy = Ship.energy - Param.energylow;
+    uint16_t energy = Ship.energy - Param.energylow;
 
     // Get all targets first
     struct { uint16_t units; } bank [NBANKS] = {};
@@ -283,9 +283,9 @@ void plasers (void)
     for (; ntargets < max_targets; ++ntargets) {
 	const struct Pirate* p = &Etc.pirate[ntargets];
 	unsigned dist = sector_distance (Ship.sect, p->sect);
-	unsigned eff = plaser_effectiveness (dist);
+	uint16_t eff = plaser_effectiveness (dist)*100/128;
 	char prompt [32];
-	snprintf (ArrayBlock(prompt), "[%hu,%hu%%] %u->" SECT_FMT, energy, 100*eff/128, ntargets, p->sect.x, p->sect.y);
+	snprintf (ArrayBlock(prompt), "[%hu,%hu%%] %u->" SECT_FMT, energy, eff, ntargets, p->sect.x, p->sect.y);
 	unsigned units = getintpar (prompt);
 	if (!units || units > energy)
 	    break;

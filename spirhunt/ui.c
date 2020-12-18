@@ -206,18 +206,27 @@ static void draw_quadrant_scan (void)
     // You still see stars and know where the starbase is,
     // but the pirates become invisible past VISCAN_RANGE.
     bool havesrs = !device_damaged (SRSCAN);
+    const struct quad* q = current_quad();
 
     // Space markers for empty space
-    wattr_set (_wquadrant, A_BOLD, color_Space, NULL);
+    char sc;
+    if (q->stars == SUPERNOVA) {
+	sc = '*';
+	wattr_set (_wquadrant, A_BOLD, color_Star, NULL);
+    } else {
+	sc = '.';
+	wattr_set (_wquadrant, A_BOLD, color_Space, NULL);
+    }
     struct xy spi;
     for (spi.y = 0; spi.y < NSECTS; ++spi.y)
 	for (spi.x = 0; spi.x < NSECTS; ++spi.x)
 	    if (havesrs || VISCAN_RANGE >= sector_distance (Ship.sect, spi))
-		draw_sector_char (spi, '.');
+		draw_sector_char (spi, sc);
+
+    if (q->stars == SUPERNOVA)
+	return; // Everything is dead in a supernova
 
     // Sector contents; pirates, stars, bases, etc.
-    const struct quad* q = current_quad();
-
     wattr_set (_wquadrant, A_BOLD, color_Base, NULL);
     if (q->bases)
 	draw_sector_char (Etc.starbase, BASE);
@@ -359,7 +368,7 @@ static void draw_ship_info (void)
     const char* sysname = systemname (current_quad());
     if (sysname) {
 	wattr_set (_winfo, A_BOLD, current_quad()->distressed ? color_PanelRed : color_Panel, NULL);
-	mvwaddstr (_winfo, y++, getmaxx(_winfo)-strlen(sysname)-4, sysname);
+	mvwaddstr (_winfo, y++, 0, sysname);
     }
 
     if (device_damaged (LIFESUP)) {
@@ -390,7 +399,7 @@ void animate_plaser (struct xy from, struct xy to)
 		break;
 	    const chtype c_lc[3][9] = {
 		{'\\',ACS_VLINE,'/'},
-		{ACS_HLINE,ACS_PLUS,ACS_HLINE},
+		{ACS_HLINE,'+',ACS_HLINE},
 		{'/',ACS_VLINE,'\\'}
 	    };
 	    draw_sector_char (li.p, c_lc[li.p.y-lastp.y+1][li.p.x-lastp.x+1]);
@@ -424,11 +433,11 @@ void animate_torpedo (struct xy from, struct xy to)
 void animate_nova (struct xy nl)
 {
     draw_screen();
-    const chtype c_stage[] = { '.','*','*','#',ACS_CKBOARD };
+    const char c_stage[] = { '.','*','*','#','#','@' };
     int stage = 1, ds = 1;
     do {
 	// Nova affects neighbor sectors at stage-1
-	wattr_set (_wquadrant, A_BOLD, color_Star, NULL);
+	wattr_set (_wquadrant, ds > 0 ? A_BOLD : A_NORMAL, color_Star, NULL);
 	for (int dy = -1; dy <= 1; ++dy) {
 	    for (int dx = -1; dx <= 1; ++dx) {
 		struct xy halo = { nl.x+dx, nl.y+dy };
@@ -446,7 +455,6 @@ void animate_nova (struct xy nl)
 	if ((stage += ds) >= (int) ArraySize(c_stage)-2)
 	    ds = -1;
     } while (stage >= 0);
-    draw_screen();
 }
 
 //}}}-------------------------------------------------------------------
@@ -472,6 +480,61 @@ static void print_help (void)
 	"w: set warp factor\tD: self-destruct\n"
 	"d: dock/undock\t\tS: save and quit\n"
 	"i: damage report\tQ: quick quit\n");
+}
+
+//}}}-------------------------------------------------------------------
+//{{{ Score
+
+int print_score (void)
+{
+    print_msg ("\n*** Your score:\n");
+    int u = Game.pirates_killed;
+    int t = u * Param.piratepwr / 4;
+    int s = t;
+    if (t)
+	print_msg ("%d pirates killed\t\t\t%6d\n", u, t);
+    float r = Now.date - Param.date;
+    if (r < 1.0)
+	r = 1.0;
+    r = Game.pirates_killed / r;
+    s += (t = 400 * r);
+    if (t != 0)
+	print_msg ("Kill rate %.2f pirates/day\t\t%6d\n", r, t);
+    r = pirates_remaining();
+    r /= Game.pirates_killed + 1;
+    s += (t = -400 * r);
+    if (t != 0)
+	print_msg ("Penalty for %d pirates remaining\t%6d\n", pirates_remaining(), t);
+    if (Move.endgame) {
+	s += (t = 100 * (u = 2));
+	print_msg ("Bonus for winning the game\t\t%6d\n", t);
+    }
+    if (Game.killed) {
+	s -= 500;
+	print_msg ("Penalty for getting killed\t\t  -500\n");
+    }
+    s += (t = -100 * (u = Game.bases_killed));
+    if (t != 0)
+	print_msg ("%d starbases killed\t\t\t%6d\n", u, t);
+    s += (t = -100 * (u = Game.helps));
+    if (t != 0)
+	print_msg ("%d calls for help\t\t\t%6d\n", u, t);
+    s += (t = -5 * (u = Game.stars_killed));
+    if (t != 0)
+	print_msg ("%d stars destroyed\t\t\t%6d\n", u, t);
+    s += (t = -150 * (u = Game.killinhab));
+    if (t != 0)
+	print_msg ("%d inhabited starsystems destroyed\t%6d\n", u, t);
+    s += (t = 3 * (u = Game.captives));
+    if (t != 0)
+	print_msg ("%d pirates captured\t\t\t%6d\n", u, t);
+    s += (t = -(u = Game.deaths));
+    if (t != 0)
+	print_msg ("%d casualties\t\t\t\t%6d\n", u, t);
+    print_msg ("\n***  TOTAL\t\t\t%14d\n", s);
+    draw_screen();
+    wgetch (_wmsg);
+    return s;
 }
 
 //}}}-------------------------------------------------------------------
@@ -502,6 +565,7 @@ void main_command (void)
 	case 'Q':
 	case KEY_F(10):	myreset(); break;
 	case '?':
+	case 'h':
 	case KEY_F(1):	print_help(); break;
 	case KEY_RESIZE: create_windows(); break;
     };
@@ -554,7 +618,7 @@ float getfltpar (const char* s)
 // get yes/no parameter
 bool getynpar (const char* s)
 {
-    char buf [16];
+    char buf [8];
     getstrpar (s, ArrayBlock(buf));
     return buf[0] == 'y';
 }

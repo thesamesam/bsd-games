@@ -241,7 +241,7 @@ static void warp (int fl, struct xy to)
     unsigned percent = 100 * power / Ship.energy;
     if (percent >= 85) {
 	print_msg ("That would consume %u%% of our remaining energy.\n", percent);
-	if (!getynpar ("Are you sure that is wise"))
+	if (!getynpar ("Are you sure"))
 	    return;
     }
 
@@ -253,7 +253,7 @@ static void warp (int fl, struct xy to)
     percent = 100 * time / Now.time;
     if (percent >= 85) {
 	print_msg ("That would take %u%% of our remaining time.\n", percent);
-	if (!getynpar("Are you sure that is wise"))
+	if (!getynpar("Are you sure"))
 	    return;
     }
 
@@ -343,7 +343,7 @@ void impulse (void)
     unsigned percent = 100 * energy / Ship.energy;
     if (percent >= 85) {
 	print_msg ("That would consume %u%% of our remaining energy.\n", percent);
-	if (!getynpar("Are you sure that is wise"))
+	if (!getynpar("Are you sure"))
 	    return;
 	print_msg ("Aye aye, sir\n");
     }
@@ -352,7 +352,7 @@ void impulse (void)
     percent = 100 * time / Now.time;
     if (percent >= 85) {
 	print_msg ("That would take %d%% of our remaining time.\n", percent);
-	if (!getynpar ("Are you sure that is wise"))
+	if (!getynpar ("Are you sure"))
 	    return;
 	print_msg ("(He's finally gone mad)\n");
     }

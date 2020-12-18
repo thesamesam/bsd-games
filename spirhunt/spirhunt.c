@@ -12,6 +12,7 @@ static void play (void);
 static uint16_t sum_save_array (void);
 static bool verify_locations (void);
 static bool restore (void);
+static void save_score (int score);
 
 //}}}-------------------------------------------------------------------
 //{{{ Global variables
@@ -456,60 +457,6 @@ static bool restore (void)
 }
 
 //}}}-------------------------------------------------------------------
-//{{{ Score
-
-// PRINT OUT THE CURRENT SCORE
-static _Noreturn long score (void)
-{
-    printf ("\n*** Your score:\n");
-    int u = Game.pirates_killed;
-    int t = u * Param.piratepwr / 4;
-    long s = t;
-    if (t)
-	printf ("%d pirates killed\t\t\t%6d\n", u, t);
-    float r = Now.date - Param.date;
-    if (r < 1.0)
-	r = 1.0;
-    r = Game.pirates_killed / r;
-    s += (t = 400 * r);
-    if (t != 0)
-	printf ("Kill rate %.2f pirates/day\t\t%6d\n", r, t);
-    r = pirates_remaining();
-    r /= Game.pirates_killed + 1;
-    s += (t = -400 * r);
-    if (t != 0)
-	printf ("Penalty for %d pirates remaining\t%6d\n", pirates_remaining(), t);
-    if (Move.endgame) {
-	s += (t = 100 * (u = 2));
-	printf ("Bonus for winning the game\t\t%6d\n", t);
-    }
-    if (Game.killed) {
-	s -= 500;
-	printf ("Penalty for getting killed\t\t  -500\n");
-    }
-    s += (t = -100 * (u = Game.bases_killed));
-    if (t != 0)
-	printf ("%d starbases killed\t\t\t%6d\n", u, t);
-    s += (t = -100 * (u = Game.helps));
-    if (t != 0)
-	printf ("%d calls for help\t\t\t%6d\n", u, t);
-    s += (t = -5 * (u = Game.stars_killed));
-    if (t != 0)
-	printf ("%d stars destroyed\t\t\t%6d\n", u, t);
-    s += (t = -150 * (u = Game.killinhab));
-    if (t != 0)
-	printf ("%d inhabited starsystems destroyed\t%6d\n", u, t);
-    s += (t = 3 * (u = Game.captives));
-    if (t != 0)
-	printf ("%d pirates captured\t\t\t%6d\n", u, t);
-    s += (t = -(u = Game.deaths));
-    if (t != 0)
-	printf ("%d casualties\t\t\t\t%6d\n", u, t);
-    printf ("\n***  TOTAL\t\t\t%14ld\n", s);
-    exit (EXIT_SUCCESS);
-}
-
-//}}}-------------------------------------------------------------------
 //{{{ Win and lose
 
 // Signal game won
@@ -524,9 +471,11 @@ static _Noreturn long score (void)
 _Noreturn void win (void)
 {
     Move.endgame = 1;
+    print_msg ("\nCongratulations, you have saved the Galaxy\n");
+    int score = print_score();
     cleanup_curses();
-    printf ("Congratulations, you have saved the Galaxy\n");
-    score();	// print and return the score
+    save_score (score);
+    exit (EXIT_SUCCESS);
 }
 
 // PRINT OUT LOSER MESSAGES
@@ -552,9 +501,60 @@ _Noreturn void lose (enum LoseReason why)
 	"Well, you destroyed yourself, but it didn't do any good\0"
 	"Your last crew member died"
     };
+    print_msg ("\n%s\n", zstrn (Losemsg, why, 14));
+    int score = print_score();
     cleanup_curses();
-    printf ("%s\n", zstrn (Losemsg, why, 14));
-    score();
+    save_score (score);
+    exit (EXIT_SUCCESS);
+}
+
+//}}}-------------------------------------------------------------------
+//{{{ Scoring
+
+struct Score {
+    uint32_t	score;
+    char	name [12];
+};
+
+static int compare_scores (const void* v1, const void* v2)
+    { return sign (((const struct Score*)v2)->score - ((const struct Score*)v1)->score); }
+
+static void save_score (int score)
+{
+    struct Score scores [MAXSCORES] = {};
+    read_score_file (SPIRHUNT_SCOREFILE, SCOREFILE_MAGIC, scores, sizeof(scores));
+
+    // Check each score and zero if invalid
+    for (struct Score *s = scores, *send = &scores[ArraySize(scores)]; s < send; ++s)
+	if (!s->name[0] || s->name[sizeof(s->name)-1] || s->score > 10000000)
+	    memset (s, 0, sizeof(*s));
+    // Resort to account for the above zeroing
+    qsort (ArrayBlock(scores), sizeof(scores[0]), compare_scores);
+
+    // Make a record for this game's score
+    struct Score game_score = {};
+    game_score.score = max_i (score, 0);
+    snprintf (ArrayBlock(game_score.name), "%s", player_name());
+
+    // Add this game's score, if it is high enough
+    struct Score* lowscore = &scores[ArraySize(scores)-1];
+    if (game_score.name[0] && lowscore->score < game_score.score) {
+	*lowscore = game_score;
+	// Resort the new score
+	qsort (ArrayBlock(scores), sizeof(scores[0]), compare_scores);
+	// And write the score file
+	write_score_file (SPIRHUNT_SCOREFILE, SCOREFILE_MAGIC, scores, sizeof(scores));
+    }
+
+    // List top scores
+    if (!scores[0].score)
+	return;
+    puts ("\n-#--Name---------Score--");
+    for (unsigned i = 0; i < ArraySize(scores) && scores[i].score; ++i) {
+	if (game_score.score == scores[i].score && 0 == strcmp (game_score.name, scores[i].name))
+	    printf (BOLD_ON);
+	printf ("%2u: %-12s %5u\n" BOLD_OFF, i+1, scores[i].name, scores[i].score);
+    }
 }
 
 //}}}-------------------------------------------------------------------

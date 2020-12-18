@@ -17,19 +17,6 @@ static void update_galaxy_snapshot (void);
 //
 int events (bool in_time_warp)
 {
-    int i;
-    int j = 0;
-    struct Pirate *k;
-    float rtime;
-    float xdate;
-    float idate;
-    struct event *ev = NULL;
-    int ix, iy;
-    struct quad *q;
-    struct event *e;
-    int evnum;
-    int restcancel;
-
     // if nothing happened, just allow for any pirates killed
     if (Move.time <= 0.0) {
 	Now.time = Now.resource / pirates_remaining();
@@ -40,21 +27,23 @@ int events (bool in_time_warp)
     Ship.cloakgood = true;
 
     // idate is the initial date
-    idate = Now.date;
+    const float idate = Now.date;
 
     // schedule attacks if resting too long
     if (Move.time > 0.5 && Move.resting)
 	schedule (E_ATTACK, 0.5, 0, 0, 0);
 
     // scan the event list
-    while (1) {
-	restcancel = 0;
-	evnum = -1;
+    for (;;) {
+	bool restcancel = false;
+	int evnum = -1;
 	// xdate is the date of the current event
-	xdate = idate + Move.time;
+	float xdate = idate + Move.time;
 
 	// find the first event that has happened
-	for (i = 0; i < MAXEVENTS; ++i) {
+	struct event* e = NULL;
+	struct event* ev = NULL;
+	for (unsigned i = 0; i < MAXEVENTS; ++i) {
 	    e = &Event[i];
 	    if (e->evcode == 0 || (e->evcode & E_GHOST))
 		continue;
@@ -67,7 +56,7 @@ int events (bool in_time_warp)
 	e = ev;
 
 	// find the time between events
-	rtime = xdate - Now.date;
+	float rtime = xdate - Now.date;
 
 	// decrement the magic "Galactic Resources" pseudo-variable
 	Now.resource -= pirates_remaining() * rtime;
@@ -104,53 +93,54 @@ int events (bool in_time_warp)
 
 	    case E_PATSB:     // pirate attacks starbase
 		// if out of bases, forget it
-		if (Now.bases <= 0) {
+		if (Now.bases <= 0)
 		    unschedule (e);
-		    break;
-		}
-
-		// check for starbase and pirates in same quadrant
-		for (i = 0; i < Now.bases; ++i) {
-		    ix = Now.base[i].x;
-		    iy = Now.base[i].y;
-		    // see if a pirate exists in this quadrant
-		    q = &Quad[iy][ix];
-		    if (q->pirates <= 0)
-			continue;
-
-		    // see if already distressed
-		    for (j = 0; j < MAXEVENTS; ++j) {
-			e = &Event[j];
-			if ((e->evcode & E_EVENT) != E_PDESB)
+		else {
+		    // check for starbase and pirates in same quadrant
+		    unsigned attacked_base = 0;
+		    for (; attacked_base < Now.bases; ++attacked_base) {
+			const struct xy* pbl = &Now.base[attacked_base];
+			// see if a pirate exists in this quadrant
+			const struct quad* q = &Quad[pbl->y][pbl->x];
+			if (q->pirates <= 0)
 			    continue;
-			if (e->quad.x == ix && e->quad.y == iy)
-			    break;
+
+			// see if already distressed
+			unsigned j = 0;
+			for (; j < MAXEVENTS; ++j) {
+			    const struct event* de = &Event[j];
+			    if ((de->evcode & E_EVENT) != E_PDESB)
+				continue;
+			    if (de->quad.x == pbl->x && de->quad.y == pbl->y)
+				break;
+			}
+			if (j < MAXEVENTS)
+			    continue;
+
+			// got a potential attack
+			break;
 		    }
-		    if (j < MAXEVENTS)
-			continue;
+		    e = ev;
+		    if (attacked_base >= Now.bases) {
+			// not now; wait a while and see if some pirates move in
+			reschedule (e, 3*fnrand());
+			break;
+		    }
+		    // schedule a new attack, and a destruction of the base
+		    xresched (e, E_PATSB, 1);
+		    e = xsched (E_PDESB, 1, Now.base[attacked_base].x, Now.base[attacked_base].y, 0);
+		    if (!e)
+			break;
 
-		    // got a potential attack
-		    break;
+		    // report it if we can
+		    if (!device_damaged (SSRADIO)) {
+			print_msg ("\nCaptain, we have received a distress signal\n"
+				    "  from the starbase in quadrant " QUAD_FMT ".\n",
+				    Now.base[attacked_base].x, Now.base[attacked_base].y);
+			restcancel = true;
+		    } else // SSRADIO out, make it so we can't see the distress call
+			e->evcode |= E_HIDDEN;
 		}
-		e = ev;
-		if (i >= Now.bases) {
-		    // not now; wait a while and see if some pirates move in
-		    reschedule (e, 3*fnrand());
-		    break;
-		}
-		// schedule a new attack, and a destruction of the base
-		xresched (e, E_PATSB, 1);
-		e = xsched (E_PDESB, 1, ix, iy, 0);
-		if (!e)
-		    break;
-
-		// report it if we can
-		if (!device_damaged (SSRADIO)) {
-		    print_msg ("\nCaptain, we have received a distress signal\n");
-		    print_msg ("  from the starbase in quadrant " QUAD_FMT ".\n", ix, iy);
-		    ++restcancel;
-		} else // SSRADIO out, make it so we can't see the distress call
-		    e->evcode |= E_HIDDEN;
 		break;
 
 	    case E_PDESB:     // pirate destroys starbase
@@ -165,33 +155,30 @@ int events (bool in_time_warp)
 	    case E_ISSUE:     // issue a distress call
 		xresched (e, E_ISSUE, 1);
 		// try a whole bunch of times to find something suitable
-		for (i = 0; i < 100; ++i) {
-		    ix = nrand(NQUADS);
-		    iy = nrand(NQUADS);
-		    q = &Quad[iy][ix];
+		for (unsigned i = 0; i < NQUADS*NQUADS; ++i) {
+		    uint8_t ix = nrand(NQUADS);
+		    uint8_t iy = nrand(NQUADS);
+		    struct quad* q = &Quad[iy][ix];
 		    // need a quadrant which is not the current one,
 		    // which has some stars which are inhabited and
 		    // not already under attack, which is not
 		    // supernova'ed, and which has some pirates in it
-		    if (!((ix == Ship.quad.x && iy == Ship.quad.y) || q->stars == SUPERNOVA || q->distressed || !q->systemname || !q->pirates))
-			break;
+		    if (ix != Ship.quad.x && iy != Ship.quad.y && q->stars != SUPERNOVA && !q->distressed && q->systemname && q->pirates) {
+			// got one!!  Schedule its enslavement
+			e = xsched (E_ENSLV, 1, ix, iy, q->systemname);
+			if (!e)
+			    break;
+			q->distressed = true;
+			++Ship.distressed;
+
+			// tell the captain about it if we can
+			if (!device_damaged (SSRADIO)) {
+			    print_msg ("\nCaptain, starsystem %s in quadrant " QUAD_FMT " is under attack\n", Systemname[e->systemname], ix, iy);
+			    restcancel = true;
+			} else
+			    e->evcode |= E_HIDDEN;
+		    }
 		}
-		if (i >= 100) // can't seem to find one; ignore this call
-		    break;
-
-		// got one!!  Schedule its enslavement
-		e = xsched (E_ENSLV, 1, ix, iy, q->systemname);
-		if (!e)
-		    break;
-		q->distressed = true;
-		++Ship.distressed;
-
-		// tell the captain about it if we can
-		if (!device_damaged (SSRADIO)) {
-		    print_msg ("\nCaptain, starsystem %s in quadrant " QUAD_FMT " is under attack\n", Systemname[e->systemname], ix, iy);
-		    ++restcancel;
-		} else
-		    e->evcode |= E_HIDDEN;
 		break;
 
 	    case E_ENSLV:     // starsystem is enslaved
@@ -210,21 +197,22 @@ int events (bool in_time_warp)
 		}
 		break;
 
-	    case E_REPRO:     // pirate reproduces
+	    case E_REPRO: { // pirate reproduces
 		// see if distress call is still active
-		q = &Quad[e->quad.y][e->quad.x];
+		struct quad* q = &Quad[e->quad.y][e->quad.x];
 		if (q->pirates <= 0) {
 		    unschedule (e);
 		    break;
 		}
 		xresched (e, E_REPRO, 1);
 		// reproduce one pirate
-		ix = e->quad.x;
-		iy = e->quad.y;
+		uint8_t ix = e->quad.x;
+		uint8_t iy = e->quad.y;
 		if (pirates_remaining() == INT8_MAX)
 		    break;     // full right now
 		if (q->pirates >= QUAD_PIRATES) {
 		    // this quadrant not ok, pick an adjacent one
+		    int i, j = 0;
 		    for (i = iy - 1; i <= iy + 1; ++i) {
 			if (i < 0 || i >= NQUADS)
 			    continue;
@@ -248,16 +236,15 @@ int events (bool in_time_warp)
 		// deliver the child
 		++q->pirates;
 		if (ix == Ship.quad.x && iy == Ship.quad.y) {
-		    // we must position pirate
-		    k = &Etc.pirate[q->pirates-1];
-		    k->sect = random_empty_sector();
-		    k->power = Param.piratepwr;
+		    struct Pirate* p = &Etc.pirate[q->pirates-1];
+		    p->sect = random_empty_sector();
+		    p->power = Param.piratepwr;
 		    sort_pirates();
 		}
 
 		// recompute time left
 		Now.time = Now.resource / pirates_remaining();
-		break;
+		} break;
 
 	    case E_SNAP:      // take a snapshot of the galaxy
 		xresched (e, E_SNAP, 1);
@@ -281,12 +268,12 @@ int events (bool in_time_warp)
 		unschedule (e);
 		break;
 	}
-	if (restcancel && Move.resting && getynpar("Shall we cancel our rest period"))
+	if (restcancel && Move.resting)
 	    Move.time = xdate - idate;
     }
 
     // unschedule an attack during a rest period
-    while ((e = next_event_of_type (E_ATTACK)) != NULL)
+    for (struct event* e; (e = next_event_of_type (E_ATTACK));)
 	unschedule (e);
 
     if (!in_time_warp) {
@@ -295,7 +282,7 @@ int events (bool in_time_warp)
 	    Ship.energy -= Param.cloakenergy * Move.time;
 
 	// regenerate resources
-	rtime = Move.time / 5.f;
+	float rtime = Move.time / 5.f;
 	Ship.shield += (Param.shield - Ship.shield) * rtime;
 	Ship.energy += (Param.energy - Ship.energy) * rtime;
 

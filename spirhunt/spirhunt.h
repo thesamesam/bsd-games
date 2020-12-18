@@ -154,6 +154,10 @@ extern struct Ship_struct Ship;
 
 #define SPIRHUNT_SAVE_NAME	"spirhunt"
 
+#define	SPIRHUNT_SCOREFILE	_PATH_GAME_STATE "spirhunt.scores"
+#define SCOREFILE_MAGIC		"spirhu"
+enum { MAXSCORES = 10 };
+
 struct Game_struct {
     uint16_t	pirates_killed;	// number of pirates killed
     uint16_t	deaths;		// number of deaths onboard your ship
@@ -347,6 +351,7 @@ void animate_plaser (struct xy from, struct xy to);
 void animate_torpedo (struct xy from, struct xy to);
 void animate_nova (struct xy nl);
 void print_msg (const char* msg, ...) PRINTFLIKE(1,2);
+int print_score (void);
 void main_command (void);
 int getintpar (const char *s);
 float getfltpar (const char *s);

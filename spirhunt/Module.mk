@@ -44,6 +44,15 @@ spirhunt/uninstall:
 	fi
 endif
 
+ifdef scored
+spirhunt/scorei:= ${scored}/spirhunt.scores
+${spirhunt/scorei}:	| ${scored}
+	@echo "Creating initial score file $@ ..."
+	@${INSTALL_SCORE} $@
+
+spirhunt/install:	${spirhunt/scorei}
+endif
+
 ifdef mand
 spirhunt/mani	:= $(addprefix ${mand}/,$(notdir ${spirhunt/manz}))
 
