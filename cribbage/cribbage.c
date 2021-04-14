@@ -649,9 +649,9 @@ static bool run_play (void)
 	if (!n_playable_cards(&_p[HUMAN].hand) && !n_playable_cards(&_p[COMPUTER].hand))
 	    score_last_played_card();
 	unsigned sc = (turn == HUMAN ? select_card() : computer_select_play());
-	card_t c = _p[turn].hand.c[sc];
 	print_msg ("%s say ", player_pronoun(turn));
-	if (sc < _p[turn].hand.sz && _count + card_value(c) <= 31) {
+	if (sc < _p[turn].hand.sz && _count + card_value(_p[turn].hand.c[sc]) <= 31) {
+	    card_t c = _p[turn].hand.c[sc];
 	    move_card (&_p[turn].hand, sc, &_p[turn].table);
 	    unsigned pts = score_play (c, true);
 	    _count += card_value (c);
