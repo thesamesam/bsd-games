@@ -601,11 +601,13 @@ static unsigned computer_select_play (void)
 {
     if (!_p[COMPUTER].hand.sz || !n_playable_cards(&_p[COMPUTER].hand))
 	return _p[COMPUTER].hand.sz;
+
     // Check the score obtained from playing each card
     int psc [PLAYHAND] = {0};
     for (unsigned i = 0; i < _p[COMPUTER].hand.sz; ++i)
 	if (_count + _p[COMPUTER].hand.c[i] <= 31)
 	    psc[i] = score_play (_p[COMPUTER].hand.c[i], false)+1;
+
     // Select the best play based on score
     unsigned best = 0;
     for (unsigned i = 1; i < _p[COMPUTER].hand.sz; ++i)
@@ -647,9 +649,9 @@ static bool run_play (void)
 	if (!n_playable_cards(&_p[HUMAN].hand) && !n_playable_cards(&_p[COMPUTER].hand))
 	    score_last_played_card();
 	unsigned sc = (turn == HUMAN ? select_card() : computer_select_play());
+	card_t c = _p[turn].hand.c[sc];
 	print_msg ("%s say ", player_pronoun(turn));
-	if (sc < _p[turn].hand.sz) {
-	    card_t c = _p[turn].hand.c[sc];
+	if (sc < _p[turn].hand.sz && _count + card_value(c) <= 31) {
 	    move_card (&_p[turn].hand, sc, &_p[turn].table);
 	    unsigned pts = score_play (c, true);
 	    _count += card_value (c);
