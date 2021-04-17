@@ -599,21 +599,48 @@ static void computer_discard (void)
 
 static unsigned computer_select_play (void)
 {
-    if (!_p[COMPUTER].hand.sz || !n_playable_cards(&_p[COMPUTER].hand))
+    // Check the score obtained from playing each card
+    unsigned psc [PLAYHAND] = {0}, best [PLAYHAND] = {0}, nbest = 0;
+    for (unsigned i = 0; i < _p[COMPUTER].hand.sz; ++i) {
+	if (_count + card_value (_p[COMPUTER].hand.c[i]) > 31)
+	    continue; // keep at 0, unplayable
+	psc[i] = score_play (_p[COMPUTER].hand.c[i], false)+1;
+
+	// Accumulate best score indexes
+	if (psc[i] >= psc[best[nbest]]) {
+	    if (psc[i] > psc[best[nbest]])
+		nbest = 0;
+	    best[nbest++] = i;
+	}
+    }
+
+    // Check if there are no playable cards
+    if (!nbest || best[0] >= _p[COMPUTER].hand.sz || !psc[best[0]])
 	return _p[COMPUTER].hand.sz;
 
-    // Check the score obtained from playing each card
-    int psc [PLAYHAND] = {0};
-    for (unsigned i = 0; i < _p[COMPUTER].hand.sz; ++i)
-	if (_count + _p[COMPUTER].hand.c[i] <= 31)
-	    psc[i] = score_play (_p[COMPUTER].hand.c[i], false)+1;
+    if (nbest > 1) {
+	// Due to large number of 10-value cards it is desirable
+	// to avoid playing counts 10 less than a scoring value.
+	uint8_t counts [PLAYHAND], nbad = 0;
+	bool badchoice [PLAYHAND] = { false };
+	for (unsigned i = 0; i < nbest; ++i) {
+	    counts[i] = _count + card_value (_p[COMPUTER].hand.c[best[i]]);
+	    if (counts[i] == 5 || counts[i] == 20 || counts[i] == 21) {
+		badchoice[i] = true;
+		++nbad;
+	    }
+	}
+	if (nbad < nbest) {
+	    unsigned* d = &best[0];
+	    for (unsigned i = 0; i < nbest; ++i)
+		if (!badchoice[i])
+		    *d++ = best[i];
+	    nbest -= nbad;
+	}
+    }
 
-    // Select the best play based on score
-    unsigned best = 0;
-    for (unsigned i = 1; i < _p[COMPUTER].hand.sz; ++i)
-	if (psc[i] > psc[best] || (psc[i] == psc[best] && nrand(2)))
-	    best = i;
-    return best;
+    // Randomly choose a remaining card
+    return best [nrand(nbest)];
 }
 
 //}}}-------------------------------------------------------------------
