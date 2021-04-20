@@ -30,6 +30,7 @@ If you find bugs, report them on the github
 This package contains the following games:
 
 * adventure:	the original adventure by Crowther and Woods
+* arithmetic:	asks you to do simple calculations
 * atc:		air traffic control simulator
 * battlestar:	a tropical adventure
 * caesar:	performs rotated-alphabet cryptography (like rot13)
@@ -52,9 +53,9 @@ This package contains the following games:
 Many programs that were in the original 2.17 distribution were removed
 to focus on providing playable games, rather than a rusty junk pile.
 boggle, mille, and monop were infringing on Hasbro copyrights. hunt,
-dm, and phantasia were unplayable on single-user systems. arithmetic,
-quiz, wtf, rain, worms, bcd, ppt, morse, number, pig, pom, random, and
-wargames, were just plain junk and would likely be missed by no one.
+dm, and phantasia were unplayable on single-user systems. rain and
+worms were text-mode screensavers, of no use today. quiz, wtf, bcd, ppt,
+morse, number, pig, pom, random, and wargames, were just plain junk.
 The following programs were removed because they are already maintained
 elsewhere as seprate projects.
 

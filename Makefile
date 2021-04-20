@@ -89,6 +89,7 @@ ${confs}:	configure
 
 include common/Module.mk
 include adventure/Module.mk
+include arithmetic/Module.mk
 include atc/Module.mk
 include battlestar/Module.mk
 include caesar/Module.mk
