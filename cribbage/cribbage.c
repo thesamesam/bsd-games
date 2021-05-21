@@ -336,7 +336,7 @@ static unsigned score_play (card_t lastCard, bool printMessage)
     if (cnt > 31)
 	return 0;
     unsigned score = 0;
-    if (!(cnt%15))
+    if (cnt == 15)
 	score += 2;
     else if (cnt == 31)
 	++score;
@@ -625,7 +625,7 @@ static unsigned computer_select_play (void)
 	bool badchoice [PLAYHAND] = { false };
 	for (unsigned i = 0; i < nbest; ++i) {
 	    counts[i] = _count + card_value (_p[COMPUTER].hand.c[best[i]]);
-	    if (counts[i] == 5 || counts[i] == 20 || counts[i] == 21) {
+	    if (counts[i] == 5 || counts[i] == 21) {
 		badchoice[i] = true;
 		++nbad;
 	    }
