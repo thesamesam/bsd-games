@@ -13,9 +13,6 @@
 // Path to runtime game state, such as scorefiles
 #define _PATH_GAME_STATE	"@localstatedir@/@pkg_name@/"
 
-// Path to saved game files, in user's home directory
-#define _PATH_SAVED_GAMES	"%s/.local/share/"
-
 // Path to the system dictionary
 #define _PATH_WORDLIST		"@wordlist@"
 
