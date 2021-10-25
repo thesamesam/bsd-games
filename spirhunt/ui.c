@@ -359,8 +359,11 @@ static void draw_ship_info (void)
 
     wattr_set (_winfo, A_NORMAL, color_Panel, NULL);
     mvwprintw (_winfo, y++, 0, "Torpedoes          %2u", Ship.torped);
-    mvwprintw (_winfo, y++, 0, "Pirates left       %2u", pirates_remaining());
-    mvwprintw (_winfo, y++, 0, "Time left       %2.2f", Now.time);
+    unsigned npirates = pirates_remaining();
+    if (npirates) {
+	mvwprintw (_winfo, y++, 0, "Pirates left       %2u", npirates);
+	mvwprintw (_winfo, y++, 0, "Time left       %2.2f", Now.time);
+    }
     mvwprintw (_winfo, y++, 0, "Date          %4.2f", Now.date);
     mvwprintw (_winfo, y++, 0, "Position        " FULLCOORD_FMT "", Ship.quad.x, Ship.quad.y, Ship.sect.x, Ship.sect.y);
 
