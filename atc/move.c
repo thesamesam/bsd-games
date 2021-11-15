@@ -36,13 +36,25 @@ void update_planes (void)
 	pp->altitude += sign (pp->new_altitude - pp->altitude);
 
 	if (!pp->delayd) {
-	    int dir_diff = (pp->new_dir - pp->dir) % MAXDIR;
+	    int dir_diff = pp->new_dir - pp->dir;
+	    // Allow for circle commands
+	    if (pp->new_dir >= 0 && pp->new_dir < MAXDIR) {
+		if (dir_diff > MAXDIR/2)
+		    dir_diff -= MAXDIR;
+		else if (dir_diff < -(MAXDIR/2))
+		    dir_diff += MAXDIR;
+	    }
 	    if (dir_diff > 2)
 		dir_diff = 2;
 	    else if (dir_diff < -2)
 		dir_diff = -2;
-	    pp->dir = (pp->dir + dir_diff) % MAXDIR;
+	    pp->dir += dir_diff;
+	    if (pp->dir >= MAXDIR)
+		pp->dir -= MAXDIR;
+	    else if (pp->dir < 0)
+		pp->dir += MAXDIR;
 	}
+
 	pp->xpos += _displacement[pp->dir].dx;
 	pp->ypos += _displacement[pp->dir].dy;
 
