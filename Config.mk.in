@@ -7,7 +7,7 @@ AR		:= @AR@
 RANLIB		:= @RANLIB@
 INSTALL		:= @INSTALL@
 INSTALL_DATA	:= ${INSTALL} -m 644
-INSTALL_PROGRAM	:= ${INSTALL} -m 755 -s
+INSTALL_PROGRAM	:= ${INSTALL} -m 755
 INSTALL_SCORE	:= ${INSTALL} -m 664 -g users /dev/null
 
 ################ Destination #########################################
