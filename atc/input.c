@@ -131,6 +131,7 @@ static const char* cmd_ignore(void);
 static const struct Rule
 _state0[] = {	{ ALPHATOKEN,	1,	HF_SETPLANE,	"%c:"		},
 		{ 'Q',		0,	HF_QUIT,	"quit"		},
+		{ ' ',		-1,	HF_NONE,	""		},
 		{ '\n',		-1,	HF_NONE,	""		},
 		{ HELPTOKEN,	12,	HF_NONE,	" [a-z]Q\\n"	}},
 _state1[] = {	{ 't',		2,	HF_TURN,	" turn"		},
