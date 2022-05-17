@@ -170,12 +170,11 @@ if [ -n "$pkgconfig" ] && [ -x "$pkgconfig" ]; then
     for i in $pkgs; do
 	$($pkgconfig --exists $i) || faildeps="$i $faildeps"
     done
-    if [ -n "$faildeps" ]; then
-	echo "Error: missing required packages: $faildeps"; die
+    if [ -z "$faildeps" ]; then
+	pkg_cflags=$(escpath $($pkgconfig --cflags $pkgs))
+	pkg_libs=$(escpath $($pkgconfig --libs-only-l $pkgs))
+	pkg_ldflags=$(escpath $($pkgconfig --libs-only-L --libs-only-other $pkgs))
     fi
-    pkg_cflags=$(escpath $($pkgconfig --cflags $pkgs))
-    pkg_libs=$(escpath $($pkgconfig --libs-only-l $pkgs))
-    pkg_ldflags=$(escpath $($pkgconfig --libs-only-L --libs-only-other $pkgs))
 fi
 sub "s/@pkg_cflags@/$pkg_cflags/"
 sub "s/@pkg_libs@/$pkg_libs/"
